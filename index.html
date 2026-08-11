@@ -1,1 +1,173 @@
-<h1>Hello world</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>acedward @ mnf</title>
+  <style>
+    :root {
+      --bg: #fbfbfa;
+      --fg: #1a1a1a;
+      --muted: #6b6b6b;
+      --line: #e6e6e3;
+      --card: #ffffff;
+      --accent: #3b5bdb;
+      --tag-bg: #f0f0ee;
+      --tag-fg: #4a4a4a;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f10;
+        --fg: #e8e8e6;
+        --muted: #9a9a97;
+        --line: #262628;
+        --card: #171718;
+        --accent: #8aa0ff;
+        --tag-bg: #232325;
+        --tag-fg: #c2c2bf;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 20px 96px;
+    }
+
+    header { margin-bottom: 40px; }
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .project { margin-top: 44px; }
+    .project > h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .project > .brief {
+      margin: 6px 0 18px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .row {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .row h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .row h3 a { color: var(--fg); text-decoration: none; }
+    .row h3 a:hover { color: var(--accent); text-decoration: underline; }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 0 0 10px;
+    }
+    .tag {
+      font-size: 12px;
+      line-height: 1;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: var(--tag-bg);
+      color: var(--tag-fg);
+      font-weight: 500;
+    }
+
+    .row .brief {
+      margin: 0 0 12px;
+      color: var(--fg);
+      font-size: 14.5px;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13.5px;
+    }
+    .links a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .links a:hover { text-decoration: underline; }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    footer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>acedward @ mnf</h1>
+      <p>Briefs and links for the projects we're working on — and have worked on.</p>
+    </header>
+
+    <!-- ===== Project: Umbra Indexer ===== -->
+    <section class="project">
+      <h2>Umbra Indexer</h2>
+      <p class="brief">Indexing work on UmbraDB — experiments with how data is read and served.</p>
+
+      <div class="row">
+        <h3>
+          <a href="https://github.com/acedward/UmbraDB/pull/1">
+            Read from the node instead of the indexer
+          </a>
+        </h3>
+        <div class="tags">
+          <span class="tag">poc</span>
+          <span class="tag">indexer</span>
+          <span class="tag">node</span>
+        </div>
+        <p class="brief">
+          Reads data directly from the node instead of going through the indexer.
+          Not merged — this implementation was a proof of concept.
+        </p>
+        <div class="links">
+          <a href="https://github.com/acedward/UmbraDB/pull/1">PR #1</a>
+          <a href="https://github.com/acedward/UmbraDB">Repo</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
+    </footer>
+  </div>
+</body>
+</html>
