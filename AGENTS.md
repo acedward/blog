@@ -7,6 +7,7 @@ working on (and have worked on).
 - **Published from:** the `main` branch of this repo, via GitHub Pages.
 - **Source:** a single `index.html` (plain HTML + inline CSS, no build step).
 - **Workflow:** no branches. Commit directly to `main`. Every push to `main` publishes.
+- **Last updated:** the page must show a "last updated" timestamp. Update it whenever the content changes.
 
 ## Style
 
@@ -34,6 +35,7 @@ and can include:
 - Put the row under the **correct project**. If the project doesn't exist yet,
   add a new project section with its own brief.
 - Keep briefs short. A brief may just explain status (e.g., "not merged, POC").
+- Update the "last updated" timestamp on the page.
 - Commit to `main`; it publishes automatically.
 
 ## Example
