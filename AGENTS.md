@@ -3,8 +3,8 @@
 A single-page site that maintains briefs and links for the projects we are
 working on (and have worked on).
 
-- **Live:** https://acedward.github.io/blog/
-- **Published from:** the `main` branch of this repo, via GitHub Pages.
+- **Live:** https://blog.zkdojo.com/
+- **Published from:** the `main` branch of this repo, via GitHub Pages (custom domain set in `CNAME`).
 - **Source:** a single `index.html` (plain HTML + inline CSS, no build step).
 - **Workflow:** no branches. Commit directly to `main`. Every push to `main` publishes.
 - **Last updated:** the page must show a "last updated" timestamp. Update it whenever the content changes.
