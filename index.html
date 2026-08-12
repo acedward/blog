@@ -39,9 +39,9 @@
       -webkit-font-smoothing: antialiased;
     }
     .wrap {
-      max-width: 760px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 56px 20px 96px;
+      padding: 48px 24px 80px;
     }
 
     header { margin-bottom: 40px; }
@@ -57,7 +57,7 @@
       font-size: 15px;
     }
 
-    .project { margin-top: 44px; }
+    .project { margin-top: 36px; }
     .project > h2 {
       margin: 0;
       font-size: 20px;
@@ -67,7 +67,7 @@
       gap: 10px;
     }
     .project > .brief {
-      margin: 6px 0 18px;
+      margin: 4px 0 12px;
       color: var(--muted);
       font-size: 15px;
     }
@@ -75,52 +75,70 @@
     .row {
       background: var(--card);
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 16px 18px;
-      margin-bottom: 12px;
+      border-radius: 8px;
+      padding: 9px 14px;
+      margin-bottom: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 12px;
+      row-gap: 4px;
     }
     .row h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
+      order: 1;
+      margin: 0;
+      font-size: 15px;
       font-weight: 600;
-      line-height: 1.4;
+      line-height: 1.35;
     }
     .row h3 a { color: var(--fg); text-decoration: none; }
     .row h3 a:hover { color: var(--accent); text-decoration: underline; }
 
     .tags {
+      order: 2;
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin: 0 0 10px;
+      gap: 5px;
+      margin: 0;
     }
     .tag {
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1;
-      padding: 5px 8px;
-      border-radius: 6px;
+      padding: 3px 6px;
+      border-radius: 5px;
       background: var(--tag-bg);
       color: var(--tag-fg);
       font-weight: 500;
+      white-space: nowrap;
     }
 
     .row .brief {
-      margin: 0 0 12px;
-      color: var(--fg);
-      font-size: 14.5px;
+      order: 4;
+      flex-basis: 100%;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.45;
     }
 
     .links {
+      order: 3;
+      margin-left: auto;
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
-      font-size: 13.5px;
+      gap: 12px;
+      font-size: 13px;
+      white-space: nowrap;
     }
     .links a {
       color: var(--accent);
       text-decoration: none;
     }
     .links a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      .links { margin-left: 0; }
+    }
 
     footer {
       margin-top: 64px;
