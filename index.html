@@ -11,10 +11,8 @@
       --fg: #1a1a1a;
       --muted: #6b6b6b;
       --line: #e6e6e3;
-      --card: #ffffff;
       --accent: #3b5bdb;
-      --tag-bg: #f0f0ee;
-      --tag-fg: #4a4a4a;
+      --title-bg: #eeeeea;
     }
     @media (prefers-color-scheme: dark) {
       :root {
@@ -22,10 +20,8 @@
         --fg: #e8e8e6;
         --muted: #9a9a97;
         --line: #262628;
-        --card: #171718;
         --accent: #8aa0ff;
-        --tag-bg: #232325;
-        --tag-fg: #c2c2bf;
+        --title-bg: #1e1e21;
       }
     }
 
@@ -35,117 +31,155 @@
       margin: 0;
       background: var(--bg);
       color: var(--fg);
-      font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     .wrap {
-      max-width: 1080px;
+      max-width: 1000px;
       margin: 0 auto;
-      padding: 48px 24px 80px;
+      padding: 56px 24px 96px;
     }
 
-    header { margin-bottom: 40px; }
+    .layout {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 56px;
+      align-items: start;
+    }
+    main { min-width: 0; }
+
+    nav.toc {
+      position: sticky;
+      top: 40px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    nav.toc ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-left: 1px solid var(--line);
+    }
+    nav.toc li { margin: 0; }
+    nav.toc a {
+      display: block;
+      padding: 5px 0 5px 14px;
+      margin-left: -1px;
+      border-left: 1px solid transparent;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    nav.toc a:hover { color: var(--fg); }
+    nav.toc a.active {
+      color: var(--fg);
+      border-left-color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 780px) {
+      .layout { grid-template-columns: 1fr; gap: 8px; }
+      nav.toc { position: static; margin-bottom: 24px; }
+      nav.toc ol {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 14px;
+        border-left: 0;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+      }
+      nav.toc a { padding: 2px 0; border-left: 0; margin-left: 0; }
+      nav.toc a.active { border-left: 0; }
+    }
+
+    header { margin-bottom: 8px; }
     header h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 30px;
       letter-spacing: -0.02em;
       font-weight: 700;
     }
     header p {
-      margin: 6px 0 0;
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 15px;
+      font-size: 16px;
     }
 
-    .project { margin-top: 36px; }
-    .project > h2 {
-      margin: 0;
-      font-size: 20px;
+    .project {
+      scroll-margin-top: 24px;
+      margin-top: 52px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+    .project:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    .project h2 {
+      margin: 0 0 16px -12px;
+      padding: 7px 12px;
+      background: var(--title-bg);
+      border-radius: 6px;
+      font-size: 22px;
       letter-spacing: -0.01em;
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
+      font-weight: 700;
     }
-    .project > .brief {
-      margin: 4px 0 12px;
-      color: var(--muted);
-      font-size: 15px;
+    .project p {
+      margin: 0 0 14px;
     }
-
-    .row {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 9px 14px;
-      margin-bottom: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      column-gap: 12px;
-      row-gap: 4px;
-    }
-    .row h3 {
-      order: 1;
-      margin: 0;
-      font-size: 15px;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-    .row h3 a { color: var(--fg); text-decoration: none; }
-    .row h3 a:hover { color: var(--accent); text-decoration: underline; }
-
-    .tags {
-      order: 2;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin: 0;
-    }
-    .tag {
-      font-size: 11px;
-      line-height: 1;
-      padding: 3px 6px;
-      border-radius: 5px;
-      background: var(--tag-bg);
-      color: var(--tag-fg);
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .row .brief {
-      order: 4;
-      flex-basis: 100%;
-      margin: 0;
-      color: var(--muted);
+    p.deps {
+      margin: -4px 0 16px;
       font-size: 13.5px;
-      line-height: 1.45;
+      color: var(--muted);
+    }
+    p.deps a { color: var(--accent); text-decoration: none; }
+    p.deps a:hover { text-decoration: underline; }
+    .dep-label { text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; }
+    .project p:last-of-type { margin-bottom: 22px; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--line);
+      padding: 1px 4px;
+      border-radius: 4px;
     }
 
-    .links {
-      order: 3;
-      margin-left: auto;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      font-size: 13px;
-      white-space: nowrap;
+    ul.work {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--line);
     }
-    .links a {
-      color: var(--accent);
+    ul.work li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    ul.work .title {
+      font-weight: 600;
+      color: var(--fg);
       text-decoration: none;
     }
-    .links a:hover { text-decoration: underline; }
-
-    @media (max-width: 640px) {
-      .links { margin-left: 0; }
+    a.title:hover { color: var(--accent); text-decoration: underline; }
+    ul.work .note {
+      color: var(--muted);
     }
+    ul.work .links {
+      display: inline;
+      white-space: nowrap;
+    }
+    ul.work .links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    ul.work .links a:hover { text-decoration: underline; }
+    .sep { color: var(--muted); }
 
     footer {
-      margin-top: 64px;
+      margin-top: 72px;
       padding-top: 20px;
       border-top: 1px solid var(--line);
       color: var(--muted);
-      font-size: 13px;
+      font-size: 14px;
     }
     footer a { color: var(--muted); }
   </style>
@@ -154,538 +188,436 @@
   <div class="wrap">
     <header>
       <h1>acedward @ mnf</h1>
-      <p>Briefs and links for the projects we're working on, and have worked on.</p>
+      <p>What we're building, why, and where the code lives.</p>
     </header>
 
+    <div class="layout">
+      <nav class="toc">
+        <ol>
+          <li><a href="#offer-files">Offer Files</a></li>
+          <li><a href="#umbra-indexer">Umbra Indexer</a></li>
+          <li><a href="#midnight-evm">Midnight &lt;&gt; EVM</a></li>
+          <li><a href="#effectstream-improvements">Effectstream Improvements</a></li>
+          <li><a href="#umbra-effectstream">Umbra + Effectstream</a></li>
+          <li><a href="#utxo-pinning">UTXO Pinning</a></li>
+          <li><a href="#proved-messages">Proved Messages in ZSwaps</a></li>
+          <li><a href="#intent-solver">Intent Solver COW</a></li>
+          <li><a href="#wasm">Compile &amp; Deploy (WASM)</a></li>
+          <li><a href="#nix-nax">Nix-Nax</a></li>
+          <li><a href="#other">Other Small Projects</a></li>
+        </ol>
+      </nav>
+      <main>
+
+    <!-- ===== Project: Offer Files ===== -->
+    <section class="project" id="offer-files">
+      <h2>Offer Files</h2>
+      <p class="deps"><span class="dep-label">Depends on</span> <a href="#effectstream-improvements">Effectstream Improvements</a>, <a href="#utxo-pinning">UTXO Pinning</a>, <a href="#proved-messages">Proved Messages in ZSwaps</a> <span class="sep">·</span> <span class="dep-label">Needed by</span> <a href="#intent-solver">Intent Solver COW</a></p>
+      <p>
+        A DEX built on offer files: instead of orders living in a contract, they're
+        published as files to a shared Celestia DA namespace, where anyone can read them
+        and try to match them. The node implementation is the Effectstream kernel.
+      </p>
+      <p>
+        This needs two things to exist together: the code and the spec. So alongside the
+        kernel, there are two Midnight improvement proposals, one that
+        generalizes offer files to full proven transactions, and one that defines the
+        shared DA namespace they get published to. Both are implemented and both need
+        revision.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/effectstream/zswap-offerfiles-kernel">core: zswap-offerfiles-kernel</a><span class="note">, Effectstream node implementation for a Midnight offer-files DEX through Celestia DA.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/zswap-offerfiles-kernel">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/mip-zswap-offer">mip-zswap-offer: MIP implementation</a><span class="note">, serialize, deserialize and validate zswap offers according to the proposed MIP specs.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/mip-zswap-offer">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/227">MIP-0005: Generalize offer files to full proven transactions</a><span class="note">, implemented, needs revision. Open.</span>
+          <span class="links">
+            <a href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/227">PR #227</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/midnightntwrk/midnight-improvement-proposals">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/228">MIP-0006: Publish swap offers to a shared DA namespace</a><span class="note">, implemented, needs revision. Open.</span>
+          <span class="links">
+            <a href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/228">PR #228</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/midnightntwrk/midnight-improvement-proposals">Repo</a>
+          </span>
+        </li>
+      </ul>
+    </section>
+
     <!-- ===== Project: Umbra Indexer ===== -->
-    <section class="project">
+    <section class="project" id="umbra-indexer">
       <h2>Umbra Indexer</h2>
-      <p class="brief">Indexing work on UmbraDB: experiments with how data is read and served.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/UmbraDB/pull/1">
-            Read from the node instead of the indexer
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">poc</span>
-          <span class="tag">indexer</span>
-          <span class="tag">node</span>
-        </div>
-        <p class="brief">
-          Reads data directly from the node instead of going through the indexer.
-          Not merged; this implementation was a proof of concept.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/UmbraDB/pull/1">PR #1</a>
-          <a href="https://github.com/acedward/UmbraDB">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/UmbraDB/pull/2">
-            Update Umbra + Midnight 2.+
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">sync</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          Ledger-v9 decoder, archive sync fixes, wallet monitor plus <code>evm_rpc</code> schema,
-          security-audit rounds. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/UmbraDB/pull/2">PR #2</a>
-          <a href="https://github.com/acedward/UmbraDB">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>Requirements for indexer replacement</h3>
-        <div class="tags">
-          <span class="tag">unstarted</span>
-        </div>
-        <p class="brief">
-          Define the requirements for replacing the indexer. Not started yet.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/UmbraDB">Repo</a>
-        </div>
-      </div>
+      <p class="deps"><span class="dep-label">Needed by</span> <a href="#effectstream-improvements">Effectstream Improvements</a>, <a href="#midnight-evm">Midnight &lt;&gt; EVM</a></p>
+      <p>
+        UmbraDB is where Midnight chain data gets indexed and served. Most of the work
+        here is about where the data actually comes from: the indexer sits between the
+        node and everything downstream, so every assumption it makes about block format
+        and sync behaviour eventually becomes someone else's bug.
+      </p>
+      <p>
+        Two directions so far. One is skipping the indexer entirely and reading straight
+        from the node, which we built as a proof of concept to see what it costs. The
+        other is keeping Umbra current with Midnight 2.x: a ledger-v9 decoder, archive
+        sync fixes, and a wallet monitor. Beyond that, we still need to write down what a
+        replacement indexer would actually have to do, and the JSON-RPC and
+        <code>get_logs</code> interfaces still need a written spec.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/acedward/UmbraDB/pull/1">Read from the node instead of the indexer</a><span class="note">, not merged, proof of concept.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/UmbraDB/pull/1">PR #1</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/acedward/UmbraDB">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/acedward/UmbraDB/pull/2">Update Umbra + Midnight 2.+</a><span class="note">, ledger-v9 decoder, archive sync fixes, wallet monitor plus <code>evm_rpc</code> schema, security-audit rounds. Open.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/UmbraDB/pull/2">PR #2</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/acedward/UmbraDB">Repo</a>
+          </span>
+        </li>
+        <li>
+          <span class="title">Requirements for indexer replacement</span><span class="note">, not started yet.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/UmbraDB">Repo</a>
+          </span>
+        </li>
+        <li>
+          <span class="title">JSON-RPC and get_logs MIP spec</span><span class="note">, writing the interfaces down as a MIP. Not started yet.</span>
+          <span class="links">
+            <a href="https://github.com/midnightntwrk/midnight-improvement-proposals">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: Midnight <> EVM ===== -->
-    <section class="project">
+    <section class="project" id="midnight-evm">
       <h2>Midnight &lt;&gt; EVM</h2>
-      <p class="brief">Making Midnight speak EVM: account abstraction, JSON-RPC, and logs.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/AA-midnight-evm-experiment">
-            Account abstraction on Midnight
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">account abstraction</span>
-          <span class="tag">evm</span>
-          <span class="tag">experiment</span>
-        </div>
-        <p class="brief">
-          An account abstraction experiment bridging Midnight and the EVM.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/AA-midnight-evm-experiment">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/UmbraDB/pull/4">
-            umbradb-evm-logs: contract events as EVM logs
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">evm</span>
-          <span class="tag">logs</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          Event to log mapping, ingester, <code>eth_getLogs</code> / <code>eth_subscribe</code>,
-          backfill. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/UmbraDB/pull/4">PR #4</a>
-          <a href="https://github.com/acedward/UmbraDB">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/UmbraDB/pull/3">
-            umbradb-evm-rpc: eth_* JSON-RPC server
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">evm</span>
-          <span class="tag">rpc</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          evm-rpc JSON-RPC server and methods (one squashed commit). Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/UmbraDB/pull/3">PR #3</a>
-          <a href="https://github.com/acedward/UmbraDB">Repo</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== Project: Umbra + Effectstream ===== -->
-    <section class="project">
-      <h2>Umbra + Effectstream</h2>
-      <p class="brief">Bridging UmbraDB archives into Effectstream's sync layer.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/effectstream/pull/866">
-            Fetch Midnight Primitive [UnshieldedCreate] from UmbraDB
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">wip</span>
-          <span class="tag">draft</span>
-          <span class="tag">sync/midnight</span>
-          <span class="tag">devnet</span>
-        </div>
-        <p class="brief">
-          Reads <code>UnshieldedCreate</code> from an unmodified UmbraDB archive (devnet-only).
-          Not merged; work in progress (draft PR).
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream/pull/866">PR #866</a>
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
+      <p class="deps"><span class="dep-label">Depends on</span> <a href="#umbra-indexer">Umbra Indexer</a></p>
+      <p>
+        The EVM has a decade of tooling built around a small number of interfaces:
+        <code>eth_getLogs</code>, <code>eth_subscribe</code>, JSON-RPC, accounts. If
+        Midnight speaks those interfaces, that tooling works without anyone porting it.
+      </p>
+      <p>
+        So we're building the translation layer in pieces: an account abstraction
+        experiment, a mapping from Midnight contract events onto EVM logs (with an
+        ingester and backfill so historical queries work too), and an <code>eth_*</code>
+        JSON-RPC server on top of UmbraDB. The second pass at account abstraction widens
+        the aim: rather than supporting a wallet's <code>erc20.transfer(...)</code>, use
+        EVM signatures to authorise generic trustless messaging.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/acedward/AA-midnight-evm-experiment">Account abstraction on Midnight</a><span class="note">, an experiment bridging Midnight and the EVM.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/AA-midnight-evm-experiment">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/acedward/UmbraDB/pull/4">umbradb-evm-logs: contract events as EVM logs</a><span class="note">, event to log mapping, ingester, <code>eth_getLogs</code> / <code>eth_subscribe</code>, backfill. Open.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/UmbraDB/pull/4">PR #4</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/acedward/UmbraDB">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/acedward/UmbraDB/pull/3">umbradb-evm-rpc: eth_* JSON-RPC server</a><span class="note">, JSON-RPC server and methods, one squashed commit. Open.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/UmbraDB/pull/3">PR #3</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/acedward/UmbraDB">Repo</a>
+          </span>
+        </li>
+        <li>
+          <span class="title">AA version 2</span><span class="note">, drops support for wallet <code>erc20.transfer(...)</code> so that EVM signatures can authorise more generic trustless messaging. Work in progress, no repo yet.</span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: Effectstream Improvements ===== -->
-    <section class="project">
+    <section class="project" id="effectstream-improvements">
       <h2>Effectstream Improvements</h2>
-      <p class="brief">Ongoing improvements to the Effectstream platform.</p>
+      <p class="deps"><span class="dep-label">Depends on</span> <a href="#umbra-indexer">Umbra Indexer</a> <span class="sep">·</span> <span class="dep-label">Needed by</span> <a href="#offer-files">Offer Files</a></p>
+      <p>
+        Effectstream is the platform the rest of this work plugs into: chain sync,
+        primitives, batchers, wallets, and starter templates. Adding a chain means
+        teaching it that chain's primitives and how transactions get paid for there.
+      </p>
+      <p>
+        Improvements land wherever they're needed: infrastructure, support for a new
+        chain, better Midnight support, a smaller starting template. None of it is one
+        theme, so the list below is simply the current batch.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/865">Project template: single page</a><span class="note">, a literal one-file Bun example that watches a Midnight counter and serves basic HTML. Open.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/865">PR #865</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/815">Solana support</a><span class="note">, sync, primitives, gasless batcher, wallets and a starter template. Merged.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/815">PR #815</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/860">Midnight 2.+ event support</a><span class="note">, adds a stagenet v2 contract template. Open.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/860">PR #860</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/855">Multi batcher</a><span class="note">, one batcher process can serve many products. Open.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/855">PR #855</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/867">Effectstream Docker image</a><span class="note">, versioned offline template runtime with system dependencies and binaries. Open.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/867">PR #867</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/857">Faster startup on complex Midnight setups</a><span class="note">, speeds up Night-Bitcoin wallet launch with a prefunded genesis. Open.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/857">PR #857</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+        <li>
+          <span class="title">Docs for Midnight [DevRel]</span><span class="note">, not started yet.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+      </ul>
+    </section>
 
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/effectstream/pull/855">
-            Multi-project batcher
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">batcher</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          One batcher process can serve many products. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream/pull/855">PR #855</a>
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/effectstream/pull/860">
-            Support for Midnight 2.x + events
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">midnight 2.x</span>
-          <span class="tag">events</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          Adds a stagenet v2 contract template: support for Midnight 2.x and events. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream/pull/860">PR #860</a>
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/effectstream/pull/867">
-            Effectstream Docker image
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">docker</span>
-          <span class="tag">ci</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          Versioned offline template runtime image: an Effectstream Docker image with
-          system dependencies and binaries. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream/pull/867">PR #867</a>
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/effectstream/pull/865">
-            Single Page Effectstream
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">template</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          What is the actual smallest project we can share? A literal one-file Bun
-          example that watches a Midnight counter and serves basic HTML. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream/pull/865">PR #865</a>
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/effectstream/pull/857">
-            Faster startup on complex Midnight setups
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">startup</span>
-          <span class="tag">open</span>
-        </div>
-        <p class="brief">
-          Speeds up Night-Bitcoin wallet launch with a prefunded genesis. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream/pull/857">PR #857</a>
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>Docs for Midnight [DevRel]</h3>
-        <div class="tags">
-          <span class="tag">docs</span>
-          <span class="tag">devrel</span>
-          <span class="tag">unstarted</span>
-        </div>
-        <p class="brief">
-          Midnight documentation for developer relations. Not started yet.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/effectstream">Repo</a>
-        </div>
-      </div>
+    <!-- ===== Project: Umbra + Effectstream ===== -->
+    <section class="project" id="umbra-effectstream">
+      <h2>Umbra + Effectstream</h2>
+      <p>
+        Effectstream has its own sync layer, and UmbraDB has the archives. Connecting the
+        two means Effectstream can read Midnight primitives without running its own
+        indexing stack.
+      </p>
+      <p>
+        The first primitive we went after is <code>UnshieldedCreate</code>, read from an
+        unmodified Umbra archive, devnet only. That's as far as it goes for now: the rest
+        is blocked until Umbra is extended to expose more data.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/effectstream/effectstream/pull/866">Fetch Midnight Primitive [UnshieldedCreate] from UmbraDB</a><span class="note">, devnet only, draft PR. Blocked on Umbra exposing more data.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/effectstream/pull/866">PR #866</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/effectstream">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: UTXO Pinning ===== -->
-    <section class="project">
+    <section class="project" id="utxo-pinning">
       <h2>UTXO Pinning</h2>
-      <p class="brief">UTXO Pinning work.</p>
-
-      <div class="row">
-        <h3>Dust Wallet Experiment</h3>
-        <div class="tags">
-          <span class="tag">unpublished</span>
-          <span class="tag">cannot fork</span>
-        </div>
-        <p class="brief">
-          Unpublished; the repo cannot be forked.
-        </p>
-      </div>
+      <p class="deps"><span class="dep-label">Needed by</span> <a href="#offer-files">Offer Files</a></p>
+      <p>
+        Work on UTXO pinning, starting with a dust wallet experiment. That repo is
+        unpublished and cannot be forked, so there's nothing to link on it yet. The
+        behaviour also needs a MIP of its own.
+      </p>
+      <ul class="work">
+        <li>
+          <span class="title">Dust Wallet Experiment</span><span class="note">, unpublished, the repo cannot be forked.</span>
+        </li>
+        <li>
+          <span class="title">MIP Spec for Pinning</span><span class="note">, a MIP describing how pinning should work.</span>
+          <span class="links">
+            <a href="https://github.com/midnightntwrk/midnight-improvement-proposals">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: Proved Messages in ZSwaps ===== -->
-    <section class="project">
+    <section class="project" id="proved-messages">
       <h2>Proved Messages in ZSwaps</h2>
-      <p class="brief">Attaching proved messages (memos) to ZSwap offers.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/midnight-ledger-zswap-memo/pull/5">
-            midnight-ledger-zswap-memo
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">wip</span>
-          <span class="tag">experiment</span>
-        </div>
-        <p class="brief">
-          Ledger-side experiment. Work in progress.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/midnight-ledger-zswap-memo/pull/5">PR #5</a>
-          <a href="https://github.com/acedward/midnight-ledger-zswap-memo">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/acedward/midnight-node-zswap-memo/pull/5">
-            midnight-node-zswap-memo
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">wip</span>
-          <span class="tag">experiment</span>
-        </div>
-        <p class="brief">
-          Node-side experiment. Work in progress.
-        </p>
-        <div class="links">
-          <a href="https://github.com/acedward/midnight-node-zswap-memo/pull/5">PR #5</a>
-          <a href="https://github.com/acedward/midnight-node-zswap-memo">Repo</a>
-        </div>
-      </div>
+      <p class="deps"><span class="dep-label">Needed by</span> <a href="#offer-files">Offer Files</a></p>
+      <p>
+        A ZSwap offer moves value but carries no message. Attaching a proved memo to an
+        offer would let the sender say something alongside the swap, provably, without
+        breaking the shielded model.
+      </p>
+      <p>
+        This touches two layers, so it's two experiments in parallel: one in the ledger,
+        one in the node. Both are early.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/acedward/midnight-ledger-zswap-memo/pull/5">midnight-ledger-zswap-memo</a><span class="note">, ledger-side experiment, work in progress.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/midnight-ledger-zswap-memo/pull/5">PR #5</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/acedward/midnight-ledger-zswap-memo">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/acedward/midnight-node-zswap-memo/pull/5">midnight-node-zswap-memo</a><span class="note">, node-side experiment, work in progress.</span>
+          <span class="links">
+            <a href="https://github.com/acedward/midnight-node-zswap-memo/pull/5">PR #5</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/acedward/midnight-node-zswap-memo">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: Intent Solver COW ===== -->
-    <section class="project">
+    <section class="project" id="intent-solver">
       <h2>Intent Solver COW</h2>
-      <p class="brief">Coincidence-of-wants intent solving for offer files.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/38">
-            Intent Solver COW
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">wip</span>
-          <span class="tag">in progress</span>
-        </div>
-        <p class="brief">
-          Work in progress.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/38">PR #38</a>
-          <a href="https://github.com/effectstream/zswap-offerfiles-kernel">Repo</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== Project: Offer Files ===== -->
-    <section class="project">
-      <h2>Offer Files</h2>
-      <p class="brief">Offer-files based DEX: the core node implementation and its Midnight improvement proposals (MIPs).</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/zswap-offerfiles-kernel">
-            core: zswap-offerfiles-kernel
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">core</span>
-          <span class="tag">dex</span>
-          <span class="tag">celestia da</span>
-        </div>
-        <p class="brief">
-          Effectstream node implementation for a Midnight Offer Files based DEX through Celestia DA.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/zswap-offerfiles-kernel">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/shielded-night">
-            shielded-night
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">shielded night</span>
-          <span class="tag">dex</span>
-        </div>
-        <p class="brief">
-          Shielded NIGHT for the offer-files DEX. Brief pending.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/shielded-night">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/effectstream/mip-zswap-offer">
-            mip-zswap-offer: MIP implementation
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">mip</span>
-          <span class="tag">implementation</span>
-        </div>
-        <p class="brief">
-          Serialize, deserialize and validate zswap offers according to the proposed MIP specs.
-        </p>
-        <div class="links">
-          <a href="https://github.com/effectstream/mip-zswap-offer">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/227">
-            MIP-0005: Generalize offer files to full proven transactions
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">mip</span>
-          <span class="tag">implemented</span>
-          <span class="tag">needs revision</span>
-        </div>
-        <p class="brief">
-          Implemented, needs revision. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/227">PR #227</a>
-          <a href="https://github.com/midnightntwrk/midnight-improvement-proposals">Repo</a>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>
-          <a href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/228">
-            MIP-0006: Publish swap offers to a shared DA namespace
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">mip</span>
-          <span class="tag">implemented</span>
-          <span class="tag">needs revision</span>
-        </div>
-        <p class="brief">
-          Implemented, needs revision. Open PR.
-        </p>
-        <div class="links">
-          <a href="https://github.com/midnightntwrk/midnight-improvement-proposals/pull/228">PR #228</a>
-          <a href="https://github.com/midnightntwrk/midnight-improvement-proposals">Repo</a>
-        </div>
-      </div>
+      <p class="deps"><span class="dep-label">Depends on</span> <a href="#offer-files">Offer Files</a></p>
+      <p>
+        When two offers happen to want the opposite of each other, they can settle
+        directly instead of going through a pool. Finding those coincidences of wants
+        across the offer files is what the solver does. Work in progress.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/38">Intent Solver COW</a><span class="note">, work in progress.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/38">PR #38</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/zswap-offerfiles-kernel">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: Compile & Deploy Midnight Contracts (Web / WASM) ===== -->
-    <section class="project">
+    <section class="project" id="wasm">
       <h2>Compile &amp; Deploy Midnight Contracts (Web / WASM)</h2>
-      <p class="brief">Compile and deploy Midnight (Compact) contracts from the browser via WebAssembly.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://compact-wasm.pages.dev/">
-            zkir-wasm-experiment
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">wasm</span>
-          <span class="tag">compact</span>
-          <span class="tag">experiment</span>
-          <span class="tag">live</span>
-        </div>
-        <p class="brief">
-          Compile and deploy Midnight contracts in the browser (WASM). Live demo.
-        </p>
-        <div class="links">
-          <a href="https://compact-wasm.pages.dev/">Live</a>
-          <a href="https://github.com/effectstream/zkir-wasm-experiment">Repo</a>
-        </div>
-      </div>
+      <p>
+        Compiling a Compact contract normally means installing a toolchain first. Ship the
+        compiler as WebAssembly and the browser becomes the toolchain: write, compile and
+        deploy a Midnight contract from a tab, with nothing installed locally. There's a
+        live demo.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://compact-wasm.pages.dev/">zkir-wasm-experiment</a><span class="note">, compile and deploy Midnight contracts in the browser (WASM).</span>
+          <span class="links">
+            <a href="https://compact-wasm.pages.dev/">Live</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/zkir-wasm-experiment">Repo</a>
+          </span>
+        </li>
+        <li>
+          <span class="title">Merge ZKIR fixes upstream</span><span class="note">, the changes ZKIR needed to build for the browser should land upstream instead of living here.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/zkir-wasm-experiment">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <!-- ===== Project: Nix-Nax ===== -->
-    <section class="project">
+    <section class="project" id="nix-nax">
       <h2>Nix-Nax</h2>
-      <p class="brief">A fast Midnight-based game.</p>
-
-      <div class="row">
-        <h3>
-          <a href="https://nixnax.zkdojo.com/">
-            nix-nax
-          </a>
-        </h3>
-        <div class="tags">
-          <span class="tag">game</span>
-          <span class="tag">midnight</span>
-          <span class="tag">published</span>
-          <span class="tag">no docs</span>
-        </div>
-        <p class="brief">
-          Turns take a few milliseconds; the initial and final settlement happen on chain.
-          Published, but no docs yet.
-        </p>
-        <div class="links">
-          <a href="https://nixnax.zkdojo.com/">Live</a>
-          <a href="https://github.com/effectstream/nix-nax">Repo</a>
-        </div>
-      </div>
+      <p>
+        A game on Midnight that is actually fast to play. Turns take a few milliseconds
+        because they don't each wait for a block: only the initial and final settlement
+        happen on chain. It's published and playable, but there are no docs yet.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://nixnax.zkdojo.com/">nix-nax</a><span class="note">, published, no docs yet.</span>
+          <span class="links">
+            <a href="https://nixnax.zkdojo.com/">Live</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/nix-nax">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
-    <!-- ===== Project: Catalyst ===== -->
-    <section class="project">
-      <h2>Catalyst</h2>
-      <p class="brief">Catalyst work.</p>
-
-      <div class="row">
-        <h3>projects 7/10</h3>
-      </div>
+    <!-- ===== Project: Other Small Projects ===== -->
+    <section class="project" id="other">
+      <h2>Other Small Projects</h2>
+      <p>
+        Smaller builds that don't need a section of their own yet.
+      </p>
+      <ul class="work">
+        <li>
+          <a class="title" href="https://github.com/effectstream/shielded-night">shielded-night</a><span class="note">, shielded NIGHT for the offer-files DEX. Brief pending.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/shielded-night">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/zswap-presale">zswap-presale</a><span class="note">, an Effectstream template for a ZSwap presale on Midnight. A contract issues shielded tokens at a fixed price, buyers submit unbalanced ZSwap offers, and an intermediary batches them into a single <code>exchange</code> call per block. Holders can cancel until the sale locks.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/zswap-presale">Repo</a>
+          </span>
+        </li>
+      </ul>
     </section>
 
     <footer>
-      Last updated: 2026-08-11 · Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
+      Last updated: 2026-08-14 · Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
     </footer>
+      </main>
+    </div>
   </div>
+
+  <script>
+    const links = [...document.querySelectorAll('nav.toc a')];
+    const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+    const seen = new Map();
+    const io = new IntersectionObserver(entries => {
+      for (const e of entries) seen.set(e.target.id, e);
+      let best = null;
+      for (const e of seen.values()) {
+        if (!e.isIntersecting) continue;
+        if (!best || e.boundingClientRect.top < best.boundingClientRect.top) best = e;
+      }
+      if (!best) return;
+      links.forEach(a => a.classList.remove('active'));
+      byId.get(best.target.id)?.classList.add('active');
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    document.querySelectorAll('section.project').forEach(s => io.observe(s));
+  </script>
 </body>
 </html>
