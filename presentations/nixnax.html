@@ -553,6 +553,42 @@
 
       .deck-diagram { width: 100%; height: auto; display: block; }
 
+      /* A documentation excerpt, set as a page fragment rather than as markdown
+         source: the text is verbatim, the markers are not shown. */
+      .deck-doc {
+        border: calc(1 * var(--md-u)) solid var(--md-rule);
+        background: color-mix(in srgb, var(--md-fg) 3%, transparent);
+        padding: calc(20 * var(--md-u)) calc(24 * var(--md-u)) calc(24 * var(--md-u));
+      }
+      .deck-doc__path {
+        margin: 0 0 calc(16 * var(--md-u));
+        padding-bottom: calc(10 * var(--md-u));
+        border-bottom: calc(1 * var(--md-u)) solid var(--md-rule);
+        font-family: var(--md-font-mono);
+        font-size: calc(11 * var(--md-u));
+        color: var(--md-fg-muted);
+      }
+      .deck-doc__h {
+        margin: 0 0 calc(12 * var(--md-u));
+        font-size: calc(22 * var(--md-u));
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+      .deck-doc__p {
+        margin: 0 0 calc(12 * var(--md-u));
+        font-size: calc(13.5 * var(--md-u));
+        line-height: 1.55;
+      }
+      .deck-doc__list {
+        margin: 0;
+        padding-left: calc(20 * var(--md-u));
+        font-size: calc(13.5 * var(--md-u));
+        line-height: 1.5;
+      }
+      .deck-doc__list li { margin-bottom: calc(6 * var(--md-u)); }
+      .deck-doc__list li::marker { color: var(--md-accent); }
+
       /* The opener's brand render sits on the right; keep text clear of it. */
       .deck-opener .md-body { max-width: calc(600 * var(--md-u)); bottom: calc(80 * var(--md-u)); }
 
@@ -678,7 +714,7 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">2/4</span>
+          <span class="md-footer__page">2/5</span>
         </span>
       </footer>
     </section>
@@ -759,12 +795,12 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">3/4</span>
+          <span class="md-footer__page">3/5</span>
         </span>
       </footer>
     </section>
 
-    <section class="md-slide md-slide--light md-slide--content deck-slide ">
+    <section class="md-slide md-slide--white md-slide--content deck-slide ">
       <div class="md-body">
         <p class="md-eyebrow">NixNax</p>
         <div class="deck-head deck-head--split">
@@ -816,7 +852,71 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">4/4</span>
+          <span class="md-footer__page">4/5</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--light md-slide--content deck-slide ">
+      <div class="md-body">
+        <p class="md-eyebrow">NixNax</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">Now a tutorial</h2>
+          <div>
+            <p class="md-text">
+              PR&nbsp;#16 turns the contract into three tutorial pages, so the
+              teaching version has something that actually teaches from it.
+            </p>
+          </div>
+        </div>
+
+        <div class="md-cols md-grow" style="grid-template-columns: 0.82fr 1fr">
+          <div class="deck-points">
+            <div class="deck-point">
+              <span class="deck-point__n">01</span>
+              <p class="md-text">
+                <b>The contract, one circuit at a time</b> &mdash; state keyed by a
+                game ID, identity from a witness, one-time action tokens, settling
+                in chunks, then the mint. Each section is the reason for the next,
+                which is the order the code is written in and not the order it
+                reads in.
+              </p>
+            </div>
+            <div class="deck-point">
+              <span class="deck-point__n">02</span>
+              <p class="md-text">
+                <b>Then a real game</b> &mdash; the CLI page runs one against a
+                local stack, from opening it through settling to checking the
+                winner's token. The overview page is honest about what the version
+                trusts: the dice, and nothing else.
+              </p>
+            </div>
+            <p class="md-text md-text--small md-text--muted">
+              Open. effectstream/nix-nax #16, three pages, 348 lines
+            </p>
+          </div>
+
+          <div class="deck-doc">
+  <p class="deck-doc__path">tutorials/index.mdx</p>
+    <h4 class="deck-doc__h">What you build</h4>
+    <p class="deck-doc__p">One contract that hosts any number of games at once. Two players open a game, play it in their browsers, then settle the agreed moves eight at a time. The winner mints a shielded token.</p>
+    <p class="deck-doc__p">By the end you will be able to do the following:</p>
+    <ul class="deck-doc__list">
+      <li>Key all contract state by a game ID the client generates, so one deployment serves many games.</li>
+      <li>Work out a player&#x27;s identity from a secret witness, with no public key anyone can fake.</li>
+      <li>Commit a Merkle root of one-time action tokens, then spend them one at a time.</li>
+      <li>Replay the agreed moves in the circuit, checking every board rule as you go.</li>
+      <li>Settle a long game in chunks that carry state from one transaction to the next.</li>
+      <li>Mint a shielded token to the winner.</li>
+    </ul>
+</div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation | Internal</span>
+          <span class="md-footer__page">5/5</span>
         </span>
       </footer>
     </section>

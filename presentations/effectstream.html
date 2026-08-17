@@ -553,6 +553,42 @@
 
       .deck-diagram { width: 100%; height: auto; display: block; }
 
+      /* A documentation excerpt, set as a page fragment rather than as markdown
+         source: the text is verbatim, the markers are not shown. */
+      .deck-doc {
+        border: calc(1 * var(--md-u)) solid var(--md-rule);
+        background: color-mix(in srgb, var(--md-fg) 3%, transparent);
+        padding: calc(20 * var(--md-u)) calc(24 * var(--md-u)) calc(24 * var(--md-u));
+      }
+      .deck-doc__path {
+        margin: 0 0 calc(16 * var(--md-u));
+        padding-bottom: calc(10 * var(--md-u));
+        border-bottom: calc(1 * var(--md-u)) solid var(--md-rule);
+        font-family: var(--md-font-mono);
+        font-size: calc(11 * var(--md-u));
+        color: var(--md-fg-muted);
+      }
+      .deck-doc__h {
+        margin: 0 0 calc(12 * var(--md-u));
+        font-size: calc(22 * var(--md-u));
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+      }
+      .deck-doc__p {
+        margin: 0 0 calc(12 * var(--md-u));
+        font-size: calc(13.5 * var(--md-u));
+        line-height: 1.55;
+      }
+      .deck-doc__list {
+        margin: 0;
+        padding-left: calc(20 * var(--md-u));
+        font-size: calc(13.5 * var(--md-u));
+        line-height: 1.5;
+      }
+      .deck-doc__list li { margin-bottom: calc(6 * var(--md-u)); }
+      .deck-doc__list li::marker { color: var(--md-accent); }
+
       /* The opener's brand render sits on the right; keep text clear of it. */
       .deck-opener .md-body { max-width: calc(600 * var(--md-u)); bottom: calc(80 * var(--md-u)); }
 
@@ -656,7 +692,7 @@ bun start</pre>
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">2/4</span>
+          <span class="md-footer__page">2/5</span>
         </span>
       </footer>
     </section>
@@ -768,12 +804,12 @@ bun start</pre>
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">3/4</span>
+          <span class="md-footer__page">3/5</span>
         </span>
       </footer>
     </section>
 
-    <section class="md-slide md-slide--light md-slide--content deck-slide ">
+    <section class="md-slide md-slide--white md-slide--content deck-slide ">
       <div class="md-body">
         <p class="md-eyebrow">EffectStream</p>
         <div class="deck-head deck-head--split">
@@ -825,7 +861,64 @@ bun start</pre>
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">4/4</span>
+          <span class="md-footer__page">4/5</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--light md-slide--content deck-slide ">
+      <div class="md-body">
+        <p class="md-eyebrow">EffectStream</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">Now in the Midnight docs</h2>
+          <div>
+            <p class="md-text">
+              Two guides open against
+              <span class="md-accent">midnightntwrk/midnight-docs</span>, taking a
+              reader from watching one contract to correlating two chains.
+            </p>
+          </div>
+        </div>
+
+        <div class="md-cols md-grow" style="grid-template-columns: 0.82fr 1fr">
+          <div class="deck-points">
+            <div class="deck-point">
+              <span class="deck-point__n">01</span>
+              <p class="md-text">
+                <b>Index contract state</b> (PR&nbsp;#1240) &mdash; watch a Midnight
+                contract on preview, decode its public ledger with a schema, serve
+                the result over HTTP. It runs with <b>no local stack</b>: no Docker,
+                no node, no proof server, no Compact toolchain, because it reads a
+                hosted indexer.
+              </p>
+            </div>
+            <div class="deck-point">
+              <span class="deck-point__n">02</span>
+              <p class="md-text">
+                <b>Build a cross-chain DApp</b> (PR&nbsp;#1241) &mdash; the case
+                EffectStream exists for: state living on Midnight and an EVM chain
+                at once, joined by a rollup rather than a bridge. Run the template,
+                follow the ingestion pipeline, then add a field end to end.
+              </p>
+            </div>
+            <p class="md-text md-text--small md-text--muted">
+              Both open. midnightntwrk/midnight-docs #1240, #1241
+            </p>
+          </div>
+
+          <div class="deck-doc">
+  <p class="deck-doc__path">docs/guides/index-state-with-effectstream.mdx</p>
+    <h4 class="deck-doc__h">Why a DApp needs an indexer</h4>
+    <p class="deck-doc__p">A Midnight contract stores its current public state and nothing else. Who holds the top score? What changed in the last hour? The chain answers neither. It keeps no history you can query, and it computes no totals.</p>
+    <p class="deck-doc__p">An indexer answers them. It watches state changes, applies a function you write to each one, and stores the result in a database you control. It handles changes in chain order, so replaying the same history rebuilds the same database.</p>
+</div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation | Internal</span>
+          <span class="md-footer__page">5/5</span>
         </span>
       </footer>
     </section>

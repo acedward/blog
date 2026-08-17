@@ -419,8 +419,12 @@
           </span>
         </li>
         <li>
-          <span class="title">Docs for Midnight [DevRel]</span><span class="note">, not started yet.</span>
+          <a class="title" href="https://github.com/midnightntwrk/midnight-docs/pull/1240">Docs for Midnight [DevRel]</a><span class="note">, two guides for the Midnight docs. The first indexes one contract's public state and serves it over HTTP, with no local stack to run. The second builds a DApp whose state lives on Midnight and an EVM chain at once, joined by a rollup rather than a bridge. Both open.</span>
           <span class="links">
+            <a href="https://github.com/midnightntwrk/midnight-docs/pull/1240">PR #1240</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/midnightntwrk/midnight-docs/pull/1241">PR #1241</a>
+            <span class="sep">·</span>
             <a href="https://github.com/effectstream/effectstream">Repo</a>
           </span>
         </li>
@@ -565,13 +569,27 @@
       </p>
       <ul class="work">
         <li>
-          <a class="title" href="https://nixnax.zkdojo.com/">nix-nax</a><span class="note">, turns take a few milliseconds because only the initial and final settlement happen on chain. Published and playable, no docs yet. Slides cover the game, the Merkle commitment that makes settlement cheap, and the Compact contract published as a starting point for learning.</span>
+          <a class="title" href="https://nixnax.zkdojo.com/">nix-nax</a><span class="note">, turns take a few milliseconds because only the initial and final settlement happen on chain. Published and playable. Slides cover the game, the Merkle commitment that makes settlement cheap, and the Compact contract published as a starting point for learning.</span>
           <span class="links">
             <a href="https://nixnax.zkdojo.com/">Live</a>
             <span class="sep">·</span>
             <a href="https://github.com/effectstream/nix-nax">Repo</a>
             <span class="sep">·</span>
             <a href="presentations/nixnax.html">Slides</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://github.com/effectstream/nix-nax/pull/16">nix-nax tutorial</a><span class="note">, three pages that build the contract one circuit at a time: state keyed by a game ID, identity from a secret witness, one-time action tokens, settling in chunks, then minting to the winner. A last page plays a full game against a local network. Open.</span>
+          <span class="links">
+            <a href="https://github.com/effectstream/nix-nax/pull/16">PR #16</a>
+            <span class="sep">·</span>
+            <a href="https://github.com/effectstream/nix-nax">Repo</a>
+          </span>
+        </li>
+        <li>
+          <a class="title" href="https://effectstream.github.io/docs/learn-compact-with-games">games docs</a><span class="note">, learning Compact by building six games: Kachina (sponsored transactions), Dust to Dust (tradeable characters), BlockKart (racing leaderboards), Safe Solver (puzzles), Go Fish (trustless shuffling), and Werewolf (social deduction).</span>
+          <span class="links">
+            <a href="https://effectstream.github.io/docs/learn-compact-with-games">Live</a>
           </span>
         </li>
       </ul>
@@ -600,7 +618,7 @@
     </section>
 
     <footer>
-      Last updated: 2026-08-16 · Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
+      Last updated: 2026-08-17 · Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
     </footer>
       </main>
     </div>
