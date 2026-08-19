@@ -274,6 +274,13 @@
       .kind { display: block; margin-bottom: 2px; }
       .entry-text { margin-left: 0; }
     }
+
+    /* ---- presentations view ---- */
+    #view-presentations .kind { min-width: 96px; }
+    #view-presentations .entry-text { margin-left: 106px; }
+    @media (max-width: 780px) {
+      #view-presentations .entry-text { margin-left: 0; }
+    }
   </style>
 </head>
 <body>
@@ -284,6 +291,7 @@
       <div class="viewbar">
         <button type="button" data-view="consolidated">Consolidated</button>
         <button type="button" data-view="timeline">Timeline</button>
+        <button type="button" data-view="presentations">Presentations</button>
       </div>
     </header>
 
@@ -294,6 +302,7 @@
       <main>
         <div id="view-consolidated"></div>
         <div id="view-timeline" hidden></div>
+        <div id="view-presentations" hidden></div>
 
         <footer>
           Last updated: <span id="updated"></span> · Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
@@ -307,7 +316,7 @@
   "site": {
     "title": "acedward @ mnf",
     "tagline": "What we're building, why, and where the code lives.",
-    "updated": "2026-08-17"
+    "updated": "2026-08-19"
   },
   "sections": [
     {
@@ -324,7 +333,7 @@
         ]
       },
       "prose": [
-        "A DEX built on offer files: instead of orders living in a contract, they're published as files to a shared Celestia DA namespace, where anyone can read them and try to match them. The node implementation is the Effectstream kernel.",
+        "A DEX built on offer files: instead of orders living in a contract, they're published as files to a shared Celestia DA namespace, where anyone can read them and try to match them. The node implementation is the Effectstream kernel, fresh off a production-readiness push.",
         "This needs two things to exist together: the code and the spec. So alongside the kernel, there are two Midnight improvement proposals, one that generalizes offer files to full proven transactions, and one that defines the shared DA namespace they get published to. Both are implemented and both need revision."
       ],
       "rows": [
@@ -339,6 +348,22 @@
             }
           ],
           "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+        },
+        {
+          "id": "kernel-production-readiness",
+          "title": "Production readiness and unshielded offers",
+          "note": "exact-identity classification, one settlement one trade, offer hashes on lifecycle events, stored fill verdicts. PRs #43 to #46 merged, closing PR #47 open. Breaking.",
+          "links": [
+            {
+              "label": "PR #47",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/47"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/47"
         },
         {
           "id": "mip-zswap-offer",
@@ -404,7 +429,7 @@
         {
           "id": "read-from-node",
           "title": "Read from the node instead of the indexer",
-          "note": "not merged, proof of concept.",
+          "note": "complete and awaiting merge.",
           "links": [
             {
               "label": "PR #1",
@@ -436,11 +461,15 @@
         {
           "id": "indexer-requirements",
           "title": "Requirements for indexer replacement",
-          "note": "not started yet.",
+          "note": "draft spec written.",
           "links": [
             {
               "label": "Repo",
               "href": "https://github.com/acedward/UmbraDB"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/umbra-indexer.html"
             }
           ]
         },
@@ -454,6 +483,22 @@
               "href": "https://github.com/midnightntwrk/midnight-improvement-proposals"
             }
           ]
+        },
+        {
+          "id": "ledger-wasm-replay-exports",
+          "title": "Ledger WASM replay exports",
+          "note": "WASM exports so a JavaScript replay consumer matches the native ledger fold bit for bit, without crossing the JS number boundary; carried as a shareable draft PR on a fork.",
+          "links": [
+            {
+              "label": "PR #1",
+              "href": "https://github.com/acedward/midnight-ledger/pull/1"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-ledger"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-ledger/pull/1"
         }
       ]
     },
@@ -468,7 +513,7 @@
       },
       "prose": [
         "The EVM has a decade of tooling built around a small number of interfaces: <code>eth_getLogs</code>, <code>eth_subscribe</code>, JSON-RPC, accounts. If Midnight speaks those interfaces, that tooling works without anyone porting it.",
-        "So we're building the translation layer in pieces: an account abstraction experiment, a mapping from Midnight contract events onto EVM logs (with an ingester and backfill so historical queries work too), and an <code>eth_*</code> JSON-RPC server on top of UmbraDB. The second pass at account abstraction widens the aim: rather than supporting a wallet's <code>erc20.transfer(...)</code>, use EVM signatures to authorise generic trustless messaging."
+        "So we're building the translation layer in pieces: an account abstraction experiment, a mapping from Midnight contract events onto EVM logs (with an ingester and backfill so historical queries work too), and an <code>eth_*</code> JSON-RPC server on top of UmbraDB. The second pass at account abstraction widens the aim: rather than supporting a wallet's <code>erc20.transfer(...)</code>, use EVM signatures to authorise generic trustless messaging. A third pass moves to Midnight 2.x and asks what a contract can custody: the answer so far is any token colour, even ones that did not exist when it was deployed."
       ],
       "rows": [
         {
@@ -518,8 +563,32 @@
         {
           "id": "aa-version-2",
           "title": "AA version 2",
-          "note": "drops support for wallet <code>erc20.transfer(...)</code> so that EVM signatures can authorise more generic trustless messaging. Work in progress, no repo yet.",
+          "note": "drops support for wallet <code>erc20.transfer(...)</code> so that EVM signatures can authorise more generic trustless messaging. Blocked: Midnight 2.x gives a contract no supported way to authenticate its immediate caller, and a caller-context spec drafts the fix.",
           "links": []
+        },
+        {
+          "id": "aa-v3-custody",
+          "title": "AA v3: contract token custody on Midnight 2.x",
+          "note": "three escalating experiments: contract-minted tokens moving freely between wallets and contract custody accounts (shielded and unshielded), one Manager custodying four colours at once with atomic two-colour moves, and open-colour custody of colours that did not exist when the custodian was deployed.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            },
+            {
+              "label": "Custody",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00003-contract-token-custody"
+            },
+            {
+              "label": "Multi-token",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00004-multi-token-custody"
+            },
+            {
+              "label": "Open-colour",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00005-open-colour-custody"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
         }
       ]
     },
@@ -606,6 +675,49 @@
             }
           ],
           "href": "https://github.com/effectstream/effectstream/pull/855"
+        },
+        {
+          "id": "batcher-sync-restore",
+          "title": "Batcher sync and restore",
+          "note": "a batcher rebuilds its dust state from the chain after a wipe and resumes paying fees. Merged into the multi-batcher branch.",
+          "links": [
+            {
+              "label": "PR #872",
+              "href": "https://github.com/effectstream/effectstream/pull/872"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/872"
+        },
+        {
+          "id": "batcher-request-tracking",
+          "title": "Batcher request tracking",
+          "note": "full request lifecycle tracking, four breaking changes. Open, stacks on the multi-batcher PR.",
+          "links": [
+            {
+              "label": "PR #873",
+              "href": "https://github.com/effectstream/effectstream/pull/873"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/873"
+        },
+        {
+          "id": "batcher-receipt-events-fix",
+          "title": "Batcher receipt and events fix",
+          "note": "two bugs found while building request tracking: a reverted single-input batch resolves its caller as success, and several lifecycle events never fire on the async path. Fix not started yet.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ]
         },
         {
           "id": "effectstream-docker-image",
@@ -701,13 +813,13 @@
         ]
       },
       "prose": [
-        "Work on UTXO pinning, starting with a dust wallet experiment. That repo is unpublished and cannot be forked, so there's nothing to link on it yet. The behaviour also needs a MIP of its own."
+        "Work on UTXO pinning, starting with a dust wallet experiment. It now works end to end in a real browser: a confirmed DUST-registered successor is protected from ordinary spending automatically, persists through reload, and spends only through an explicit override. The repo is unpublished and cannot be forked, so there's still nothing to link. The behaviour also needs a MIP of its own."
       ],
       "rows": [
         {
           "id": "dust-wallet-experiment",
           "title": "Dust Wallet Experiment",
-          "note": "unpublished, the repo cannot be forked.",
+          "note": "unpublished; core pinning, coin selection, lifecycle errors and browser integration done, presale-race integration in progress.",
           "links": []
         },
         {
@@ -734,13 +846,13 @@
       },
       "prose": [
         "A ZSwap offer moves value but carries no message. Attaching a proved memo to an offer would let the sender say something alongside the swap, provably, without breaking the shielded model.",
-        "This touches two layers, so it's two experiments in parallel: one in the ledger, one in the node. Both are early."
+        "This touches two layers, so it's two experiments in parallel: one in the ledger, one in the node. They have grown into a full implementation with a versioned transition, and both review PRs carry a breaking-change notice."
       ],
       "rows": [
         {
           "id": "midnight-ledger-zswap-memo",
           "title": "midnight-ledger-zswap-memo",
-          "note": "ledger-side experiment, work in progress.",
+          "note": "ledger-side implementation, review PR.",
           "links": [
             {
               "label": "PR #5",
@@ -756,7 +868,7 @@
         {
           "id": "midnight-node-zswap-memo",
           "title": "midnight-node-zswap-memo",
-          "note": "node-side experiment, work in progress.",
+          "note": "node-side implementation, review PR.",
           "links": [
             {
               "label": "PR #5",
@@ -781,24 +893,24 @@
         "neededBy": []
       },
       "prose": [
-        "When two offers happen to want the opposite of each other, they can settle directly instead of going through a pool. Finding those coincidences of wants across the offer files is what the solver does. Work in progress."
+        "When two offers happen to want the opposite of each other, they can settle directly instead of going through a pool. Finding those coincidences of wants across the offer files is what the solver does. The current cut is a posted-price solver rebuilt on the kernel's current main, with an end-to-end acceptance harness of its own."
       ],
       "rows": [
         {
           "id": "intent-solver",
           "title": "Intent Solver COW",
-          "note": "work in progress.",
+          "note": "end-to-end acceptance in progress, draft PR. Supersedes PR #38.",
           "links": [
             {
-              "label": "PR #38",
-              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/38"
+              "label": "PR #48",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/48"
             },
             {
               "label": "Repo",
               "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
             }
           ],
-          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/38"
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/48"
         }
       ]
     },
@@ -948,6 +1060,166 @@
 {
   "entries": [
     {
+      "date": "2026-08-19",
+      "kind": "published",
+      "text": "Slide deck: Umbra as a Midnight indexer. Why replay is the hard part, how wallets sync, why replace the indexer instead of forking it, and a small-core scope.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "progress",
+      "text": "Pinning now works in a real browser: a confirmed DUST-registered successor is protected from ordinary spending, persists through reload, reports pinned and spendable balances with a clear blocked-funds error, and spends only through an explicit override. Presale-race integration is next.",
+      "ref": {
+        "section": "utxo-pinning",
+        "row": "dust-wallet-experiment"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "progress",
+      "text": "Production readiness wrapped: exact-identity classification, one settlement one trade, offer hashes on lifecycle events, and stored fill verdicts. PRs #43 to #46 merged; the closing PR #47 is open. Breaking.",
+      "ref": {
+        "section": "offer-files",
+        "row": "kernel-production-readiness"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "progress",
+      "text": "Open-colour custody: a custodian deployed before any minter exists custodies token colours it discovers as they arrive, including one issued by a contract deployed long after it, with no colour list, no allowlist and no admin, and only the owning account can spend.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v3-custody"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "Multi-token custody: one Manager contract holds four token colours at once, two shielded and two unshielded, keeps them fully isolated, and moves two of them in a single atomic transaction.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v3-custody"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "published",
+      "text": "A new public repo: contract token custody on Midnight 2.x. Tokens minted by a contract are held, sent, split, merged and re-spent across every combination of user wallets and contract custody accounts, shielded and unshielded, and end up equally spendable either way.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v3-custody"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "The solver was rebuilt on the kernel's current main under a fresh PR #48, now with an end-to-end acceptance harness. PR #38 is closed, superseded.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "Both review PRs now carry the breaking-change notice, and the memo version transition is implemented: activation logic, an encoding-differential corpus, and a pinned spec version. Wallet and SDK surface work has started.",
+      "ref": {
+        "section": "proved-messages"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "shipped",
+      "text": "A batcher can rebuild its dust state from the chain after a wipe, so a wiped or migrated batcher resumes paying fees on its own.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "batcher-sync-restore"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "Every batcher request is now tracked through its full lifecycle, with four breaking changes. Stacks on the multi-batcher PR.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "batcher-request-tracking"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "spec",
+      "text": "Building request tracking surfaced two pre-existing batcher bugs, now their own fix project: a single-input batch that the chain reverts still reports success to the waiting caller, and seven lifecycle events (including two error emissions) are never delivered on the async path. Created a spec covering both.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "batcher-receipt-events-fix"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "No longer a proof of concept: the node-ingest PR is complete, hardened over several review rounds, and awaits merge.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "read-from-node"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "spec",
+      "text": "Created a draft replacement spec: surface contract, walletless ingest and replay, projections and queries, confidential wallet processing, operations and cutover, and a Midnight 2.x upgrade.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "date": "2026-08-17",
+      "kind": "spec",
+      "text": "Created a spec and a draft fork PR for ledger WASM replay exports: block close, clamp and normalize stay inside Rust, so a JavaScript replay consumer reproduces the native ledger state byte for byte.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "ledger-wasm-replay-exports"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "kind": "blocked",
+      "text": "AA v2 is blocked: Midnight 2.x gives a Compact contract no supported way to authenticate its immediate caller. Created a spec for a sound caller-context predicate to fix exactly that; the work continues in a v3 repo built around contract custody.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-version-2"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "kind": "spec",
+      "text": "Created a spec for offer-file memo authenticity: a publisher or recipient can identify the maker's authorized memo unambiguously and reject relay injection, defined at the offer-file and discovery layer without imposing a one-memo rule on consensus.",
+      "ref": {
+        "section": "proved-messages"
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "kind": "spec",
+      "text": "Created the spec for generic account abstraction: EVM signatures authorising generic trustless messaging.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-version-2"
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "kind": "spec",
+      "text": "Created the posted-price solver spec and its end-to-end acceptance criteria.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
       "date": "2026-08-17",
       "kind": "progress",
       "text": "Tutorial in review: three pages that build the contract one circuit at a time, from game-ID state and witness identity to action tokens, chunked settlement and minting to the winner. A last page plays a full game against a local network.",
@@ -986,9 +1258,10 @@
     {
       "date": "2026-08-16",
       "kind": "published",
-      "text": "Slide deck covering the platform and where the current work fits.",
+      "text": "Slide deck on the single-page template: the whole program on one slide, how to run it, and when you outgrow it.",
       "ref": {
-        "section": "effectstream-improvements"
+        "section": "effectstream-improvements",
+        "row": "single-page-template"
       }
     },
     {
@@ -1197,10 +1470,69 @@
 }
   </script>
 
+  <script type="application/json" id="data-presentations">
+{
+  "entries": [
+    {
+      "id": "pres-umbra-indexer",
+      "date": "2026-08-19",
+      "title": "Umbra as a Midnight Indexer",
+      "text": "What the indexer actually is, why replay is the hard part rather than the API, the two ways wallets sync, why replace the indexer instead of running or forking it, the measured gap, and a small-core scope. Verdict: GO.",
+      "href": "presentations/umbra-indexer.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/umbra-indexer.html"
+        }
+      ],
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "id": "pres-nixnax",
+      "date": "2026-08-16",
+      "title": "Nix-Nax",
+      "text": "Why the game is fast, the NixNaxArena Compact contract, what trust costs, and the tutorial that builds the contract step by step.",
+      "href": "presentations/nixnax.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/nixnax.html"
+        }
+      ],
+      "ref": {
+        "section": "games",
+        "row": "nix-nax"
+      }
+    },
+    {
+      "id": "pres-effectstream",
+      "date": "2026-08-16",
+      "title": "Effectstream",
+      "text": "The single-page template: the whole program on one slide, how to run it, when you outgrow it, and where it landed in the Midnight docs.",
+      "href": "presentations/effectstream.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/effectstream.html"
+        }
+      ],
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "single-page-template"
+      }
+    }
+  ]
+}
+  </script>
+
   <script>
 
     const DATA = JSON.parse(document.getElementById('data-consolidated').textContent);
     const TIME = JSON.parse(document.getElementById('data-timeline').textContent);
+    const PRES = JSON.parse(document.getElementById('data-presentations').textContent);
 
     const secById = new Map(DATA.sections.map(s => [s.id, s]));
     const rowById = new Map();
@@ -1313,7 +1645,34 @@
       }).join('');
     }
 
+    /* ---------- presentations ---------- */
+    function renderPresentations() {
+      const items = [...PRES.entries]
+        .sort((a,b) => b.date.localeCompare(a.date))
+        .map(e => {
+          const d = parseDate(e.date);
+          const when = MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+          const sec = e.ref && secById.get(e.ref.section);
+          const proj = sec
+            ? '<span class="sep"> · </span><a href="#' + sec.id + '" data-goto="' + sec.id + '">' + sec.title + '</a>'
+            : '';
+          const title = e.href ? '<a href="' + e.href + '">' + e.title + '</a>' : e.title;
+          return '<li id="' + e.id + '">' +
+            '<span class="kind">' + when + '</span>' +
+            '<span class="where">' + title + proj + '</span>' +
+            (e.text ? '<div class="entry-text">' + e.text + linksHtml(e.links) + '</div>' : '') +
+          '</li>';
+        }).join('');
+      return '<section class="project" id="presentations-list"><h2>Presentations</h2>' +
+             '<ul class="entries">' + items + '</ul></section>';
+    }
+
     function tocFor(view) {
+      if (view === 'presentations') {
+        return [...PRES.entries]
+          .sort((a,b) => b.date.localeCompare(a.date))
+          .map(e => '<li><a href="#' + e.id + '">' + e.title + '</a></li>').join('');
+      }
       if (view === 'timeline') {
         return [...document.querySelectorAll('#view-timeline .week')].map(w =>
           '<li><a href="#' + w.id + '">' + w.querySelector('h2').textContent + '</a></li>').join('');
@@ -1327,6 +1686,7 @@
     document.getElementById('updated').textContent = DATA.site.updated;
     document.getElementById('view-consolidated').innerHTML = renderConsolidated();
     document.getElementById('view-timeline').innerHTML = renderTimeline();
+    document.getElementById('view-presentations').innerHTML = renderPresentations();
 
     let observer = null;
     function spy(view) {
@@ -1345,13 +1705,16 @@
         links.forEach(a => a.classList.remove('active'));
         byId.get(best.target.id)?.classList.add('active');
       }, { rootMargin: '-10% 0px -70% 0px' });
-      const sel = view === 'timeline' ? '#view-timeline .week' : '#view-consolidated section.project';
+      const sel = view === 'timeline' ? '#view-timeline .week'
+        : view === 'presentations' ? '#view-presentations ul.entries li'
+        : '#view-consolidated section.project';
       document.querySelectorAll(sel).forEach(s => observer.observe(s));
     }
 
     function setView(view, remember = true) {
-      document.getElementById('view-consolidated').hidden = view === 'timeline';
+      document.getElementById('view-consolidated').hidden = view !== 'consolidated';
       document.getElementById('view-timeline').hidden = view !== 'timeline';
+      document.getElementById('view-presentations').hidden = view !== 'presentations';
       document.querySelectorAll('.viewbar button').forEach(b =>
         b.classList.toggle('active', b.dataset.view === view));
       document.getElementById('toc').innerHTML = tocFor(view);
@@ -1374,6 +1737,7 @@
     let initial = 'consolidated';
     try { initial = localStorage.getItem('blog-view') || 'consolidated'; } catch (e) {}
     if (location.hash.startsWith('#week-')) initial = 'timeline';
+    if (location.hash.startsWith('#pres-')) initial = 'presentations';
     setView(initial, false);
     if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
   </script>
