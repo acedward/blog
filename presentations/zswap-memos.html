@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Umbra Indexer — internal</title>
+    <title>Authenticated Messages in ZSwap</title>
     <style>
 /* =========================================================================
    Midnight Style Kit — midnight.css
@@ -596,352 +596,362 @@
   </head>
   <body class="md-deck">
 
-    <!-- 1 / Title -->
-    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark deck-opener">
+    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-spheres-dark deck-opener">
       <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
       <div class="md-body">
-        <h1 class="md-title">Umbra as a Midnight Indexer</h1>
-        <p class="md-lead">Can Umbra replace the official indexer &mdash; and should it? Research findings.</p>
+        <h1 class="md-title">Authenticated Messages in ZSwap</h1>
+        <p class="md-lead">A message on a shielded transfer, proved by the same secret that spends the coin. No public key revealed, no circuit changed.</p>
         <div class="deck-points">
             <div class="deck-point">
               <span class="deck-point__n">01</span>
-              <p class="md-text"><b>The question.</b> Every Midnight wallet and dApp depends on one indexer. Can Umbra be a drop-in alternative?</p>
+              <p class="md-text"><b>The memo rides the spend proof.</b> Up to 512 bytes on any shielded input. It cannot be altered, stripped, or moved to another input without the proof failing, and only the coin's owner can attach it.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">02</span>
-              <p class="md-text"><b>The method.</b> Eight research passes: indexer source, UmbraDB, wallets, prior experiments, security.</p>
+              <p class="md-text"><b>Zero cryptography changes.</b> The proof system, the circuit, the keys and the trusted setup are all untouched. The memo lives in a slot the circuit already had.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">03</span>
-              <p class="md-text"><b>The verdict.</b> Possible, no hard problems &mdash; the make-or-break risks are already retired by our own experiments.</p>
+              <p class="md-text"><b>Still a hard fork.</b> One optional field changes the wire format and the validity rules, so every node must upgrade and the network switches at one agreed block height.</p>
             </div>
         </div>
       </div>
     </section>
 
-    <!-- 2 / What the indexer is -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Authenticated Messages in ZSwap</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">What the indexer actually is</h2>
+          <h2 class="md-heading md-heading--sm">The whole mechanism is one slot</h2>
           <div>
             <p class="md-text">
-              One GraphQL API &mdash; <span class="md-accent">38 queries, 2 mutations,
-              13 subscriptions</span>. That is the entire surface the ecosystem
-              depends on. Confirmed: nothing else exists beside health probes.
-            </p>
-          </div>
-        </div>
-
-        <div class="deck-cards deck-cards--3 md-grow">
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">GraphQL only</h3>
-            <p class="md-text md-text--small">A single endpoint (<span class="md-accent">/api/v4/graphql</span> + websocket). v3 is just an alias of v4. There are no other API versions to support.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Mostly public data</h3>
-            <p class="md-text md-text--small">Only 3 of 53 operations ever see a viewing key &mdash; <b>and all 3 are legacy</b>: no new endpoint takes a key. Everything else serves the same public data to everyone.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">A surprise: staking</h3>
-            <p class="md-text md-text--small">20 of the 38 queries are staking/SPO data pulled from <b>Blockfrost</b>, not from the chain. No wallet or library uses them.</p>
-          </div>
-        </div>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">2/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 3 / The hard part is replay -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The hard part is replay, not the API</h2>
-          <div>
-            <p class="md-text">
-              The indexer does not just store blocks. It <b>re-executes every
-              transaction</b> against its own copy of the ledger. That replay is
-              what produces the data everyone queries.
+              Every ZSwap proof carries a first public input the circuit leaves
+              unconstrained. Outputs have always used it to bind their coin
+              ciphertext. Inputs hardcoded it to zero. That zero is the entire
+              opportunity.
             </p>
           </div>
         </div>
 
         <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="deck-points">
-            <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Raw node data covers little.</b> Fees, results, merkle trees, events, balances &mdash; none of it comes from the node. It all comes out of replay.</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Absent: exactly as before</h3>
+              <p class="md-text md-text--small">
+                No memo means the slot stays zero, byte for byte what every
+                existing transaction already proves. Old coins, old wallets and
+                old fixtures are untouched.
+              </p>
             </div>
-            <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>We already proved we can do it.</b> Our experiment reproduced the indexer's archive <b>byte-for-byte</b> from the node alone, verified against the node's state roots every block.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Low bar upstream.</b> The official indexer only follows finalized blocks, has no reorg handling &mdash; matching it is easier than expected.</p>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Present: bytes become the statement</h3>
+              <p class="md-text md-text--small">
+                The bytes are packed into field elements
+                <span class="md-accent">(one length element plus one per 31 bytes)</span>
+                and hashed into the slot. Construction and verification derive it
+                through <b>one shared function</b>, so the two sides cannot drift
+                apart silently.
+              </p>
             </div>
           </div>
           <div class="md-stack md-stack--gap">
-            <div class="md-panel md-panel--filled">
-              <h3 class="md-subhead">What the experiment needed</h3>
-              <p class="md-text md-text--small">Six small exports added to the ledger WASM. <b>Zero changes to the node.</b> 658 tests, 60-block live parity against the real indexer.</p>
+            <div class="deck-card">
+              <h3 class="md-subhead">What that buys</h3>
+              <p class="md-text md-text--small">
+                Change a byte, move the memo to another input, strip it, or swap
+                in a same-length replacement: the spend proof fails. Attaching
+                one requires producing the proof, which requires the spending
+                secret. Authorship is proved without revealing any key.
+              </p>
             </div>
-            <p class="md-text md-text--small md-text--muted">
-              Experiment: UmbraDB PR #1 (node-only ingest). Kept as knowledge, not merged as-is.
-            </p>
+            <div class="deck-card">
+              <h3 class="md-subhead">What it costs</h3>
+              <p class="md-text md-text--small">
+                The bytes are priced by size as before, and the verifier's
+                hashing work gets its own calibrated charge next to the proof
+                verification each input already pays. Absence costs exactly
+                nothing new.
+              </p>
+            </div>
           </div>
         </div>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">3/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">2/6</span>
         </span>
       </footer>
     </section>
 
-    <!-- 4 / Two ways wallets sync -->
-    <section class="md-slide md-slide--light md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Two ways wallets sync &mdash; and why it matters</h2>
-          <div>
-            <p class="md-text">
-              The ecosystem is mid-migration. New wallets <b>never send their
-              viewing key to the server</b>. That changes what we must build.
-            </p>
-          </div>
-        </div>
 
-        <table class="deck-table md-grow">
-          <thead>
-            <tr><th></th><th>Legacy: connect</th><th>New: event stream</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Viewing key</td>
-              <td>Sent to the server, stored there</td>
-              <td><b>Never leaves the device</b></td>
-            </tr>
-            <tr>
-              <td>Who scans</td>
-              <td>Server decrypts on your behalf</td>
-              <td>Wallet downloads all shielded events, decrypts locally</td>
-            </tr>
-            <tr>
-              <td>What the server learns</td>
-              <td>Your full transaction graph</td>
-              <td>Nothing</td>
-            </tr>
-            <tr>
-              <td>Who uses it</td>
-              <td>Older wallets only</td>
-              <td>Official SDK default, moth/dusk wallets (connect is dead code there)</td>
-            </tr>
-            <tr>
-              <td>Cost</td>
-              <td>Cheap for the wallet</td>
-              <td>Full scan: <b>78.6&nbsp;min</b> on preprod &mdash; or <b>29.3&nbsp;s</b> with fast-sync snapshots</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p class="md-text md-text--small">
-          <b>Opportunity:</b> the fast-sync snapshots that make it 29 seconds are built by hand today.
-          An indexer that <span class="md-accent">serves signed bootstrap snapshots</span> would fix onboarding
-          <i>and</i> recovery &mdash; nothing in the official API does this.
-        </p>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">4/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 5 / Why replace it -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Authenticated Messages in ZSwap</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Why replace it, instead of running or forking it</h2>
+          <h2 class="md-heading md-heading--sm">The field, exactly as it ships</h2>
           <div>
             <p class="md-text">
-              Using the official indexer means inheriting three structural
-              problems. Forking it pays the full cost without owning the design.
+              One optional field on the shielded input, and one newtype behind
+              it. This is the entire data-model change.
             </p>
           </div>
         </div>
 
-        <div class="deck-cards deck-cards--3 md-grow">
-          <div class="deck-card">
-            <h3 class="md-subhead">Disk never stops growing</h3>
-            <p class="md-text md-text--small">No garbage collection: <b>161&nbsp;GB at half of preprod height</b>. Umbra's fix: almost every query needs only the <i>latest</i> state &mdash; prune behind a ~1,000-block window, disk stays flat.</p>
+        <div class="md-cols md-grow" style="grid-template-columns: 1.15fr 1fr">
+          <div class="md-stack md-stack--gap">
+            <div class="md-panel">
+              <pre class="md-code deck-code-1col deck-code-sm"><span class="c">// zswap/src/structure.rs  &mdash; the stored field</span>
+<span class="p">#[</span>tag <span class="p">=</span> <span class="f">"zswap-input[v3]"</span><span class="p">]</span>          <span class="c">// was [v2]</span>
+<span class="p">#[</span>storable<span class="p">(</span>db <span class="p">=</span> D<span class="p">,</span> <span class="md-accent">invariant <span class="p">=</span> input_invariant</span><span class="p">)]</span>
+<span class="k">pub struct</span> <span class="f">Input</span><span class="p">&lt;</span>P<span class="p">:</span> Storable<span class="p">&lt;</span>D<span class="p">&gt;,</span> D<span class="p">:</span> DB<span class="p">&gt;</span> <span class="p">{</span>
+    <span class="k">pub</span> nullifier<span class="p">:</span> Nullifier<span class="p">,</span>
+    <span class="k">pub</span> value_commitment<span class="p">:</span> Pedersen<span class="p">,</span>
+    <span class="k">pub(crate)</span> contract_address<span class="p">:</span> Option<span class="p">&lt;</span>Sp<span class="p">&lt;</span>ContractAddress<span class="p">,</span> D<span class="p">&gt;&gt;,</span>
+    <span class="k">pub</span> merkle_tree_root<span class="p">:</span> MerkleTreeDigest<span class="p">,</span>
+    <b><span class="k">pub(crate)</span> memo<span class="p">:</span> <span class="md-accent">Option&lt;Sp&lt;Memo, D&gt;&gt;</span><span class="p">,</span></b>
+    <span class="k">pub</span> proof<span class="p">:</span> Arc<span class="p">&lt;</span>P<span class="p">&gt;,</span>
+<span class="p">}</span>
+<span class="k">pub struct</span> <span class="f">Memo</span><span class="p">(</span>Vec<span class="p">&lt;</span>u8<span class="p">&gt;);</span>  <span class="c">// private: constructed, never poked</span></pre>
+            </div>
+            <div class="md-panel">
+              <pre class="md-code deck-code-1col deck-code-sm"><span class="c">// and the two lines that bind it to the proof</span>
+<span class="c">// construct.rs</span>  binding_input<span class="p">:</span> <span class="md-accent">memo_statement_element</span><span class="p">(</span>memo<span class="p">.</span>as_ref<span class="p">()),</span>
+<span class="c">// verify.rs</span>     statement <span class="p">=</span> vec![<span class="md-accent">memo_statement_element</span><span class="p">(</span>self<span class="p">.</span>memo<span class="p">.</span>as_deref<span class="p">())];</span></pre>
+            </div>
           </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Slow by architecture</h3>
-            <p class="md-text md-text--small">Sync is CPU-bound: a quadratic hotspot eats 64% of CPU, never backported. Umbra's fix: run the patched ledger (<b>~1.9&times;</b> from one line) and pipeline decode with replay.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Operator sees everything</h3>
-            <p class="md-text md-text--small">No auth. The operator can decrypt <b>every stored viewing key</b>, and the wallet&rarr;transaction map sits in plaintext.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">What we gain on top</h3>
-            <p class="md-text md-text--small">Bootstrap snapshots, per-block certified consistency, encrypted per-user data &mdash; features upstream simply doesn't have.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Ecosystem resilience</h3>
-            <p class="md-text md-text--small">Midnight runs on <b>one</b> indexer implementation today. A second, independent one reduces network-wide risk.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Our release cadence</h3>
-            <p class="md-text md-text--small">Fixes and the 2.x transition happen on our gate, not upstream's. The official indexer stays useful &mdash; as our test oracle.</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">A field alone would be inert</h3>
+              <p class="md-text md-text--small">
+                Storing bytes proves nothing. The two lines above put those bytes
+                in the proof's first public input, through
+                <b>one shared function</b> that the prover and the verifier both
+                call. Absence returns <span class="md-accent">0</span>, which is
+                exactly the value inputs hardcoded before, so memo-less spends
+                prove what they always did.
+              </p>
+            </div>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">One byte on the wire when absent</h3>
+              <p class="md-text md-text--small">
+                The whole encoding difference between the old format and the new
+                one is this field's <span class="md-accent">Option</span>
+                discriminant: one byte per input, and nothing else in the body
+                moves.
+              </p>
+            </div>
+            <div class="deck-card">
+              <h3 class="md-subhead">Both rules, one invariant</h3>
+              <p class="md-text md-text--small">
+                <span class="md-accent">input_invariant</span> re-checks on every
+                store that the memo is 1 to 512 bytes and that its input is
+                user-owned, never contract-owned. Construction, serialization and
+                deserialization funnel through the same check, so no boundary can
+                accept what another rejects.
+              </p>
+            </div>
           </div>
         </div>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">5/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">3/6</span>
         </span>
       </footer>
     </section>
 
-    <!-- 6 / The gap -->
-    <section class="md-slide md-slide--light md-slide--content deck-slide">
+    <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Authenticated Messages in ZSwap</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The gap, measured</h2>
+          <h2 class="md-heading md-heading--sm">Two changes, two jobs</h2>
           <div>
             <p class="md-text">
-              We mapped all <span class="md-accent">53 API operations</span> to the
-              exact data they need, and checked what UmbraDB holds today.
+              The field carries the message and the statement slot protects it.
+              Drop either one and the feature collapses.
             </p>
           </div>
         </div>
 
         <table class="deck-table md-grow">
           <thead>
-            <tr><th>Operations</th><th>What they need</th><th>Effort</th></tr>
+            <tr>
+              <th></th>
+              <th><span class="md-accent">memo</span> field</th>
+              <th><span class="md-accent">binding_input</span></th>
+            </tr>
           </thead>
           <tbody>
             <tr>
-              <td>0 of 53</td>
-              <td>Fully servable from UmbraDB today &mdash; the data layer is the project</td>
-              <td>&mdash;</td>
+              <td>Lives</td>
+              <td>On the wire, a serialized field of <span class="md-accent">Input</span></td>
+              <td>Inside the proof's statement, never serialized</td>
             </tr>
             <tr>
-              <td>19 core</td>
-              <td>New but ordinary database tables (contracts, UTXOs, events, dust&hellip;)</td>
-              <td>Medium</td>
+              <td>Contains</td>
+              <td>The message bytes themselves, 1 to 512</td>
+              <td>A hash commitment to those bytes, <span class="md-accent">0</span> when absent</td>
             </tr>
             <tr>
-              <td>5 core</td>
-              <td>A ledger snapshot store &mdash; good news: most queries only need the <i>latest</i> state</td>
-              <td>High &rarr; Medium</td>
+              <td>Provides</td>
+              <td>Readability: how a reader ever sees the memo</td>
+              <td>Integrity and authorization: why nobody can forge one</td>
             </tr>
             <tr>
-              <td>29 optional</td>
-              <td>Staking (20, Blockfrost) and bridge (9, beta) &mdash; nobody's wallet breaks without them</td>
-              <td>Deferred</td>
+              <td>Alone it would be</td>
+              <td>Forgeable: anyone relaying the transaction could edit the bytes and the proof would still verify</td>
+              <td>Unreadable: a commitment is one way, so there would be no bytes to recover</td>
             </tr>
           </tbody>
         </table>
 
         <p class="md-text md-text--small md-text--muted">
-          Three genuinely hard core items remain: the contract domain, the dust domain, and
-          subscription resume semantics &mdash; where replacements silently break wallets.
+          Together: the field supplies the bytes, the verifier hashes them into
+          the statement it checks the proof against, and only the coin's
+          secret-key holder could have produced that proof.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">6/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">4/6</span>
         </span>
       </footer>
     </section>
 
-    <!-- 7 / Scope decision -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Authenticated Messages in ZSwap</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Scope: a small core, everything else optional</h2>
+          <h2 class="md-heading md-heading--sm">Why a small change is a hard fork</h2>
           <div>
             <p class="md-text">
-              The core serves modern wallets with <b>zero key custody</b>.
-              Every other feature ships independently on its own merits &mdash; or never.
+              The diff is one optional field per input. But it changes what
+              bytes a transaction is and what makes it valid, and those are the
+              two things every node must agree on.
             </p>
           </div>
         </div>
 
         <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="md-panel md-panel--filled">
-            <h3 class="md-subhead">Core &mdash; the v4 alt-indexer</h3>
-            <p class="md-text md-text--small">Node-direct ingest &amp; verified replay (proven)</p>
-            <p class="md-text md-text--small">Atomic per-block commits &mdash; readers never see half a block</p>
-            <p class="md-text md-text--small">Tables + snapshot store for all core data</p>
-            <p class="md-text md-text--small">The v4 GraphQL layer &mdash; a mechanical mapping once data exists</p>
-            <p class="md-text md-text--small">Public-service hardening (TLS, rate limits)</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Old nodes cannot even decode it</h3>
+              <p class="md-text md-text--small">
+                The wire tags bump: <span class="md-accent">zswap-input v2&rarr;v3</span>,
+                <span class="md-accent">transaction v12&rarr;v13</span>. A node
+                without the change rejects v13 bytes at the header. If part of
+                the network accepts v13 and part cannot read it, the chain
+                splits at the first memo transaction.
+              </p>
+            </div>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Validity itself changes</h3>
+              <p class="md-text md-text--small">
+                A memo-bearing spend proves a nonzero statement element where the
+                old rules require zero. Two rule sets, one network: that is the
+                definition of a consensus break, however small the field.
+              </p>
+            </div>
           </div>
-          <div class="md-panel">
-            <h3 class="md-subhead">Optional &mdash; independent goals</h3>
-            <p class="md-text md-text--small">Fast-sync bootstrap snapshots <span class="md-accent">(differentiator)</span></p>
-            <p class="md-text md-text--small">Legacy wallet sessions (older wallets only)</p>
-            <p class="md-text md-text--small">Hosted monitoring w/ encrypted rows; TEE last, if ever</p>
-            <p class="md-text md-text--small">Staking queries &middot; bridge &middot; Midnight 2.x (own gate)</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card">
+              <h3 class="md-subhead">So the switch is coordinated</h3>
+              <p class="md-text md-text--small">
+                Every node upgrades first, then v13 activates at one block height
+                stored in consensus chain state
+                <span class="md-accent">(MemoActivationHeight, 0 on fresh chains)</span>.
+                The pool and block validation apply the same rule, so nothing is
+                admitted that a block would reject. Partial deployment is not
+                supported.
+              </p>
+            </div>
+            <div class="deck-card">
+              <h3 class="md-subhead">And history survives</h3>
+              <p class="md-text md-text--small">
+                A version-preserving envelope decodes both encodings: old v12
+                transactions replay under their historical rules and reserialize
+                byte-identically, and v12 stays valid <b>forever</b>, so no
+                wallet or user is ever forced to migrate.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">5/6</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--white md-slide--content deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Authenticated Messages in ZSwap</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">What ships where</h2>
+          <div>
+            <p class="md-text">
+              Two repos carry the change today; three more are mapped for the
+              read side, so a webpage can attach a memo through the wallet SDK
+              and read it back with a per-input verdict.
+            </p>
           </div>
         </div>
 
+        <table class="deck-table md-grow">
+          <thead>
+            <tr><th>Repo</th><th>What changes</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>midnight-ledger</td>
+              <td>Memo on <span class="md-accent">zswap::Input</span>, proof binding, v12 mirror types and the version envelope</td>
+              <td><a href="https://github.com/acedward/midnight-ledger-zswap-memo/pull/5">review PR #5</a></td>
+            </tr>
+            <tr>
+              <td>midnight-node</td>
+              <td>Both encodings decoded at every entry point, the activation height gate, versioned host functions, toolkit <span class="md-accent">--memo</span></td>
+              <td><a href="https://github.com/acedward/midnight-node-zswap-memo/pull/5">review PR #5</a></td>
+            </tr>
+            <tr>
+              <td>midnight-wallet</td>
+              <td>Attach a memo to a chosen input from the SDK, return the carrier, render bytes inertly</td>
+              <td>mapped, planned</td>
+            </tr>
+            <tr>
+              <td>midnight-indexer</td>
+              <td>One record per carrier input with a validated verdict; inclusion and finality stay separate facts</td>
+              <td>mapped, planned</td>
+            </tr>
+            <tr>
+              <td>midnight-js</td>
+              <td>Dependency bump only: it never authors shielded inputs</td>
+              <td>mapped, planned</td>
+            </tr>
+          </tbody>
+        </table>
+
         <p class="md-text md-text--small md-text--muted">
-          Why TEE moved to the bottom: new wallets never share keys &mdash; there is nothing for an enclave to protect in the core.
+          Memo verifier cost calibration is in progress. Offer-file attribution
+          (a memo as a maker's message on a swap offer) builds on this and has
+          its own plan.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">7/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">6/6</span>
         </span>
       </footer>
-    </section>
-
-    <!-- 8 / Verdict -->
-    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark">
-      <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
-      <div class="md-body">
-        <h1 class="md-title">Verdict: possible, no hard problems</h1>
-        <p class="md-lead">A large but well-understood engineering program &mdash; not open research.</p>
-        <div class="deck-points">
-            <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Risks retired.</b> Node-as-source and byte-exact replay are proven. The official indexer remains as our test oracle.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>Honest cost.</b> Three hard core items: contracts, dust, subscription semantics. Plus permanent parity upkeep as v4 evolves.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Next step.</b> Approve the replacement spec (00004) with the scoping decided here, then start the core.</p>
-            </div>
-        </div>
-      </div>
     </section>
 
     <script>

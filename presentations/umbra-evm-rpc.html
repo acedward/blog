@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Umbra Indexer — internal</title>
+    <title>Umbra evm-rpc — internal</title>
     <style>
 /* =========================================================================
    Midnight Style Kit — midnight.css
@@ -600,52 +600,50 @@
     <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark deck-opener">
       <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
       <div class="md-body">
-        <h1 class="md-title">Umbra as a Midnight Indexer</h1>
-        <p class="md-lead">Can Umbra replace the official indexer &mdash; and should it? Research findings.</p>
+        <h1 class="md-title">Umbra speaks EVM</h1>
+        <p class="md-lead">The <code>eth_*</code> JSON-RPC surface over Midnight: endpoint status and goals.</p>
         <div class="deck-points">
             <div class="deck-point">
               <span class="deck-point__n">01</span>
-              <p class="md-text"><b>The question.</b> Every Midnight wallet and dApp depends on one indexer. Can Umbra be a drop-in alternative?</p>
+              <p class="md-text"><b>The idea.</b> MetaMask adds Midnight as chain <span class="md-accent">2400</span>. A decade of EVM tooling works without anyone porting it.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">02</span>
-              <p class="md-text"><b>The method.</b> Eight research passes: indexer source, UmbraDB, wallets, prior experiments, security.</p>
+              <p class="md-text"><b>Where it stands.</b> <span class="md-accent">29 methods live</span>, verified on the wire against the pinned official spec. Every gap answers with a deliberate error code, never silence.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">03</span>
-              <p class="md-text"><b>The verdict.</b> Possible, no hard problems &mdash; the make-or-break risks are already retired by our own experiments.</p>
+              <p class="md-text"><b>The goal.</b> A trustless relay into Midnight contracts, on a fully documented surface, ready for the contract and signature update.</p>
             </div>
         </div>
       </div>
     </section>
 
-    <!-- 2 / What the indexer is -->
+    <!-- 2 / What it is -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Midnight &lt;&gt; EVM</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">What the indexer actually is</h2>
+          <h2 class="md-heading md-heading--sm">One compatibility layer, three paths</h2>
           <div>
             <p class="md-text">
-              One GraphQL API &mdash; <span class="md-accent">38 queries, 2 mutations,
-              13 subscriptions</span>. That is the entire surface the ecosystem
-              depends on. Confirmed: nothing else exists beside health probes.
+              UmbraDB grows an <code>evm-rpc</code> module: a JSON-RPC 2.0 server that translates
+              Midnight into the interfaces wallets already speak. It is a translation layer, not an EVM.
             </p>
           </div>
         </div>
-
         <div class="deck-cards deck-cards--3 md-grow">
           <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">GraphQL only</h3>
-            <p class="md-text md-text--small">A single endpoint (<span class="md-accent">/api/v4/graphql</span> + websocket). v3 is just an alias of v4. There are no other API versions to support.</p>
+            <h3 class="md-subhead">Read path</h3>
+            <p class="md-text md-text--small">node &rarr; indexer &rarr; UmbraDB tables &rarr; <code>eth_*</code>. Blocks, balances (lossless 10&sup1;&sup2; scaling), transactions, receipts. MetaMask connects with zero unhandled methods.</p>
           </div>
           <div class="deck-card">
-            <h3 class="md-subhead">Mostly public data</h3>
-            <p class="md-text md-text--small">Only 3 of 53 operations ever see a viewing key &mdash; <b>and all 3 are legacy</b>: no new endpoint takes a key. Everything else serves the same public data to everyone.</p>
+            <h3 class="md-subhead">Logs path</h3>
+            <p class="md-text md-text--small">Compact contract events become canonical EVM <code>Transfer</code> logs: <code>eth_getLogs</code> with full geth filter semantics, live <code>eth_subscribe</code>, genesis backfill. Token state is readable by any explorer logic.</p>
           </div>
           <div class="deck-card">
-            <h3 class="md-subhead">A surprise: staking</h3>
-            <p class="md-text md-text--small">20 of the 38 queries are staking/SPO data pulled from <b>Blockfrost</b>, not from the chain. No wallet or library uses them.</p>
+            <h3 class="md-subhead">Write path</h3>
+            <p class="md-text md-text--small">A MetaMask signature (personal_sign or raw legacy tx) relays into a Midnight contract that verifies secp256k1/keccak in-circuit. The signer holds zero NIGHT: the relayer pays fees.</p>
           </div>
         </div>
       </div>
@@ -653,292 +651,218 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">2/8</span>
+          <span class="md-footer__page">2/7</span>
         </span>
       </footer>
     </section>
 
-    <!-- 3 / The hard part is replay -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The hard part is replay, not the API</h2>
-          <div>
-            <p class="md-text">
-              The indexer does not just store blocks. It <b>re-executes every
-              transaction</b> against its own copy of the ledger. That replay is
-              what produces the data everyone queries.
-            </p>
-          </div>
-        </div>
-
-        <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="deck-points">
-            <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Raw node data covers little.</b> Fees, results, merkle trees, events, balances &mdash; none of it comes from the node. It all comes out of replay.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>We already proved we can do it.</b> Our experiment reproduced the indexer's archive <b>byte-for-byte</b> from the node alone, verified against the node's state roots every block.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Low bar upstream.</b> The official indexer only follows finalized blocks, has no reorg handling &mdash; matching it is easier than expected.</p>
-            </div>
-          </div>
-          <div class="md-stack md-stack--gap">
-            <div class="md-panel md-panel--filled">
-              <h3 class="md-subhead">What the experiment needed</h3>
-              <p class="md-text md-text--small">Six small exports added to the ledger WASM. <b>Zero changes to the node.</b> 658 tests, 60-block live parity against the real indexer.</p>
-            </div>
-            <p class="md-text md-text--small md-text--muted">
-              Experiment: UmbraDB PR #1 (node-only ingest). Kept as knowledge, not merged as-is.
-            </p>
-          </div>
-        </div>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">3/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 4 / Two ways wallets sync -->
+    <!-- 3 / Endpoint status -->
     <section class="md-slide md-slide--light md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Midnight &lt;&gt; EVM</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Two ways wallets sync &mdash; and why it matters</h2>
+          <h2 class="md-heading md-heading--sm">Endpoint status</h2>
           <div>
             <p class="md-text">
-              The ecosystem is mid-migration. New wallets <b>never send their
-              viewing key to the server</b>. That changes what we must build.
+              All 29 served methods, by group. Each one live-verified,
+              with its data source and deviations written down per method.
             </p>
           </div>
         </div>
-
         <table class="deck-table md-grow">
           <thead>
-            <tr><th></th><th>Legacy: connect</th><th>New: event stream</th></tr>
+            <tr><th>Group</th><th>Methods</th><th>Status</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td>Viewing key</td>
-              <td>Sent to the server, stored there</td>
-              <td><b>Never leaves the device</b></td>
+              <td>Identity, fees, utility</td>
+              <td><code>chainId</code> 0x960 &middot; <code>net_version</code> &middot; <code>gasPrice</code> &middot; <code>feeHistory</code> &middot; <code>web3_sha3</code> + 6 more</td>
+              <td>Live; fee values are presentation only (fees are DUST)</td>
             </tr>
             <tr>
-              <td>Who scans</td>
-              <td>Server decrypts on your behalf</td>
-              <td>Wallet downloads all shielded events, decrypts locally</td>
+              <td>Blocks</td>
+              <td><code>blockNumber</code> &middot; <code>getBlockBy*</code> &middot; tx counts by block</td>
+              <td>Live; legacy pre-London shape by design (forces type-0 txs)</td>
             </tr>
             <tr>
-              <td>What the server learns</td>
-              <td>Your full transaction graph</td>
-              <td>Nothing</td>
+              <td>Accounts &amp; state</td>
+              <td><code>getBalance</code> &middot; <code>getTransactionCount</code> &middot; <code>getCode</code> &middot; <code>eth_call</code></td>
+              <td>Live; <code>eth_call</code> answers the five ERC20 views, folded from logs</td>
             </tr>
             <tr>
-              <td>Who uses it</td>
-              <td>Older wallets only</td>
-              <td>Official SDK default, moth/dusk wallets (connect is dead code there)</td>
+              <td>Transactions &amp; receipts</td>
+              <td><code>getTransactionByHash</code> &middot; receipts &middot; by-index lookups &middot; <code>getBlockReceipts</code></td>
+              <td>Live; one canonical Midnight hash, receipts carry real logs and bloom</td>
             </tr>
             <tr>
-              <td>Cost</td>
-              <td>Cheap for the wallet</td>
-              <td>Full scan: <b>78.6&nbsp;min</b> on preprod &mdash; or <b>29.3&nbsp;s</b> with fast-sync snapshots</td>
+              <td>Logs &amp; subscriptions</td>
+              <td><code>getLogs</code> &middot; <code>subscribe</code>/<code>unsubscribe</code> (WS)</td>
+              <td>Live; geth filter semantics, 10k result cap</td>
+            </tr>
+            <tr>
+              <td>Write</td>
+              <td><code>sendRawTransaction</code></td>
+              <td>Live behind <code>RELAY_URL</code>: forwards to the relayer</td>
             </tr>
           </tbody>
         </table>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation | Internal</span>
+          <span class="md-footer__page">3/7</span>
+        </span>
+      </footer>
+    </section>
 
-        <p class="md-text md-text--small">
-          <b>Opportunity:</b> the fast-sync snapshots that make it 29 seconds are built by hand today.
-          An indexer that <span class="md-accent">serves signed bootstrap snapshots</span> would fix onboarding
-          <i>and</i> recovery &mdash; nothing in the official API does this.
+    <!-- 4 / Coverage vs the official spec -->
+    <section class="md-slide md-slide--white md-slide--content deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Midnight &lt;&gt; EVM</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">Coverage against the official spec</h2>
+          <div>
+            <p class="md-text">
+              Measured against a pinned <span class="md-accent">ethereum/execution-apis</span> checkout:
+              <span class="md-accent">47 official methods</span>. Every one gets a deliberate answer.
+            </p>
+          </div>
+        </div>
+        <div class="deck-cards deck-cards--3 md-grow">
+          <div class="deck-card deck-card--accent">
+            <h3 class="md-subhead">29 served</h3>
+            <p class="md-text md-text--small">The full wallet surface plus the by-index/read family, plus the legacy extras wallets expect (<code>web3_*</code>, <code>net_listening</code>).</p>
+          </div>
+          <div class="deck-card">
+            <h3 class="md-subhead">21 answer &ldquo;not supported&rdquo;</h3>
+            <p class="md-text md-text--small">Explicit <code>-32004</code> stubs (EIP-1474), each carrying its classification: 9 impossible by design (no state trie, no EVM execution), 4 wallet-side signing, 8 backlog.</p>
+          </div>
+          <div class="deck-card">
+            <h3 class="md-subhead">Unknown stays unknown</h3>
+            <p class="md-text md-text--small">Garbage names keep <code>-32601</code>. The error code itself now distinguishes &ldquo;we chose not to&rdquo; from &ldquo;never heard of it&rdquo;.</p>
+          </div>
+        </div>
+        <p class="md-text md-text--small md-text--muted">
+          The wire protocol is JSON-RPC 2.0 compliant end to end: batches, notifications, ids, and the five standard error codes, all exercised on the wire.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">4/8</span>
+          <span class="md-footer__page">4/7</span>
         </span>
       </footer>
     </section>
 
-    <!-- 5 / Why replace it -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Why replace it, instead of running or forking it</h2>
-          <div>
-            <p class="md-text">
-              Using the official indexer means inheriting three structural
-              problems. Forking it pays the full cost without owning the design.
-            </p>
-          </div>
-        </div>
-
-        <div class="deck-cards deck-cards--3 md-grow">
-          <div class="deck-card">
-            <h3 class="md-subhead">Disk never stops growing</h3>
-            <p class="md-text md-text--small">No garbage collection: <b>161&nbsp;GB at half of preprod height</b>. Umbra's fix: almost every query needs only the <i>latest</i> state &mdash; prune behind a ~1,000-block window, disk stays flat.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Slow by architecture</h3>
-            <p class="md-text md-text--small">Sync is CPU-bound: a quadratic hotspot eats 64% of CPU, never backported. Umbra's fix: run the patched ledger (<b>~1.9&times;</b> from one line) and pipeline decode with replay.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Operator sees everything</h3>
-            <p class="md-text md-text--small">No auth. The operator can decrypt <b>every stored viewing key</b>, and the wallet&rarr;transaction map sits in plaintext.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">What we gain on top</h3>
-            <p class="md-text md-text--small">Bootstrap snapshots, per-block certified consistency, encrypted per-user data &mdash; features upstream simply doesn't have.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Ecosystem resilience</h3>
-            <p class="md-text md-text--small">Midnight runs on <b>one</b> indexer implementation today. A second, independent one reduces network-wide risk.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Our release cadence</h3>
-            <p class="md-text md-text--small">Fixes and the 2.x transition happen on our gate, not upstream's. The official indexer stays useful &mdash; as our test oracle.</p>
-          </div>
-        </div>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">5/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 6 / The gap -->
+    <!-- 5 / Reviewed and fixed -->
     <section class="md-slide md-slide--light md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Midnight &lt;&gt; EVM</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The gap, measured</h2>
+          <h2 class="md-heading md-heading--sm">Reviewed against the spec, then fixed</h2>
           <div>
             <p class="md-text">
-              We mapped all <span class="md-accent">53 API operations</span> to the
-              exact data they need, and checked what UmbraDB holds today.
+              Every method was exercised live, plus roughly 60 protocol border cases
+              (malformed ids, batch limits, wrong-length addresses, inverted ranges).
             </p>
           </div>
         </div>
-
         <table class="deck-table md-grow">
           <thead>
-            <tr><th>Operations</th><th>What they need</th><th>Effort</th></tr>
+            <tr><th>Found</th><th>Fixed</th></tr>
           </thead>
           <tbody>
             <tr>
-              <td>0 of 53</td>
-              <td>Fully servable from UmbraDB today &mdash; the data layer is the project</td>
-              <td>&mdash;</td>
+              <td>Transaction lookups errored for locally stored hashes: two hash identities for the same tx</td>
+              <td>Rows are positioned by one canonical Midnight hash; a startup repair pass rewrites old rows</td>
             </tr>
             <tr>
-              <td>19 core</td>
-              <td>New but ordinary database tables (contracts, UTXOs, events, dust&hellip;)</td>
-              <td>Medium</td>
+              <td>Receipts returned empty <code>logs</code> and a zero bloom even when the logs existed</td>
+              <td>Receipts now carry the real logs with a correct go-ethereum Bloom-9 filter</td>
             </tr>
             <tr>
-              <td>5 core</td>
-              <td>A ledger snapshot store &mdash; good news: most queries only need the <i>latest</i> state</td>
-              <td>High &rarr; Medium</td>
+              <td>Three error-code mislabels (<code>eth_call</code> arity, <code>feeHistory.oldestBlock</code>, raw-tx params)</td>
+              <td>Correct <code>-32602</code> answers; documented deviations kept only where they help wallets</td>
             </tr>
             <tr>
-              <td>29 optional</td>
-              <td>Staking (20, Blockfrost) and bridge (9, beta) &mdash; nobody's wallet breaks without them</td>
-              <td>Deferred</td>
+              <td>The in-repo method doc described the pre-merge world</td>
+              <td>Rewritten as a per-endpoint reference: source, shapes, deviations, and known issues per method</td>
             </tr>
           </tbody>
         </table>
-
         <p class="md-text md-text--small md-text--muted">
-          Three genuinely hard core items remain: the contract domain, the dust domain, and
-          subscription resume semantics &mdash; where replacements silently break wallets.
+          Deliberately unchanged: quirks that only help wallets, like the lax <code>eth_estimateGas</code>.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">6/8</span>
+          <span class="md-footer__page">5/7</span>
         </span>
       </footer>
     </section>
 
-    <!-- 7 / Scope decision -->
+    <!-- 6 / How events become logs -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Midnight &lt;&gt; EVM</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Scope: a small core, everything else optional</h2>
+          <h2 class="md-heading md-heading--sm">How a Midnight event becomes an EVM log</h2>
           <div>
             <p class="md-text">
-              The core serves modern wallets with <b>zero key custody</b>.
-              Every other feature ships independently on its own merits &mdash; or never.
+              All translation happens at ingest. By the time <code>eth_getLogs</code> runs,
+              the data already is EVM-shaped rows: the query is a plain filter.
             </p>
           </div>
         </div>
-
-        <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="md-panel md-panel--filled">
-            <h3 class="md-subhead">Core &mdash; the v4 alt-indexer</h3>
-            <p class="md-text md-text--small">Node-direct ingest &amp; verified replay (proven)</p>
-            <p class="md-text md-text--small">Atomic per-block commits &mdash; readers never see half a block</p>
-            <p class="md-text md-text--small">Tables + snapshot store for all core data</p>
-            <p class="md-text md-text--small">The v4 GraphQL layer &mdash; a mechanical mapping once data exists</p>
-            <p class="md-text md-text--small">Public-service hardening (TLS, rate limits)</p>
+        <div class="deck-cards deck-cards--3 md-grow">
+          <div class="deck-card">
+            <h3 class="md-subhead">1 &middot; Emit and index</h3>
+            <p class="md-text md-text--small">A Compact contract emits typed events (a transfer is a Spend plus a Receive). The indexer decodes them and serves a resumable per-contract stream.</p>
           </div>
-          <div class="md-panel">
-            <h3 class="md-subhead">Optional &mdash; independent goals</h3>
-            <p class="md-text md-text--small">Fast-sync bootstrap snapshots <span class="md-accent">(differentiator)</span></p>
-            <p class="md-text md-text--small">Legacy wallet sessions (older wallets only)</p>
-            <p class="md-text md-text--small">Hosted monitoring w/ encrypted rows; TEE last, if ever</p>
-            <p class="md-text md-text--small">Staking queries &middot; bridge &middot; Midnight 2.x (own gate)</p>
+          <div class="deck-card deck-card--accent">
+            <h3 class="md-subhead">2 &middot; Translate</h3>
+            <p class="md-text md-text--small">A pure mapper pairs the two events into one canonical <code>Transfer</code> log, derives 20-byte addresses from Midnight identities, and synthesizes block/tx coordinates. Unpaired events become mints and burns at the zero address, exactly Ethereum&rsquo;s own convention.</p>
+          </div>
+          <div class="deck-card">
+            <h3 class="md-subhead">3 &middot; Serve</h3>
+            <p class="md-text md-text--small">Deduplicated rows land in Postgres; <code>eth_getLogs</code> filters them, receipts embed them, and <code>balanceOf</code> is the same log fold an explorer performs. Constructor supply gets synthetic genesis mints, so folds are exact from block 0.</p>
           </div>
         </div>
-
         <p class="md-text md-text--small md-text--muted">
-          Why TEE moved to the bottom: new wallets never share keys &mdash; there is nothing for an enclave to protect in the core.
+          Proven parity: balance via logs, via <code>eth_call</code>, and via direct ledger decode agree.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">7/8</span>
+          <span class="md-footer__page">6/7</span>
         </span>
       </footer>
     </section>
 
-    <!-- 8 / Verdict -->
+    <!-- 7 / Goals -->
     <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark">
       <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
       <div class="md-body">
-        <h1 class="md-title">Verdict: possible, no hard problems</h1>
-        <p class="md-lead">A large but well-understood engineering program &mdash; not open research.</p>
+        <h1 class="md-title">Goals</h1>
+        <p class="md-lead">The surface is documented and verified. Next: make the write path as trustless as the rest.</p>
         <div class="deck-points">
             <div class="deck-point">
               <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Risks retired.</b> Node-as-source and byte-exact replay are proven. The official indexer remains as our test oracle.</p>
+              <p class="md-text"><b>Trustless relay.</b> The relayer only forwards parameters. A singleton dispatcher contract verifies the signature in-circuit and routes by an on-chain registry of contracts, via cross-contract calls. No attested mode left.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">02</span>
-              <p class="md-text"><b>Honest cost.</b> Three hard core items: contracts, dust, subscription semantics. Plus permanent parity upkeep as v4 evolves.</p>
+              <p class="md-text"><b>A relay spec.</b> The as-built interface is written down, with the ten decisions a spec must make (canonical form, replay, fees, routing). The contract and signature update lands on that spec, not on archaeology.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Next step.</b> Approve the replacement spec (00004) with the scoping decided here, then start the core.</p>
+              <p class="md-text"><b>Backlog by choice.</b> The stateful filter family and walletless balance derivation are documented decisions with clear triggers, not gaps.</p>
             </div>
         </div>
       </div>

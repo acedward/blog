@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Umbra Indexer — internal</title>
+    <title>AA v1, v2, v3: the contracts</title>
     <style>
 /* =========================================================================
    Midnight Style Kit — midnight.css
@@ -596,352 +596,453 @@
   </head>
   <body class="md-deck">
 
-    <!-- 1 / Title -->
-    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark deck-opener">
+    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-spheres-dark deck-opener">
       <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
       <div class="md-body">
-        <h1 class="md-title">Umbra as a Midnight Indexer</h1>
-        <p class="md-lead">Can Umbra replace the official indexer &mdash; and should it? Research findings.</p>
+        <h1 class="md-title">Account abstraction, three versions</h1>
+        <p class="md-lead">Three passes at bridging EVM keys and Midnight contracts. This deck is about the contracts: what each version can do, and what it cannot.</p>
         <div class="deck-points">
             <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>The question.</b> Every Midnight wallet and dApp depends on one indexer. Can Umbra be a drop-in alternative?</p>
+              <span class="deck-point__n">v1</span>
+              <p class="md-text"><b>One exact operation.</b> An Ethereum signature authorises one precise token operation, enforced on chain by an account contract.</p>
             </div>
             <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>The method.</b> Eight research passes: indexer source, UmbraDB, wallets, prior experiments, security.</p>
+              <span class="deck-point__n">v2</span>
+              <p class="md-text"><b>Generic execution.</b> Typed messages dispatched contract to contract. Designed in full, then blocked by one missing primitive.</p>
             </div>
             <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>The verdict.</b> Possible, no hard problems &mdash; the make-or-break risks are already retired by our own experiments.</p>
+              <span class="deck-point__n">v3</span>
+              <p class="md-text"><b>Open custody.</b> One custodian contract that holds any token colour, even colours that did not exist when it was deployed.</p>
             </div>
         </div>
       </div>
     </section>
 
-    <!-- 2 / What the indexer is -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
+    <section class="md-slide md-slide--white md-slide--content deck-slide ">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">AA v1</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">What the indexer actually is</h2>
+          <h2 class="md-heading md-heading--sm">One signature, one exact operation</h2>
           <div>
             <p class="md-text">
-              One GraphQL API &mdash; <span class="md-accent">38 queries, 2 mutations,
-              13 subscriptions</span>. That is the entire surface the ecosystem
-              depends on. Confirmed: nothing else exists beside health probes.
+              An Ethereum wallet signs a payload describing exactly one token
+              operation. An untrusted relayer proves and submits it. A reusable
+              Compact <span class="md-accent">account contract</span> checks the
+              signature and executes exactly what was signed, once.
             </p>
           </div>
         </div>
-
-        <div class="deck-cards deck-cards--3 md-grow">
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">GraphQL only</h3>
-            <p class="md-text md-text--small">A single endpoint (<span class="md-accent">/api/v4/graphql</span> + websocket). v3 is just an alias of v4. There are no other API versions to support.</p>
+        <div class="md-cols md-grow" style="grid-template-columns: 0.95fr 1fr">
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Can</h3>
+              <p class="md-text md-text--small">
+                <b>Bind a signature to one operation:</b> what was signed is what
+                executes, nothing else. <b>Enforce single use:</b> each payload
+                consumes its own lifecycle state, so nothing replays.
+              </p>
+              <p class="md-text md-text--small">
+                <b>Serve many tokens</b> with one reusable account contract, one
+                account per owner. <b>Keep the relayer powerless:</b> it proves,
+                pays and submits, and can do nothing else.
+              </p>
+            </div>
+            <div class="deck-card">
+              <h3 class="md-subhead">Cannot</h3>
+              <p class="md-text md-text--small">
+                <b>Authorise anything generic:</b> each new capability means a new
+                exact payload format. <b>Reach other contracts:</b> the account is
+                the leaf of the call tree; forwarding calls onward is what
+                version 2 set out to add.
+              </p>
+              <p class="md-text md-text--small">
+                <b>Evolve freely:</b> the payload format, the account interface
+                and the verifier keys are load-bearing, breaking surfaces.
+              </p>
+            </div>
           </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Mostly public data</h3>
-            <p class="md-text md-text--small">Only 3 of 53 operations ever see a viewing key &mdash; <b>and all 3 are legacy</b>: no new endpoint takes a key. Everything else serves the same public data to everyone.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">A surprise: staking</h3>
-            <p class="md-text md-text--small">20 of the 38 queries are staking/SPO data pulled from <b>Blockfrost</b>, not from the chain. No wallet or library uses them.</p>
+          <div class="md-panel">
+            <svg class="deck-diagram" viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg"
+                 font-family="Outfit, sans-serif" role="img"
+                 aria-label="One exact signed operation flows through an untrusted relayer">
+              <g fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="6" y="28" width="140" height="46" />
+                <rect x="240" y="28" width="150" height="46" />
+                <rect x="470" y="28" width="144" height="46" />
+                <rect x="470" y="136" width="144" height="46" />
+                <path d="M146 51 h84" />
+                <path d="M390 51 h72" />
+                <path d="M542 74 v54" />
+                <path d="M238 51 l-8 -5 v10 z" fill="currentColor" />
+                <path d="M468 51 l-8 -5 v10 z" fill="currentColor" />
+                <path d="M542 134 l-5 -8 h10 z" fill="currentColor" />
+                <rect x="6" y="216" width="608" height="64" stroke-dasharray="5 4" />
+              </g>
+              <g fill="currentColor" font-size="15" font-weight="600">
+                <text x="76" y="55" text-anchor="middle">EVM wallet</text>
+                <text x="315" y="55" text-anchor="middle">relayer</text>
+                <text x="542" y="49" text-anchor="middle">account</text>
+                <text x="542" y="67" text-anchor="middle">contract</text>
+                <text x="542" y="163" text-anchor="middle">token</text>
+              </g>
+              <g fill="currentColor" font-size="13">
+                <text x="192" y="22" text-anchor="middle">signs one</text>
+                <text x="192" y="90" text-anchor="middle">exact payload</text>
+                <text x="426" y="22" text-anchor="middle">proves,</text>
+                <text x="426" y="90" text-anchor="middle">submits</text>
+                <text x="462" y="106" text-anchor="end">executes, once</text>
+                <text x="315" y="106" text-anchor="middle" font-weight="600">untrusted</text>
+              </g>
+              <g fill="currentColor" font-size="14">
+                <text x="310" y="242" text-anchor="middle">The relayer can neither alter nor invent an operation.</text>
+                <text x="310" y="266" text-anchor="middle">A replayed payload is refused: single use is contract state.</text>
+              </g>
+            </svg>
           </div>
         </div>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">2/8</span>
+          <span>2026 | Account abstraction on Midnight</span>
+          <span class="md-footer__page">2/7</span>
         </span>
       </footer>
     </section>
 
-    <!-- 3 / The hard part is replay -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
+    <section class="md-slide md-slide--light md-slide--content deck-slide ">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">AA v2</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The hard part is replay, not the API</h2>
+          <h2 class="md-heading md-heading--sm">Generic execution meets a missing primitive</h2>
           <div>
             <p class="md-text">
-              The indexer does not just store blocks. It <b>re-executes every
-              transaction</b> against its own copy of the ledger. That replay is
-              what produces the data everyone queries.
+              Version 2 widens the aim: instead of supporting a wallet's
+              <span class="md-accent">erc20.transfer(...)</span>, an EVM signature
+              authorises a typed message, and an AA contract dispatches it,
+              contract to contract, to registered token targets, atomically.
             </p>
           </div>
         </div>
+        <div class="md-cols md-grow" style="grid-template-columns: 0.9fr 1fr">
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card">
+              <h3 class="md-subhead">Designed to do</h3>
+              <p class="md-text md-text--small">
+                Typed routing to registered targets, OpenZeppelin-style fungible
+                and non-fungible tokens among them. Atomic rollback across the
+                whole call tree. Proving in the browser, fees paid by a sponsor.
+              </p>
+            </div>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Why it stopped</h3>
+              <p class="md-text md-text--small">
+                A Compact contract can name itself
+                (<span class="md-accent">kernel.self()</span>) but has no way to
+                learn <b>who called it</b>, and witness data is only sound at the
+                root of the call tree. The callee cannot authenticate the AA
+                contract, so generic contract-to-contract authorisation is
+                unsound.
+              </p>
+            </div>
+            <p class="md-text md-text--small md-text--muted">
+              The outcome is a drafted caller-context predicate: a sound way for a
+              callee to know its immediate parent. Until something like it ships,
+              version 2 stays blocked.
+            </p>
+          </div>
+          <div class="md-panel">
+            <svg class="deck-diagram" viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg"
+                 font-family="Outfit, sans-serif" role="img"
+                 aria-label="A token target cannot authenticate its caller">
+              <g fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="6" y="44" width="150" height="48" />
+                <rect x="235" y="44" width="150" height="48" />
+                <rect x="464" y="44" width="150" height="48" />
+                <path d="M156 68 h68" />
+                <path d="M385 68 h68" />
+                <path d="M232 68 l-8 -5 v10 z" fill="currentColor" />
+                <path d="M461 68 l-8 -5 v10 z" fill="currentColor" />
+                <path d="M539 92 v34" stroke-dasharray="4 4" />
+                <rect x="46" y="196" width="528" height="70" stroke-dasharray="5 4" />
+              </g>
+              <g fill="currentColor" font-size="15" font-weight="600">
+                <text x="81" y="72" text-anchor="middle">EVM wallet</text>
+                <text x="310" y="72" text-anchor="middle">AA dispatch</text>
+                <text x="539" y="72" text-anchor="middle">token target</text>
+              </g>
+              <g fill="currentColor" font-size="13">
+                <text x="190" y="36" text-anchor="middle">signed</text>
+                <text x="190" y="108" text-anchor="middle">message</text>
+                <text x="419" y="36" text-anchor="middle">typed</text>
+                <text x="419" y="108" text-anchor="middle">call</text>
+              </g>
+              <g font-size="15" fill="currentColor">
+                <text x="539" y="152" text-anchor="middle" font-weight="700">"who is calling me?"</text>
+                <text x="310" y="224" text-anchor="middle">No caller accessor. No sound witness below the root.</text>
+                <text x="310" y="248" text-anchor="middle">Trusting an actor argument is trusting the caller.</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 | Account abstraction on Midnight</span>
+          <span class="md-footer__page">3/7</span>
+        </span>
+      </footer>
+    </section>
 
-        <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="deck-points">
-            <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Raw node data covers little.</b> Fees, results, merkle trees, events, balances &mdash; none of it comes from the node. It all comes out of replay.</p>
+    <section class="md-slide md-slide--black md-slide--content deck-slide ">
+      <div class="md-body">
+        <p class="md-eyebrow">AA v3</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">Flip the topology: custody at the root</h2>
+          <div>
+            <p class="md-text">
+              The blocker bites callees. So version 3 makes the custodian the
+              entry point: users call the <span class="md-accent">Manager</span>
+              directly, witnesses are checked at the root where they are sound,
+              and no contract ever needs to ask who called it.
+            </p>
+          </div>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns: 0.9fr 1fr">
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Ownership is a commitment</h3>
+              <p class="md-text md-text--small">
+                Registering an account publishes a hash of the owner's secret, and
+                every spend must open it. Credit is open, anyone may deposit into
+                a registered account; spend is owner-only.
+              </p>
             </div>
-            <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>We already proved we can do it.</b> Our experiment reproduced the indexer's archive <b>byte-for-byte</b> from the node alone, verified against the node's state roots every block.</p>
+            <div class="deck-card">
+              <h3 class="md-subhead">Two families, one model</h3>
+              <p class="md-text md-text--small">
+                Shielded value pools into contract-owned coins, one pool per
+                colour. Unshielded value sits in the contract's own balance map.
+                Internal transfers move attribution between accounts while the
+                pooled tokens stay untouched.
+              </p>
             </div>
-            <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Low bar upstream.</b> The official indexer only follows finalized blocks, has no reorg handling &mdash; matching it is easier than expected.</p>
+          </div>
+          <div class="md-panel">
+            <svg class="deck-diagram" viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg"
+                 font-family="Outfit, sans-serif" role="img"
+                 aria-label="Users call the custodian at the root, where witnesses are sound">
+              <g fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="6" y="24" width="120" height="44" />
+                <rect x="6" y="96" width="120" height="44" />
+                <rect x="230" y="16" width="384" height="150" />
+                <path d="M126 46 h96" />
+                <path d="M126 118 h96" />
+                <path d="M228 46 l-8 -5 v10 z" fill="currentColor" />
+                <path d="M228 118 l-8 -5 v10 z" fill="currentColor" />
+                <rect x="6" y="212" width="608" height="60" stroke-dasharray="5 4" />
+                <path d="M422 210 v-38" />
+                <path d="M422 170 l-5 8 h10 z" fill="currentColor" />
+              </g>
+              <g fill="currentColor" font-size="15" font-weight="600">
+                <text x="66" y="50" text-anchor="middle">OwnerN</text>
+                <text x="66" y="122" text-anchor="middle">OwnerM</text>
+                <text x="422" y="42" text-anchor="middle">Manager: the root call</text>
+              </g>
+              <g fill="currentColor" font-size="13">
+                <text x="174" y="36" text-anchor="middle">deposit,</text>
+                <text x="174" y="136" text-anchor="middle">withdraw</text>
+                <text x="434" y="196">new colours</text>
+              </g>
+              <g fill="currentColor" font-size="14">
+                <text x="250" y="76">1&#160;&#160;witness: the owner's secret must open the account</text>
+                <text x="250" y="102">2&#160;&#160;guard: that account's balance, in that colour</text>
+                <text x="250" y="128">3&#160;&#160;only then a pool coin or contract balance moves</text>
+                <text x="250" y="154" font-style="italic">no contract ever asks who called it</text>
+              </g>
+              <g fill="currentColor" font-size="14">
+                <text x="310" y="236" text-anchor="middle">Issuers appear over time: TOKA, TOKB, TOKC at the start, TOKD long after deploy.</text>
+                <text x="310" y="258" text-anchor="middle">A new colour needs nothing: custody is created on its first credit.</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 | Account abstraction on Midnight</span>
+          <span class="md-footer__page">4/7</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--white md-slide--content deck-slide ">
+      <div class="md-body">
+        <p class="md-eyebrow">AA v3</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">The three Managers, side by side</h2>
+          <div>
+            <p class="md-text">
+              Each generation kept the authorisation model and rebuilt the custody
+              shape around a weaker assumption about what the contract knows in
+              advance.
+            </p>
+          </div>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr 1fr">
+          <div class="deck-card">
+            <h3 class="md-subhead">v1: fixed pair</h3>
+            <p class="md-text md-text--small">
+              One shielded and one unshielded colour, frozen at configure time.
+              One merged pool coin. Minting straight into custody composes two
+              contracts in a single atomic transaction. Splits, merges and
+              multi-piece spends all work at the wallet edge.
+            </p>
+            <p class="md-text md-text--small md-text--muted">
+              Limit: the colour pair can never change.
+            </p>
+          </div>
+          <div class="deck-card">
+            <h3 class="md-subhead">v2: configured set</h3>
+            <p class="md-text md-text--small">
+              Four colours, two per family, in one contract. A pool coin per
+              colour in a colour-keyed map, balances per account and colour,
+              wrong-colour deposits rejected, and two different colours moved in
+              one atomic transaction.
+            </p>
+            <p class="md-text md-text--small md-text--muted">
+              Limit: still a list decided at deploy time, and a real custodian
+              cannot know its future assets.
+            </p>
+          </div>
+          <div class="deck-card deck-card--accent">
+            <h3 class="md-subhead">v3: open colour</h3>
+            <p class="md-text md-text--small">
+              No list, no configure, no admin. Custody appears lazily on first
+              credit. Deployed before any token issuer existed, it later held a
+              colour issued mid-run by a contract deployed long after it. Refused
+              operations leave no trace, and the same 32-byte colour in both
+              families never aliases.
+            </p>
+            <p class="md-text md-text--small md-text--muted">
+              Trade-off: openness has costs. Next slide.
+            </p>
+          </div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 | Account abstraction on Midnight</span>
+          <span class="md-footer__page">5/7</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--light md-slide--content deck-slide ">
+      <div class="md-body">
+        <p class="md-eyebrow">AA v3</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">What the open Manager cannot do</h2>
+          <div>
+            <p class="md-text">
+              Spend safety never moved: it rests on the witness and the
+              per-account, per-colour guard. Everything else is a deliberate
+              trade, stated rather than hidden.
+            </p>
+          </div>
+        </div>
+        <div class="md-cols md-cols--2 md-grow">
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card">
+              <h3 class="md-subhead">No allowlist, by choice</h3>
+              <p class="md-text md-text--small">
+                Anyone can grow the contract's state by depositing junk colours.
+                Funds are never at risk from it, but state growth is unbounded.
+                An allowlist can be layered on later without touching the custody
+                core.
+              </p>
+            </div>
+            <div class="deck-card">
+              <h3 class="md-subhead">No named wrong-colour error</h3>
+              <p class="md-text md-text--small">
+                With no list to check against, a mistyped colour is simply a zero
+                balance, and the spend is refused by the same per-account guard as
+                any other overdraft.
+              </p>
             </div>
           </div>
           <div class="md-stack md-stack--gap">
-            <div class="md-panel md-panel--filled">
-              <h3 class="md-subhead">What the experiment needed</h3>
-              <p class="md-text md-text--small">Six small exports added to the ledger WASM. <b>Zero changes to the node.</b> 658 tests, 60-block live parity against the real indexer.</p>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">No reliability claim for one-transaction composition</h3>
+              <p class="md-text md-text--small">
+                The ledger constrains how two calls to one contract may share a
+                transaction, and even the allowed shape can be refused on its
+                first attempt and land on a retry. Two colours moving in one
+                transaction is demonstrated; "every time" is not claimable yet.
+              </p>
             </div>
-            <p class="md-text md-text--small md-text--muted">
-              Experiment: UmbraDB PR #1 (node-only ingest). Kept as knowledge, not merged as-is.
-            </p>
+            <div class="deck-card">
+              <h3 class="md-subhead">No production claim</h3>
+              <p class="md-text md-text--small">
+                The whole line runs on a pinned experimental release-candidate
+                lane. The findings are about that lane, and nothing here
+                extrapolates to a supported or production network.
+              </p>
+            </div>
           </div>
         </div>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">3/8</span>
+          <span>2026 | Account abstraction on Midnight</span>
+          <span class="md-footer__page">6/7</span>
         </span>
       </footer>
     </section>
 
-    <!-- 4 / Two ways wallets sync -->
-    <section class="md-slide md-slide--light md-slide--content deck-slide">
+    <section class="md-slide md-slide--black md-slide--content deck-slide ">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">Takeaways</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Two ways wallets sync &mdash; and why it matters</h2>
+          <h2 class="md-heading md-heading--sm">What three versions taught</h2>
           <div>
             <p class="md-text">
-              The ecosystem is mid-migration. New wallets <b>never send their
-              viewing key to the server</b>. That changes what we must build.
+              Each version answered one question precisely, and each answer set up
+              the next question.
             </p>
           </div>
         </div>
-
-        <table class="deck-table md-grow">
-          <thead>
-            <tr><th></th><th>Legacy: connect</th><th>New: event stream</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Viewing key</td>
-              <td>Sent to the server, stored there</td>
-              <td><b>Never leaves the device</b></td>
-            </tr>
-            <tr>
-              <td>Who scans</td>
-              <td>Server decrypts on your behalf</td>
-              <td>Wallet downloads all shielded events, decrypts locally</td>
-            </tr>
-            <tr>
-              <td>What the server learns</td>
-              <td>Your full transaction graph</td>
-              <td>Nothing</td>
-            </tr>
-            <tr>
-              <td>Who uses it</td>
-              <td>Older wallets only</td>
-              <td>Official SDK default, moth/dusk wallets (connect is dead code there)</td>
-            </tr>
-            <tr>
-              <td>Cost</td>
-              <td>Cheap for the wallet</td>
-              <td>Full scan: <b>78.6&nbsp;min</b> on preprod &mdash; or <b>29.3&nbsp;s</b> with fast-sync snapshots</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p class="md-text md-text--small">
-          <b>Opportunity:</b> the fast-sync snapshots that make it 29 seconds are built by hand today.
-          An indexer that <span class="md-accent">serves signed bootstrap snapshots</span> would fix onboarding
-          <i>and</i> recovery &mdash; nothing in the official API does this.
-        </p>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">4/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 5 / Why replace it -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Why replace it, instead of running or forking it</h2>
-          <div>
-            <p class="md-text">
-              Using the official indexer means inheriting three structural
-              problems. Forking it pays the full cost without owning the design.
-            </p>
-          </div>
-        </div>
-
-        <div class="deck-cards deck-cards--3 md-grow">
-          <div class="deck-card">
-            <h3 class="md-subhead">Disk never stops growing</h3>
-            <p class="md-text md-text--small">No garbage collection: <b>161&nbsp;GB at half of preprod height</b>. Umbra's fix: almost every query needs only the <i>latest</i> state &mdash; prune behind a ~1,000-block window, disk stays flat.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Slow by architecture</h3>
-            <p class="md-text md-text--small">Sync is CPU-bound: a quadratic hotspot eats 64% of CPU, never backported. Umbra's fix: run the patched ledger (<b>~1.9&times;</b> from one line) and pipeline decode with replay.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Operator sees everything</h3>
-            <p class="md-text md-text--small">No auth. The operator can decrypt <b>every stored viewing key</b>, and the wallet&rarr;transaction map sits in plaintext.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">What we gain on top</h3>
-            <p class="md-text md-text--small">Bootstrap snapshots, per-block certified consistency, encrypted per-user data &mdash; features upstream simply doesn't have.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Ecosystem resilience</h3>
-            <p class="md-text md-text--small">Midnight runs on <b>one</b> indexer implementation today. A second, independent one reduces network-wide risk.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Our release cadence</h3>
-            <p class="md-text md-text--small">Fixes and the 2.x transition happen on our gate, not upstream's. The official indexer stays useful &mdash; as our test oracle.</p>
-          </div>
-        </div>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">5/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 6 / The gap -->
-    <section class="md-slide md-slide--light md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The gap, measured</h2>
-          <div>
-            <p class="md-text">
-              We mapped all <span class="md-accent">53 API operations</span> to the
-              exact data they need, and checked what UmbraDB holds today.
-            </p>
-          </div>
-        </div>
-
-        <table class="deck-table md-grow">
-          <thead>
-            <tr><th>Operations</th><th>What they need</th><th>Effort</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>0 of 53</td>
-              <td>Fully servable from UmbraDB today &mdash; the data layer is the project</td>
-              <td>&mdash;</td>
-            </tr>
-            <tr>
-              <td>19 core</td>
-              <td>New but ordinary database tables (contracts, UTXOs, events, dust&hellip;)</td>
-              <td>Medium</td>
-            </tr>
-            <tr>
-              <td>5 core</td>
-              <td>A ledger snapshot store &mdash; good news: most queries only need the <i>latest</i> state</td>
-              <td>High &rarr; Medium</td>
-            </tr>
-            <tr>
-              <td>29 optional</td>
-              <td>Staking (20, Blockfrost) and bridge (9, beta) &mdash; nobody's wallet breaks without them</td>
-              <td>Deferred</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p class="md-text md-text--small md-text--muted">
-          Three genuinely hard core items remain: the contract domain, the dust domain, and
-          subscription resume semantics &mdash; where replacements silently break wallets.
-        </p>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">6/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 7 / Scope decision -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Scope: a small core, everything else optional</h2>
-          <div>
-            <p class="md-text">
-              The core serves modern wallets with <b>zero key custody</b>.
-              Every other feature ships independently on its own merits &mdash; or never.
-            </p>
-          </div>
-        </div>
-
-        <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="md-panel md-panel--filled">
-            <h3 class="md-subhead">Core &mdash; the v4 alt-indexer</h3>
-            <p class="md-text md-text--small">Node-direct ingest &amp; verified replay (proven)</p>
-            <p class="md-text md-text--small">Atomic per-block commits &mdash; readers never see half a block</p>
-            <p class="md-text md-text--small">Tables + snapshot store for all core data</p>
-            <p class="md-text md-text--small">The v4 GraphQL layer &mdash; a mechanical mapping once data exists</p>
-            <p class="md-text md-text--small">Public-service hardening (TLS, rate limits)</p>
-          </div>
-          <div class="md-panel">
-            <h3 class="md-subhead">Optional &mdash; independent goals</h3>
-            <p class="md-text md-text--small">Fast-sync bootstrap snapshots <span class="md-accent">(differentiator)</span></p>
-            <p class="md-text md-text--small">Legacy wallet sessions (older wallets only)</p>
-            <p class="md-text md-text--small">Hosted monitoring w/ encrypted rows; TEE last, if ever</p>
-            <p class="md-text md-text--small">Staking queries &middot; bridge &middot; Midnight 2.x (own gate)</p>
-          </div>
-        </div>
-
-        <p class="md-text md-text--small md-text--muted">
-          Why TEE moved to the bottom: new wallets never share keys &mdash; there is nothing for an enclave to protect in the core.
-        </p>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">7/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 8 / Verdict -->
-    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark">
-      <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
-      <div class="md-body">
-        <h1 class="md-title">Verdict: possible, no hard problems</h1>
-        <p class="md-lead">A large but well-understood engineering program &mdash; not open research.</p>
         <div class="deck-points">
             <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Risks retired.</b> Node-as-source and byte-exact replay are proven. The official indexer remains as our test oracle.</p>
+              <span class="deck-point__n">v1</span>
+              <p class="md-text">EVM keys can drive exact Midnight token operations through an untrusted relayer, today. The cost is one payload format per capability.</p>
             </div>
             <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>Honest cost.</b> Three hard core items: contracts, dust, subscription semantics. Plus permanent parity upkeep as v4 evolves.</p>
+              <span class="deck-point__n">v2</span>
+              <p class="md-text">Generic execution needs exactly one new primitive: a callee that can authenticate its immediate caller. The predicate is specified, not shipped.</p>
             </div>
             <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Next step.</b> Approve the replacement spec (00004) with the scoping decided here, then start the core.</p>
+              <span class="deck-point__n">v3</span>
+              <p class="md-text">A contract can custody assets it never heard of, with owner-only spend enforced by commitments, on state that grows as value arrives.</p>
             </div>
         </div>
+        <p class="md-text md-text--small md-text--muted">
+          Open threads: ship a caller-context primitive, make one-transaction
+          composition dependable, and layer an optional allowlist on open custody
+          for state hygiene.
+        </p>
       </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 | Account abstraction on Midnight</span>
+          <span class="md-footer__page">7/7</span>
+        </span>
+      </footer>
     </section>
 
     <script>

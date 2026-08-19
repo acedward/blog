@@ -524,6 +524,10 @@
             {
               "label": "Repo",
               "href": "https://github.com/acedward/AA-midnight-evm-experiment"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/aa-contracts.html"
             }
           ],
           "href": "https://github.com/acedward/AA-midnight-evm-experiment"
@@ -564,7 +568,12 @@
           "id": "aa-version-2",
           "title": "AA version 2",
           "note": "drops support for wallet <code>erc20.transfer(...)</code> so that EVM signatures can authorise more generic trustless messaging. Blocked: Midnight 2.x gives a contract no supported way to authenticate its immediate caller, and a caller-context spec drafts the fix.",
-          "links": []
+          "links": [
+            {
+              "label": "Slides",
+              "href": "presentations/aa-contracts.html"
+            }
+          ]
         },
         {
           "id": "aa-v3-custody",
@@ -586,6 +595,10 @@
             {
               "label": "Open-colour",
               "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00005-open-colour-custody"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/aa-contracts.html"
             }
           ],
           "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
@@ -880,6 +893,18 @@
             }
           ],
           "href": "https://github.com/acedward/midnight-node-zswap-memo/pull/5"
+        },
+        {
+          "id": "zswap-memo-slides",
+          "title": "Why one memo field is a hard fork",
+          "note": "short deck: the one-slot mechanism, what ships where, and the coordinated activation.",
+          "links": [
+            {
+              "label": "Slides",
+              "href": "presentations/zswap-memos.html"
+            }
+          ],
+          "href": "presentations/zswap-memos.html"
         }
       ]
     },
@@ -911,6 +936,18 @@
             }
           ],
           "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/48"
+        },
+        {
+          "id": "cow-solver-slides",
+          "title": "How the COW solver works",
+          "note": "short deck: offers as proved half-swaps, the Celestia to Midnight pipeline, validation before funds move, and settlement as one balanced transaction.",
+          "links": [
+            {
+              "label": "Slides",
+              "href": "presentations/cow-solver.html"
+            }
+          ],
+          "href": "presentations/cow-solver.html"
         }
       ]
     },
@@ -1473,6 +1510,56 @@
   <script type="application/json" id="data-presentations">
 {
   "entries": [
+    {
+      "id": "pres-aa-contracts",
+      "date": "2026-08-19",
+      "title": "AA v1, v2, v3: the contracts",
+      "text": "What each version's contracts can and cannot do: v1's exact-operation account contract, v2's generic dispatch and the missing caller primitive that blocks it, and v3's three custody Managers ending in open-colour custody.",
+      "href": "presentations/aa-contracts.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/aa-contracts.html"
+        }
+      ],
+      "ref": {
+        "section": "midnight-evm"
+      }
+    },
+    {
+      "id": "pres-cow-solver",
+      "date": "2026-08-19",
+      "title": "How the COW Solver Works",
+      "text": "Offer files as proved half-swaps, the pipeline from Celestia to Midnight, discovery and validation through one backend door, posted-price matching, and why a broken solver can only do nothing.",
+      "href": "presentations/cow-solver.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/cow-solver.html"
+        }
+      ],
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "id": "pres-zswap-memos",
+      "date": "2026-08-19",
+      "title": "Authenticated Messages in ZSwap",
+      "text": "The one-slot mechanism behind proved memos, why a one-field change is still a hard fork, the coordinated activation height, and which repos carry the change.",
+      "href": "presentations/zswap-memos.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/zswap-memos.html"
+        }
+      ],
+      "ref": {
+        "section": "proved-messages",
+        "row": "zswap-memo-slides"
+      }
+    },
     {
       "id": "pres-umbra-indexer",
       "date": "2026-08-19",

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Umbra Indexer — internal</title>
+    <title>How the COW Solver Works</title>
     <style>
 /* =========================================================================
    Midnight Style Kit — midnight.css
@@ -596,352 +596,274 @@
   </head>
   <body class="md-deck">
 
-    <!-- 1 / Title -->
-    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark deck-opener">
+    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-spheres-dark deck-opener">
       <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
       <div class="md-body">
-        <h1 class="md-title">Umbra as a Midnight Indexer</h1>
-        <p class="md-lead">Can Umbra replace the official indexer &mdash; and should it? Research findings.</p>
+        <h1 class="md-title">The COW Solver</h1>
+        <p class="md-lead">A posted-price solver for ZSwap offer files on Midnight. It finds offers that want the opposite of each other and completes them into one settled, shielded swap.</p>
         <div class="deck-points">
             <div class="deck-point">
               <span class="deck-point__n">01</span>
-              <p class="md-text"><b>The question.</b> Every Midnight wallet and dApp depends on one indexer. Can Umbra be a drop-in alternative?</p>
+              <p class="md-text"><b>Offers are transactions, not orders.</b> An offer file is a partially built ZSwap transaction: it gives one asset, wants another, and is already proved by its owner. Anyone can complete it; nobody can alter it.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">02</span>
-              <p class="md-text"><b>The method.</b> Eight research passes: indexer source, UmbraDB, wallets, prior experiments, security.</p>
+              <p class="md-text"><b>The solver adds liquidity, not trust.</b> It matches crossing offers, or takes the other side from its own inventory at posted prices. The ledger verifies every completion, so an invalid fill simply never lands.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">03</span>
-              <p class="md-text"><b>The verdict.</b> Possible, no hard problems &mdash; the make-or-break risks are already retired by our own experiments.</p>
+              <p class="md-text"><b>Fail closed, everywhere.</b> Every candidate is validated before matching and again before any funds move. A timeout, a malformed answer or any doubt reads as no.</p>
             </div>
         </div>
       </div>
     </section>
 
-    <!-- 2 / What the indexer is -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">The COW Solver</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">What the indexer actually is</h2>
+          <h2 class="md-heading md-heading--sm">From published offer to settled swap</h2>
           <div>
             <p class="md-text">
-              One GraphQL API &mdash; <span class="md-accent">38 queries, 2 mutations,
-              13 subscriptions</span>. That is the entire surface the ecosystem
-              depends on. Confirmed: nothing else exists beside health probes.
+              One direction of trust. Intents enter as offer files published
+              to Celestia and projected into a book by the backend. The solver
+              completes them: against a crossing offer when wants coincide, or
+              from its own inventory at posted prices.
             </p>
           </div>
         </div>
-
-        <div class="deck-cards deck-cards--3 md-grow">
+        <div class="md-grow" style="display:flex; align-items:center">
+          <svg class="deck-diagram" viewBox="0 0 1160 310" role="img" aria-label="Intents enter as offer files written to the Midnight Intents offer spec, published by user wallets through Celestia and the Offer Files backend; the COW solver matches them or fills from its own inventory, and the batcher settles on Midnight">
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--md-fg)"/></marker></defs>
+          <rect x="11" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
+          <text x="95" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">User wallets</text>
+          <text x="95" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">publish offer files: the intents</text>
+          <line x1="182" y1="145" x2="200" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="205" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
+          <text x="289" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Celestia</text>
+          <text x="289" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">data availability layer</text>
+          <line x1="376" y1="145" x2="394" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="399" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
+          <text x="483" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Offer Files backend</text>
+          <text x="483" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">projects the current book</text>
+          <line x1="570" y1="145" x2="588" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="593" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-accent)" stroke-width="3"/>
+          <text x="677" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">COW Solver</text>
+          <text x="677" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">match or fill, posted prices</text>
+          <line x1="764" y1="145" x2="782" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="787" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
+          <text x="871" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Batcher</text>
+          <text x="871" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">balances and submits</text>
+          <line x1="958" y1="145" x2="976" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <rect x="981" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
+          <text x="1065" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Midnight</text>
+          <text x="1065" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">settlement, ZSwap ledger</text>
+          <path d="M 1065 188 C 1065 256, 483 256, 483 192" fill="none" stroke="var(--md-fg-muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arr)"/>
+          <text x="774" y="274" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="12">chain state flows back: offers, consumptions, expiries</text>
+          <path d="M 635 102 C 635 68, 483 68, 483 102" fill="none" stroke="var(--md-accent)" stroke-width="1.5" marker-end="url(#arr)"/>
+          <text x="531" y="56" text-anchor="middle" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="12">validate before matching, and again before funds move</text>
+          <rect x="26" y="14" width="190" height="52" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text x="121" y="36" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="14" font-weight="700">Midnight Intents offer spec</text>
+          <text x="121" y="54" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">proposed MIP: format and validity</text>
+          <line x1="121" y1="69" x2="121" y2="103" stroke="var(--md-fg)" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
+          <text x="129" y="90" text-anchor="start" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">offers conform to it</text>
+          <rect x="703" y="14" width="190" height="52" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text x="798" y="36" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="14" font-weight="700">Solver inventory</text>
+          <text x="798" y="54" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">the other side of one-sided fills</text>
+          <line x1="733" y1="69" x2="733" y2="103" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
+          </svg>
+        </div>
+        <div class="md-cols" style="grid-template-columns: 1fr 1fr">
           <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">GraphQL only</h3>
-            <p class="md-text md-text--small">A single endpoint (<span class="md-accent">/api/v4/graphql</span> + websocket). v3 is just an alias of v4. There are no other API versions to support.</p>
+            <h3 class="md-subhead">The backend is the only door</h3>
+            <p class="md-text md-text--small">It indexes Celestia and Midnight together and serves the current book, validating every offer against the Midnight Intents offer spec: a non-conforming file never enters the book. The solver never reads either chain directly.</p>
           </div>
           <div class="deck-card">
-            <h3 class="md-subhead">Mostly public data</h3>
-            <p class="md-text md-text--small">Only 3 of 53 operations ever see a viewing key &mdash; <b>and all 3 are legacy</b>: no new endpoint takes a key. Everything else serves the same public data to everyone.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">A surprise: staking</h3>
-            <p class="md-text md-text--small">20 of the 38 queries are staking/SPO data pulled from <b>Blockfrost</b>, not from the chain. No wallet or library uses them.</p>
+            <h3 class="md-subhead">Midnight has the last word</h3>
+            <p class="md-text md-text--small">The completed transaction settles once. Spending the offer's input marks it consumed on chain, and that fact flows back through the backend to everyone.</p>
           </div>
         </div>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">2/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">2/6</span>
         </span>
       </footer>
     </section>
 
-    <!-- 3 / The hard part is replay -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">The COW Solver</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The hard part is replay, not the API</h2>
+          <h2 class="md-heading md-heading--sm">An offer file is half a swap, already proved</h2>
           <div>
             <p class="md-text">
-              The indexer does not just store blocks. It <b>re-executes every
-              transaction</b> against its own copy of the ledger. That replay is
-              what produces the data everyone queries.
+              The offer is self-contained: what it gives, what it wants, when it
+              expires. Its proof makes it tamper-evident and its input makes it
+              single-use.
             </p>
           </div>
         </div>
-
         <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="deck-points">
-            <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Raw node data covers little.</b> Fees, results, merkle trees, events, balances &mdash; none of it comes from the node. It all comes out of replay.</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">What it carries</h3>
+              <p class="md-text md-text--small">The exact amounts it gives and wants, the shielded input it spends, and an expiry. All of it is fixed under the owner's proof and addressed by the file's content hash.</p>
             </div>
-            <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>We already proved we can do it.</b> Our experiment reproduced the indexer's archive <b>byte-for-byte</b> from the node alone, verified against the node's state roots every block.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Low bar upstream.</b> The official indexer only follows finalized blocks, has no reorg handling &mdash; matching it is easier than expected.</p>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Why sharing it is safe</h3>
+              <p class="md-text md-text--small">Completing the offer can only deliver exactly what it asks. Change any byte and the proof fails. There is nothing to steal in transit and nothing to renegotiate.</p>
             </div>
           </div>
           <div class="md-stack md-stack--gap">
-            <div class="md-panel md-panel--filled">
-              <h3 class="md-subhead">What the experiment needed</h3>
-              <p class="md-text md-text--small">Six small exports added to the ledger WASM. <b>Zero changes to the node.</b> 658 tests, 60-block live parity against the real indexer.</p>
+            <div class="deck-card">
+              <h3 class="md-subhead">One input, one life</h3>
+              <p class="md-text md-text--small">The offer spends one specific shielded input. Once that input's nullifier appears on chain the offer is consumed, and no second fill is possible.</p>
             </div>
-            <p class="md-text md-text--small md-text--muted">
-              Experiment: UmbraDB PR #1 (node-only ingest). Kept as knowledge, not merged as-is.
-            </p>
+            <div class="deck-card">
+              <h3 class="md-subhead">Expiry and cancellation</h3>
+              <p class="md-text md-text--small">Past its deadline the offer stops being a candidate. Cancelling is simply the owner spending the input themselves, which consumes the offer the same way a fill would.</p>
+            </div>
           </div>
         </div>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">3/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">3/6</span>
         </span>
       </footer>
     </section>
 
-    <!-- 4 / Two ways wallets sync -->
-    <section class="md-slide md-slide--light md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Two ways wallets sync &mdash; and why it matters</h2>
-          <div>
-            <p class="md-text">
-              The ecosystem is mid-migration. New wallets <b>never send their
-              viewing key to the server</b>. That changes what we must build.
-            </p>
-          </div>
-        </div>
-
-        <table class="deck-table md-grow">
-          <thead>
-            <tr><th></th><th>Legacy: connect</th><th>New: event stream</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Viewing key</td>
-              <td>Sent to the server, stored there</td>
-              <td><b>Never leaves the device</b></td>
-            </tr>
-            <tr>
-              <td>Who scans</td>
-              <td>Server decrypts on your behalf</td>
-              <td>Wallet downloads all shielded events, decrypts locally</td>
-            </tr>
-            <tr>
-              <td>What the server learns</td>
-              <td>Your full transaction graph</td>
-              <td>Nothing</td>
-            </tr>
-            <tr>
-              <td>Who uses it</td>
-              <td>Older wallets only</td>
-              <td>Official SDK default, moth/dusk wallets (connect is dead code there)</td>
-            </tr>
-            <tr>
-              <td>Cost</td>
-              <td>Cheap for the wallet</td>
-              <td>Full scan: <b>78.6&nbsp;min</b> on preprod &mdash; or <b>29.3&nbsp;s</b> with fast-sync snapshots</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p class="md-text md-text--small">
-          <b>Opportunity:</b> the fast-sync snapshots that make it 29 seconds are built by hand today.
-          An indexer that <span class="md-accent">serves signed bootstrap snapshots</span> would fix onboarding
-          <i>and</i> recovery &mdash; nothing in the official API does this.
-        </p>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">4/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 5 / Why replace it -->
     <section class="md-slide md-slide--white md-slide--content deck-slide">
       <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
+        <p class="md-eyebrow">The COW Solver</p>
         <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Why replace it, instead of running or forking it</h2>
+          <h2 class="md-heading md-heading--sm">The solver never guesses</h2>
           <div>
             <p class="md-text">
-              Using the official indexer means inheriting three structural
-              problems. Forking it pays the full cost without owning the design.
+              Discovery and validation both go through the backend, so every
+              candidate the solver acts on is derived from chain state, and every
+              action is checked twice.
             </p>
           </div>
         </div>
-
-        <div class="deck-cards deck-cards--3 md-grow">
-          <div class="deck-card">
-            <h3 class="md-subhead">Disk never stops growing</h3>
-            <p class="md-text md-text--small">No garbage collection: <b>161&nbsp;GB at half of preprod height</b>. Umbra's fix: almost every query needs only the <i>latest</i> state &mdash; prune behind a ~1,000-block window, disk stays flat.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Slow by architecture</h3>
-            <p class="md-text md-text--small">Sync is CPU-bound: a quadratic hotspot eats 64% of CPU, never backported. Umbra's fix: run the patched ledger (<b>~1.9&times;</b> from one line) and pipeline decode with replay.</p>
-          </div>
-          <div class="deck-card">
-            <h3 class="md-subhead">Operator sees everything</h3>
-            <p class="md-text md-text--small">No auth. The operator can decrypt <b>every stored viewing key</b>, and the wallet&rarr;transaction map sits in plaintext.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">What we gain on top</h3>
-            <p class="md-text md-text--small">Bootstrap snapshots, per-block certified consistency, encrypted per-user data &mdash; features upstream simply doesn't have.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Ecosystem resilience</h3>
-            <p class="md-text md-text--small">Midnight runs on <b>one</b> indexer implementation today. A second, independent one reduces network-wide risk.</p>
-          </div>
-          <div class="deck-card deck-card--accent">
-            <h3 class="md-subhead">Our release cadence</h3>
-            <p class="md-text md-text--small">Fixes and the 2.x transition happen on our gate, not upstream's. The official indexer stays useful &mdash; as our test oracle.</p>
-          </div>
-        </div>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">5/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 6 / The gap -->
-    <section class="md-slide md-slide--light md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">The gap, measured</h2>
-          <div>
-            <p class="md-text">
-              We mapped all <span class="md-accent">53 API operations</span> to the
-              exact data they need, and checked what UmbraDB holds today.
-            </p>
-          </div>
-        </div>
-
-        <table class="deck-table md-grow">
-          <thead>
-            <tr><th>Operations</th><th>What they need</th><th>Effort</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>0 of 53</td>
-              <td>Fully servable from UmbraDB today &mdash; the data layer is the project</td>
-              <td>&mdash;</td>
-            </tr>
-            <tr>
-              <td>19 core</td>
-              <td>New but ordinary database tables (contracts, UTXOs, events, dust&hellip;)</td>
-              <td>Medium</td>
-            </tr>
-            <tr>
-              <td>5 core</td>
-              <td>A ledger snapshot store &mdash; good news: most queries only need the <i>latest</i> state</td>
-              <td>High &rarr; Medium</td>
-            </tr>
-            <tr>
-              <td>29 optional</td>
-              <td>Staking (20, Blockfrost) and bridge (9, beta) &mdash; nobody's wallet breaks without them</td>
-              <td>Deferred</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <p class="md-text md-text--small md-text--muted">
-          Three genuinely hard core items remain: the contract domain, the dust domain, and
-          subscription resume semantics &mdash; where replacements silently break wallets.
-        </p>
-      </div>
-      <footer class="md-footer">
-        <span class="md-logo"></span>
-        <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">6/8</span>
-        </span>
-      </footer>
-    </section>
-
-    <!-- 7 / Scope decision -->
-    <section class="md-slide md-slide--white md-slide--content deck-slide">
-      <div class="md-body">
-        <p class="md-eyebrow">Umbra Indexer</p>
-        <div class="deck-head deck-head--split">
-          <h2 class="md-heading md-heading--sm">Scope: a small core, everything else optional</h2>
-          <div>
-            <p class="md-text">
-              The core serves modern wallets with <b>zero key custody</b>.
-              Every other feature ships independently on its own merits &mdash; or never.
-            </p>
-          </div>
-        </div>
-
         <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
-          <div class="md-panel md-panel--filled">
-            <h3 class="md-subhead">Core &mdash; the v4 alt-indexer</h3>
-            <p class="md-text md-text--small">Node-direct ingest &amp; verified replay (proven)</p>
-            <p class="md-text md-text--small">Atomic per-block commits &mdash; readers never see half a block</p>
-            <p class="md-text md-text--small">Tables + snapshot store for all core data</p>
-            <p class="md-text md-text--small">The v4 GraphQL layer &mdash; a mechanical mapping once data exists</p>
-            <p class="md-text md-text--small">Public-service hardening (TLS, rate limits)</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">One door for discovery</h3>
+              <p class="md-text md-text--small">The solver reads the backend's projection of the book: a snapshot plus a live stream of changes. It has no Celestia connection of its own.</p>
+            </div>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">A verdict before matching</h3>
+              <p class="md-text md-text--small">Each candidate is sent to a validation endpoint that answers from indexed chain state without side effects: live, consumed, expired or unsupported, with a stable machine-readable reason.</p>
+            </div>
           </div>
-          <div class="md-panel">
-            <h3 class="md-subhead">Optional &mdash; independent goals</h3>
-            <p class="md-text md-text--small">Fast-sync bootstrap snapshots <span class="md-accent">(differentiator)</span></p>
-            <p class="md-text md-text--small">Legacy wallet sessions (older wallets only)</p>
-            <p class="md-text md-text--small">Hosted monitoring w/ encrypted rows; TEE last, if ever</p>
-            <p class="md-text md-text--small">Staking queries &middot; bridge &middot; Midnight 2.x (own gate)</p>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card">
+              <h3 class="md-subhead">Checked again before funds move</h3>
+              <p class="md-text md-text--small">The verdict is asked again at the moment a match is about to execute. Only a fresh live answer lets wallet and batcher work begin.</p>
+            </div>
+            <div class="deck-card">
+              <h3 class="md-subhead">Refusal is the default</h3>
+              <p class="md-text md-text--small">Transport failures, timeouts, malformed bodies and ambiguous answers all count as no. The solver would rather miss a trade than force one.</p>
+            </div>
           </div>
         </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">4/6</span>
+        </span>
+      </footer>
+    </section>
 
-        <p class="md-text md-text--small md-text--muted">
-          Why TEE moved to the bottom: new wallets never share keys &mdash; there is nothing for an enclave to protect in the core.
+    <section class="md-slide md-slide--white md-slide--content deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">The COW Solver</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">Matching and settlement</h2>
+          <div>
+            <p class="md-text">
+              A match becomes one balanced transaction. Balance is verified
+              before submission, and the ledger enforces it again at settlement.
+            </p>
+          </div>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Coincidence of wants</h3>
+              <p class="md-text md-text--small">When two offers want the opposite of each other they settle directly against each other, with no pool in between. That coincidence is what the solver hunts for.</p>
+            </div>
+            <div class="deck-card deck-card--accent">
+              <h3 class="md-subhead">Posted-price fills</h3>
+              <p class="md-text md-text--small">When no crossing offer exists, the solver takes the other side from its own inventory at the prices it has posted. Liquidity without a counterparty in the book.</p>
+            </div>
+          </div>
+          <div class="md-stack md-stack--gap">
+            <div class="deck-card">
+              <h3 class="md-subhead">Zero imbalance or nothing</h3>
+              <p class="md-text md-text--small">The completed transaction is only submitted when every declared ledger segment is readable and carries zero imbalance beyond dust. Anything else is refused before it leaves.</p>
+            </div>
+            <div class="deck-card">
+              <h3 class="md-subhead">The batcher finishes it</h3>
+              <p class="md-text md-text--small">The balancing batcher merges, balances and submits. On Midnight the offer's nullifier is spent: consumed exactly once, settled exactly once.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">5/6</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--white md-slide--content deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">The COW Solver</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">Trustless if it works</h2>
+          <div>
+            <p class="md-text">
+              The solver is powerful for liquidity and powerless over funds. Its
+              worst failure mode is doing nothing.
+            </p>
+          </div>
+        </div>
+        <div class="deck-cards deck-cards--3 md-grow">
+          <div class="deck-card deck-card--accent">
+            <h3 class="md-subhead">Cannot take more than granted</h3>
+            <p class="md-text md-text--small">An offer authorizes exactly one exchange. The solver cannot alter amounts, redirect value, or spend anything beyond what the offer itself grants.</p>
+          </div>
+          <div class="deck-card deck-card--accent">
+            <h3 class="md-subhead">Verified by the node</h3>
+            <p class="md-text md-text--small">Every proof and every balance is checked at settlement. A wrong completion is rejected by the ledger regardless of what the solver believed.</p>
+          </div>
+          <div class="deck-card">
+            <h3 class="md-subhead">Data-only publication</h3>
+            <p class="md-text md-text--small">The solver also serves indicative pairs and levels on a read-only surface, provably from one snapshot. Nothing on that surface can execute a trade.</p>
+          </div>
+        </div>
+        <p class="md-text md-text--small" style="margin-top: calc(24 * var(--md-u))">
+          Where it lives: <a href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/48">zswap-offerfiles-kernel, draft PR #48</a>, rebuilt on the kernel's current main.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
-          <span>2026 Midnight Foundation | Internal</span>
-          <span class="md-footer__page">7/8</span>
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">6/6</span>
         </span>
       </footer>
-    </section>
-
-    <!-- 8 / Verdict -->
-    <section class="md-slide md-slide--black md-slide--title deck-slide md-slide--bg-cubes-dark">
-      <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
-      <div class="md-body">
-        <h1 class="md-title">Verdict: possible, no hard problems</h1>
-        <p class="md-lead">A large but well-understood engineering program &mdash; not open research.</p>
-        <div class="deck-points">
-            <div class="deck-point">
-              <span class="deck-point__n">01</span>
-              <p class="md-text"><b>Risks retired.</b> Node-as-source and byte-exact replay are proven. The official indexer remains as our test oracle.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">02</span>
-              <p class="md-text"><b>Honest cost.</b> Three hard core items: contracts, dust, subscription semantics. Plus permanent parity upkeep as v4 evolves.</p>
-            </div>
-            <div class="deck-point">
-              <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Next step.</b> Approve the replacement spec (00004) with the scoping decided here, then start the core.</p>
-            </div>
-        </div>
-      </div>
     </section>
 
     <script>
