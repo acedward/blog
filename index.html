@@ -1664,9 +1664,13 @@
     const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const parseDate = (s) => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
 
-    function mondayOf(d) {
+    /* a reporting period runs up to and including the weekly update meeting.
+       MEETING_DAY: 0 = Sunday ... 3 = Wednesday. */
+    const MEETING_DAY = 3;
+    function periodStartOf(d) {
       const t = new Date(d);
-      t.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+      const back = (t.getDay() - (MEETING_DAY + 1) + 7) % 7;
+      t.setDate(t.getDate() - back);
       return t;
     }
     const ymd = (d) => d.getFullYear() + '-' +
@@ -1681,7 +1685,7 @@
         .sort((a,b) => b.date.localeCompare(a.date));
       const weeks = new Map();
       for (const e of entries) {
-        const key = ymd(mondayOf(parseDate(e.date)));
+        const key = ymd(periodStartOf(parseDate(e.date)));
         if (!weeks.has(key)) weeks.set(key, new Map());
         const days = weeks.get(key);
         if (!days.has(e.date)) days.set(e.date, []);
@@ -1689,7 +1693,7 @@
       }
 
       return [...weeks.entries()].map(([wk, days]) => {
-        const mon = parseDate(wk);
+        const mon = parseDate(wk); /* period start (Thursday) */
         const total = [...days.values()].reduce((n, a) => n + a.length, 0);
         const body = [...days.entries()].map(([date, list]) => {
           const d = parseDate(date);
@@ -1720,10 +1724,7 @@
         }).join('');
 
         const id = 'week-' + wk;
-        const seen = [...days.keys()].map(parseDate);
-        const friday = new Date(mon); friday.setDate(friday.getDate() + 4);
-        const latest = new Date(Math.max(...seen.map(d => d.getTime())));
-        const end = latest > friday ? latest : friday;
+        const end = new Date(mon); end.setDate(end.getDate() + 6);
         const fmt = d => MONTHS[d.getMonth()] + ' ' + d.getDate();
         const label = fmt(mon) + ' - ' + fmt(end);
         return '<section class="week" id="' + id + '"><h2>' + label + '</h2>' +
