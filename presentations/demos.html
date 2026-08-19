@@ -116,7 +116,7 @@
     </p>
 
     <figure>
-      <svg viewBox="0 0 1060 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Demo architecture: Umbra and Effectstream feeding the Offer Files backend and frontend, the COW Solver through Midnight-Intents, and AA-V3 through an EVM-Midnight dApp, all reaching the user">
+      <svg viewBox="0 0 1060 830" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Demo architecture: Umbra and Effectstream feeding the Offer Files backend and frontend, the COW Solver through Midnight-Intents, and AA-V3 through an EVM-Midnight dApp, all reaching the user">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
                   markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -124,6 +124,13 @@
           </marker>
         </defs>
 
+        <!-- ===== umbra indexing, feeding effectstream ===== -->
+        <rect x="40" y="10" width="170" height="88" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
+        <text class="b-title" x="125" y="48" text-anchor="middle">Umbra</text>
+        <text class="b-sub"   x="125" y="68" text-anchor="middle">indexing</text>
+        <polyline points="210,54 340,54 340,160" fill="none" stroke="var(--edge)" stroke-width="1.75" />
+
+        <g transform="translate(0,110)">
         <!-- ===== top row: the backend chain ===== -->
         <rect x="40" y="50" width="170" height="88" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
         <text class="b-title" x="125" y="88" text-anchor="middle">Umbra</text>
@@ -137,9 +144,15 @@
         <text class="b-title" x="580" y="88" text-anchor="middle">Offer Files backend</text>
         <text class="b-sub"   x="580" y="108" text-anchor="middle">kernel</text>
 
-        <rect x="730" y="50" width="180" height="88" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
-        <text class="b-title" x="820" y="88" text-anchor="middle">COW Solver</text>
-        <text class="b-sub"   x="820" y="108" text-anchor="middle">matching</text>
+        <rect x="840" y="50" width="210" height="200" rx="10"
+              fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="5 4" />
+        <text class="g-title" x="860" y="76">COW SOLVER</text>
+
+        <rect x="860" y="92" width="170" height="60" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
+        <text class="b-title" x="945" y="128" text-anchor="middle">Matching</text>
+
+        <rect x="860" y="168" width="170" height="60" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
+        <text class="b-title" x="945" y="204" text-anchor="middle">Midnight-Intents</text>
 
         <!-- ===== middle row ===== -->
         <rect x="40" y="250" width="170" height="88" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
@@ -158,9 +171,6 @@
         <text class="b-title" x="715" y="344" text-anchor="middle">Auth Messages</text>
         <text class="b-sub"   x="715" y="363" text-anchor="middle">proved messages</text>
 
-        <rect x="850" y="250" width="180" height="88" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
-        <text class="b-title" x="940" y="300" text-anchor="middle">Midnight-Intents</text>
-
         <!-- ===== dapp lane ===== -->
         <rect x="40" y="470" width="220" height="88" rx="8" fill="var(--box)" stroke="var(--line)" stroke-width="1.5" />
         <text class="b-title" x="150" y="508" text-anchor="middle">EVM-Midnight dApp</text>
@@ -173,10 +183,10 @@
         <!-- ===== edges: backend chain ===== -->
         <line x1="210" y1="94" x2="250" y2="94" stroke="var(--edge)" stroke-width="1.75" />
         <line x1="430" y1="94" x2="470" y2="94" stroke="var(--edge)" stroke-width="1.75" />
-        <line x1="690" y1="94" x2="730" y2="94" stroke="var(--edge)" stroke-width="1.75" />
+        <line x1="690" y1="94" x2="860" y2="122" stroke="var(--edge)" stroke-width="1.75" />
 
-        <!-- cow solver down to midnight-intents -->
-        <polyline points="820,138 820,180 940,180 940,250" fill="none" stroke="var(--edge)" stroke-width="1.75" />
+        <!-- matching down to midnight-intents, inside the solver -->
+        <line x1="945" y1="152" x2="945" y2="168" stroke="var(--edge)" stroke-width="1.75" />
 
         <!-- backend down to frontend -->
         <polyline points="580,138 580,180 440,180 440,250" fill="none" stroke="var(--edge)" stroke-width="1.75" />
@@ -202,8 +212,9 @@
               marker-start="url(#arrow)" marker-end="url(#arrow)" />
         <polyline points="150,558 150,652 330,652" fill="none" stroke="var(--edge)" stroke-width="1.75"
               marker-start="url(#arrow)" marker-end="url(#arrow)" />
-        <polyline points="940,338 940,652 570,652" fill="none" stroke="var(--edge)" stroke-width="1.75"
+        <polyline points="945,250 945,652 570,652" fill="none" stroke="var(--edge)" stroke-width="1.75"
               marker-start="url(#arrow)" marker-end="url(#arrow)" />
+        </g>
       </svg>
     </figure>
 
@@ -215,12 +226,13 @@
 
     <h2>Reading the chart</h2>
     <ul class="notes">
+      <li><strong>Umbra indexing</strong> feeds Effectstream too, and nothing else.</li>
       <li><strong>Umbra</strong> feeds <strong>Effectstream</strong>, and the
         <strong>Offer Files backend</strong> runs on Effectstream. Umbra does not reach
         Offer Files directly.</li>
       <li><strong>COW Solver</strong> is its own project. It talks to the Offer Files
-        backend, and it reaches users through <strong>Midnight-Intents</strong> rather
-        than through the Offer Files frontend.</li>
+        backend, and <strong>Midnight-Intents</strong> sits inside it. Users are reached
+        from there rather than through the Offer Files frontend.</li>
       <li><strong>UTXO Pinning</strong> and <strong>Auth Messages</strong> are what the frontend
         needs to build a spend a user can actually sign and settle.</li>
       <li><strong>AA-V3</strong> reaches Umbra through Metamask, and users can reach AA-V3
@@ -228,7 +240,7 @@
       <li>The dotted line from AA-V3 to the frontend is the open question: whether the
         frontend can talk to AA-V3 directly rather than only through the backend path.</li>
       <li>Three lanes end at the user: the Offer Files frontend, the EVM-Midnight dApp,
-        and Midnight-Intents.</li>
+        and the COW Solver through Midnight-Intents.</li>
     </ul>
 
     <footer>
