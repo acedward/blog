@@ -1,417 +1,629 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Authenticated memos without a hard fork</title>
-  <style>
-    :root {
-      --bg: #fff;
-      --ink: #111418;
-      --muted: #56606b;
-      --panel: #ededed;
-      --panel-2: #f6f7f8;
-      --rule: #b8bcc4;
-      --blue: #3d8dff;
-      --cyan: #6dcbf4;
-      --navy: #183251;
-      --green: #24966f;
-      --green-bg: #e5f5ef;
-      --amber: #b87414;
-      --amber-bg: #fff3d9;
-      --red: #c64d4d;
-      --red-bg: #fce8e8;
-      --pad-x: clamp(32px, 5vw, 72px);
-      --pad-y: clamp(24px, 4vh, 48px);
-      font-family: "Helvetica Neue", Arial, sans-serif;
-      color: var(--ink);
-      background: #0c1117;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
-    body { background: #0c1117; }
-    button, a { font: inherit; }
-    a { color: inherit; }
-    #deck { position: fixed; inset: 0; display: grid; place-items: center; }
-    .slide {
-      position: absolute;
-      display: none;
-      width: min(100vw, 177.7778vh);
-      height: min(100vh, 56.25vw);
-      overflow: hidden;
-      background: var(--bg);
-      padding: var(--pad-y) var(--pad-x) calc(var(--pad-y) + 22px);
-      box-shadow: 0 26px 80px #0008;
-    }
-    .slide.active { display: block; }
-    .slide::after {
-      content: attr(data-page);
-      position: absolute;
-      right: var(--pad-x);
-      bottom: 13px;
-      font-size: clamp(10px, 1vw, 13px);
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .slide::before {
-      content: "OFF-CHAIN ATTESTED MEMOS";
-      position: absolute;
-      left: var(--pad-x);
-      bottom: 13px;
-      font-size: clamp(9px, .9vw, 12px);
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .kicker { color: var(--blue); font-size: clamp(12px, 1.35vw, 17px); font-weight: 800; letter-spacing: .01em; text-transform: uppercase; }
-    h1, h2, h3, p { margin: 0; }
-    h1 { font-size: clamp(42px, 5.55vw, 76px); line-height: .98; letter-spacing: -.035em; }
-    h2 { margin-top: .55rem; font-size: clamp(29px, 3.75vw, 50px); line-height: 1.02; letter-spacing: -.025em; }
-    h3 { font-size: clamp(21px, 2.4vw, 32px); line-height: 1.05; }
-    .subtitle { color: var(--muted); font-size: clamp(18px, 2vw, 28px); line-height: 1.25; }
-    .rule { height: 2px; margin: clamp(11px, 1.45vh, 16px) 0 clamp(18px, 2.6vh, 30px); background: var(--ink); }
-    .pill { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: .42rem 1rem; border-radius: 999px; font-size: clamp(11px, 1.15vw, 15px); font-weight: 800; }
-    .pill.green { color: var(--green); background: var(--green-bg); }
-    .pill.blue { color: var(--navy); background: var(--cyan); }
-    .pill.dark { color: #fff; background: var(--ink); }
-    .pill.amber { color: var(--amber); background: var(--amber-bg); }
-    .pill.red { color: var(--red); background: var(--red-bg); }
-    .card { border: 1px solid var(--rule); border-radius: 16px; background: var(--panel-2); padding: clamp(15px, 2vw, 26px); }
-    .card.green { border-color: var(--green); background: var(--green-bg); }
-    .card.red { border-color: var(--red); background: var(--red-bg); }
-    .card.amber { border-color: var(--amber); background: var(--amber-bg); }
-    .card.dark { border-color: var(--navy); background: var(--navy); color: #fff; }
-    .muted { color: var(--muted); }
-    .green-text { color: var(--green); }
-    .red-text { color: var(--red); }
-    .amber-text { color: var(--amber); }
-    .blue-text { color: var(--blue); }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(18px, 3vw, 48px); }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(14px, 2.2vw, 28px); }
-    .body { font-size: clamp(15px, 1.55vw, 21px); line-height: 1.28; }
-    .body-lg { font-size: clamp(18px, 2vw, 27px); line-height: 1.28; }
-    .small { font-size: clamp(12px, 1.18vw, 16px); line-height: 1.24; }
-    .center { text-align: center; }
-    .list { display: grid; gap: clamp(9px, 1.35vh, 16px); margin: 0; padding: 0; list-style: none; }
-    .list li { position: relative; padding-left: 2.6rem; }
-    .list li::before { content: "✓"; position: absolute; left: 0; top: -.1rem; display: grid; width: 1.65rem; height: 1.65rem; place-items: center; border-radius: 50%; color: #fff; background: var(--green); font-weight: 800; }
-    .list.warn li::before { content: "!"; background: var(--red); }
-    .cover { display: grid; grid-template-columns: 1.65fr .85fr; gap: 6vw; height: 100%; align-items: center; }
-    .cover-copy { display: grid; gap: clamp(20px, 4vh, 40px); }
-    .file-stack { display: grid; gap: 16px; align-content: center; min-height: 62%; }
-    .file-stack .piece { padding: clamp(14px, 2vh, 22px); border-radius: 12px; text-align: center; font-size: clamp(17px, 1.75vw, 23px); font-weight: 800; }
-    .three-problems .card { min-height: clamp(245px, 50vh, 360px); }
-    .three-problems .number { color: var(--blue); font-weight: 800; }
-    .three-problems h3 { margin: 1.8rem 0 1.3rem; }
-    .decision-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: clamp(11px, 1.25vw, 17px); }
-    .decision-table th, .decision-table td { border: 1px solid var(--rule); padding: clamp(8px, 1.1vw, 14px); text-align: left; vertical-align: middle; }
-    .decision-table th { color: #fff; background: var(--ink); font-size: .82em; }
-    .decision-table tr.chosen td { border-color: var(--green); background: var(--green-bg); font-weight: 700; }
-    .diagram { position: relative; height: min(55vh, 390px); margin-top: 1vh; }
-    .diagram svg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; overflow: visible; }
-    .diagram .node { position: absolute; z-index: 1; display: grid; place-items: center; border: 2px solid var(--blue); border-radius: 14px; background: #fff; padding: 10px; text-align: center; font-weight: 800; font-size: clamp(12px, 1.35vw, 18px); line-height: 1.15; }
-    .diagram .node.dark { color: #fff; border-color: var(--navy); background: var(--navy); }
-    .diagram .node.green { color: var(--green); border-color: var(--green); background: var(--green-bg); }
-    .diagram .node.gray { border-color: var(--rule); background: var(--panel-2); }
-    .container-strip { display: grid; grid-template-columns: .75fr 1.55fr .9fr 1.05fr 1.5fr; margin-top: 8vh; }
-    .container-strip > div { min-height: 155px; border: 1px solid var(--rule); padding: 22px 14px; display: grid; place-items: center; text-align: center; }
-    .container-strip strong { display: block; margin-bottom: 20px; }
-    .facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3vw; margin-top: 5vh; }
-    .facts h3 { color: var(--blue); margin-bottom: 12px; }
-    .steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2vw; margin-top: 8vh; }
-    .step { position: relative; min-height: 225px; text-align: center; padding: 16px 12px; }
-    .step:not(:last-child)::after { content: "→"; position: absolute; right: -1.75vw; top: 44%; color: var(--blue); font-size: clamp(22px, 2.8vw, 38px); font-weight: 800; }
-    .step .n { width: 36px; height: 30px; margin: 0 auto 24px; display: grid; place-items: center; border-radius: 999px; color: #fff; background: var(--blue); font-weight: 800; }
-    .step h3 { margin-bottom: 22px; }
-    .circuit-grid { display: grid; grid-template-columns: 1.25fr .95fr 1.25fr; gap: 3vw; align-items: center; margin-top: 5vh; }
-    .equation { display: grid; min-height: 190px; place-items: center; padding: 18px; border-radius: 20px; color: #fff; background: var(--navy); text-align: center; font-size: clamp(18px, 2vw, 27px); font-weight: 800; }
-    .metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.4vw; margin-top: 5vh; }
-    .metric { padding: 14px 7px; border: 1px solid var(--rule); border-radius: 14px; background: var(--panel-2); text-align: center; }
-    .metric strong { display: block; color: var(--blue); font-size: clamp(21px, 2.6vw, 35px); }
-    .verify-layout { display: grid; grid-template-columns: 1fr .32fr; gap: 4vw; }
-    .verify-steps { display: grid; gap: 1.1vh; }
-    .verify-step { display: grid; grid-template-columns: 56px .58fr 1.1fr; gap: 2vw; align-items: center; min-height: 8vh; }
-    .verify-step .n { display: grid; width: 48px; height: 32px; place-items: center; border-radius: 999px; color: #fff; background: var(--blue); font-weight: 800; }
-    .trust { display: grid; gap: 18px; align-content: center; }
-    .privacy { margin-top: 5vh; }
-    .privacy .card { min-height: 44vh; }
-    .privacy h3 { margin-bottom: 30px; }
-    .code-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.4vh 2.5vw; }
-    .code-card { display: grid; grid-template-columns: .7fr 1fr; gap: 20px; align-items: center; min-height: 105px; }
-    .code-card strong { color: var(--blue); font-size: clamp(15px, 1.55vw, 21px); }
-    pre { margin: 0; white-space: pre-wrap; font: 700 clamp(13px, 1.55vw, 21px)/1.45 Menlo, Consolas, monospace; }
-    .cli { grid-template-columns: 1.7fr .8fr; }
-    .cli .terminal { min-height: 48vh; }
-    .state-stack { display: grid; gap: 2.7vh; }
-    .state { display: grid; grid-template-columns: .42fr 1fr; gap: 16px; align-items: start; min-height: 90px; }
-    .settle-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4vw; align-items: center; margin-top: 7vh; }
-    .settle-node { position: relative; min-height: 96px; display: grid; place-items: center; border: 2px solid var(--blue); border-radius: 14px; padding: 12px; text-align: center; font-size: clamp(15px, 1.55vw, 21px); font-weight: 800; }
-    .settle-node:not(:last-child)::after { content: "→"; position: absolute; right: -3.4vw; color: var(--blue); font-size: clamp(24px, 3vw, 38px); }
-    .callout { padding: 16px 24px; border-radius: 16px; text-align: center; font-size: clamp(15px, 1.55vw, 21px); font-weight: 800; }
-    .callout.dark { color: #fff; background: var(--navy); }
-    .close-grid { margin-top: 5vh; }
-    .close-grid ul { margin: 18px 0 0; padding-left: 1em; font-size: clamp(17px, 2vw, 27px); line-height: 1.35; }
-    .close-callout { margin: 7vh auto 0; max-width: 82%; padding: 22px; border-radius: 18px; color: #fff; background: var(--navy); text-align: center; }
-    .close-callout strong { display: block; font-size: clamp(21px, 2.6vw, 35px); }
-    .close-callout span { display: block; margin-top: 12px; color: var(--cyan); font-size: clamp(13px, 1.4vw, 19px); }
-    .download { display: inline-flex; margin-top: 14px; color: var(--blue); font-weight: 800; text-decoration: none; }
-    .controls { position: fixed; z-index: 20; right: 18px; bottom: 16px; display: flex; gap: 8px; }
-    .controls button { width: 42px; height: 36px; border: 1px solid #ffffff55; border-radius: 10px; color: #fff; background: #0c1117cc; cursor: pointer; }
-    .progress { position: fixed; z-index: 21; left: 0; top: 0; height: 4px; width: 0; background: var(--blue); transition: width .18s ease; }
-    .notes { display: none; }
-    @media (max-width: 850px), (max-height: 520px) {
-      .slide { --pad-x: 32px; --pad-y: 22px; }
-      .three-problems .card { min-height: 245px; }
-      .step { min-height: 190px; }
-    }
-    @media print {
-      html, body { overflow: visible; background: #fff; }
-      #deck { display: block; position: static; }
-      .slide { display: block; position: relative; width: 13.333in; height: 7.5in; page-break-after: always; box-shadow: none; }
-      .controls, .progress { display: none; }
-    }
-  </style>
-</head>
-<body>
-  <div class="progress" id="progress"></div>
-  <main id="deck" aria-live="polite">
-    <section class="slide active" data-page="01" aria-label="Title slide">
-      <div class="cover">
-        <div class="cover-copy">
-          <div><span class="pill green">MIDNIGHT 2.x &nbsp;•&nbsp; ZSWAP &nbsp;•&nbsp; OFF-CHAIN</span></div>
-          <h1>Authenticated memos<br>without a hard fork</h1>
-          <p class="subtitle">A standalone proof travels with the offer file. The offer bytes, transaction bytes, and node stay unchanged.</p>
-          <div><a class="download" href="zswap-attested-memos.pptx" download>Download the PowerPoint version</a></div>
-        </div>
-        <div class="card file-stack">
-          <span class="pill dark">OFFER FILE</span>
-          <div class="piece" style="background:#fff;border:1px solid var(--rule)">exact offer bytes</div>
-          <div class="piece" style="background:var(--cyan)">memo</div>
-          <div class="piece" style="color:#fff;background:var(--navy)">nullifier +<br>zero-knowledge proof</div>
-        </div>
-      </div>
-      <aside class="notes">Outcome: authenticated off-chain metadata with unchanged consensus objects.</aside>
-    </section>
-
-    <section class="slide" data-page="02">
-      <span class="kicker">Problem</span>
-      <h2>The problem is not carrying bytes. It is earning trust.</h2>
-      <div class="rule"></div>
-      <div class="grid-3 three-problems">
-        <article class="card"><div class="number">01</div><h3>An offer moves value</h3><p class="body muted">A ZSwap offer can be relayed and merged, but the base format carries no trusted human message.</p></article>
-        <article class="card red"><div class="number red-text">02</div><h3>A plain sidecar is forgeable</h3><p class="body muted">Anyone can attach, alter, or re-attribute unsigned metadata. Displaying it as trusted creates a spoofing surface.</p></article>
-        <article class="card"><div class="number">03</div><h3>Putting it on chain is expensive</h3><p class="body muted">Adding a memo to the ledger format cascades through version tags, fee sizing, activation logic, wallets, and indexers.</p></article>
-      </div>
-      <div class="callout" style="margin:3.5vh auto 0;max-width:62%;color:var(--green);background:var(--green-bg)">Design target: cryptographic attribution with zero consensus change</div>
-    </section>
-
-    <section class="slide" data-page="03">
-      <span class="kicker">Decision</span>
-      <h2>Alternatives: only one removes consensus coupling</h2>
-      <div class="rule"></div>
-      <table class="decision-table">
-        <colgroup><col style="width:21%"><col style="width:24%"><col style="width:19%"><col style="width:36%"></colgroup>
-        <thead><tr><th>APPROACH</th><th>AUTHENTICATION</th><th>CHAIN IMPACT</th><th>DECISION / TRADE-OFF</th></tr></thead>
-        <tbody>
-          <tr class="chosen"><td>Off-chain proof + file</td><td>Spending-secret proof for one input</td><td>None</td><td class="green-text">CHOSEN. Forge-resistant, strippable</td></tr>
-          <tr><td><strong>On-chain output memo</strong></td><td>Bound to output, not spender secret</td><td>Hard fork</td><td>Private delivery, weaker attribution</td></tr>
-          <tr><td><strong>Offer-level memo annex</strong></td><td>Spend-proof bound by nullifier</td><td>Hard fork</td><td>Strip-resistant, keeps full activation cost</td></tr>
-          <tr><td><strong>Reuse public-key sign</strong></td><td>Signature by disclosed key</td><td>None</td><td>Key not linked to an offer input</td></tr>
-          <tr><td><strong>Unsigned sidecar</strong></td><td>None</td><td>None</td><td>Simple, but forgeable and re-attributable</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="slide" data-page="04">
-      <span class="kicker">UML flow</span>
-      <h2>How it is used: proof-aware tools, proof-unaware consensus</h2>
-      <div class="rule"></div>
-      <div class="diagram" aria-label="Component flow from maker wallet to unmodified node">
-        <svg viewBox="0 0 1000 360" role="img" aria-label="Offer-file attestation component flow">
-          <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3d8dff"></path></marker></defs>
-          <g stroke="#3d8dff" stroke-width="3" fill="none" marker-end="url(#arrow)">
-            <path d="M185 118 H285"></path><path d="M425 118 H500"></path><path d="M610 165 V244 H345 V265"></path><path d="M430 275 H500"></path><path d="M690 275 L760 190"></path><path d="M870 190 H920"></path>
-          </g>
-          <path d="M730 45 V320" stroke="#c64d4d" stroke-width="2"></path>
-        </svg>
-        <span class="pill blue" style="position:absolute;left:0;top:0;width:66%">OFF-CHAIN TRUST DOMAIN</span>
-        <span class="pill" style="position:absolute;right:0;top:0;width:25%;background:var(--panel)">UNCHANGED CONSENSUS</span>
-        <div class="node" style="left:.5%;top:22%;width:18%;height:25%">Maker wallet<br>(coin + spending secret)</div>
-        <div class="node dark" style="left:24%;top:22%;width:16%;height:25%">attest() / CLI</div>
-        <div class="node green" style="left:44%;top:22%;width:20%;height:25%">ZSWPMEMO file<br>offer + memo + proof</div>
-        <div class="node gray" style="left:24%;top:68%;width:16%;height:22%">Relay / transport</div>
-        <div class="node" style="left:44%;top:68%;width:20%;height:22%">verify() / reader</div>
-        <div class="node gray" style="left:69%;top:47%;width:17%;height:25%">Toolkit<br>extract original offer</div>
-        <div class="node dark" style="right:0;top:47%;width:12%;height:25%">Unmodified node<br>validates tx</div>
-        <div class="red-text small center" style="position:absolute;left:58%;bottom:-5px;width:28%;font-weight:800">Proof and memo stop here</div>
-      </div>
-      <p class="body center" style="margin-top:1vh;font-weight:800">The verifier authenticates the file. The node never parses the memo or attestation.</p>
-    </section>
-
-    <section class="slide" data-page="05">
-      <span class="kicker">Wire format</span>
-      <h2>The container is canonical, versioned, and intentionally separate</h2>
-      <div class="rule"></div>
-      <div class="container-strip">
-        <div style="color:#fff;background:var(--ink)"><span><strong>HEADER</strong>ZSWPMEMO<br>v1 · reserved 0</span></div>
-        <div><span><strong>OFFER SECTION</strong>exact bytes, verbatim<br>1..=16 MiB</span></div>
-        <div style="background:var(--cyan)"><span><strong>MEMO</strong>1..=512 bytes</span></div>
-        <div style="color:var(--green);background:var(--green-bg)"><span><strong>NULLIFIER</strong>32 bytes<br>carrier attribution</span></div>
-        <div style="color:#fff;background:var(--navy)"><span><strong>PROOF</strong>5248 bytes in v1</span></div>
-      </div>
-      <div class="facts">
-        <div><h3>Canonical decode</h3><p class="body muted">Ascending sections, unknown kinds rejected, no trailing bytes.</p></div>
-        <div><h3>Allocation safety</h3><p class="body muted">Every declared length is bounded before copying.</p></div>
-        <div><h3>Exact-byte identity</h3><p class="body muted">The offer payload is never normalized or re-serialized.</p></div>
-      </div>
-      <div class="callout" style="margin:3.5vh auto 0;max-width:82%;color:var(--amber);background:var(--amber-bg)">Stripping removes the entire attestation section and leaves the offer bytes untouched</div>
-    </section>
-
-    <section class="slide" data-page="06">
-      <span class="kicker">Construction</span>
-      <h2>How the proof is generated</h2>
-      <div class="rule"></div>
-      <div class="steps">
-        <article class="card step"><div class="n">1</div><h3>Validate</h3><p class="small muted">Memo size, offer parse, user-owned carrier, offer well-formed.</p></article>
-        <article class="card step"><div class="n">2</div><h3>Hash</h3><p class="small muted">offer_hash = SHA-256(exact offer bytes)</p></article>
-        <article class="card step"><div class="n">3</div><h3>Pack</h3><p class="small muted">[Fr(length)] + 31-byte little-endian chunks</p></article>
-        <article class="card step"><div class="n">4</div><h3>Commit</h3><p class="small muted">C = transient_commit(pack(memo), opening)</p></article>
-        <article class="card step"><div class="n">5</div><h3>Assemble</h3><p class="small muted">Private (coin, sk), public [C, nullifier]</p></article>
-        <article class="card green step"><div class="n" style="background:var(--green)">6</div><h3>Prove + encode</h3><p class="small muted">Pinned prover key, then one canonical file.</p></article>
-      </div>
-      <div class="callout dark" style="margin:5vh auto 0;max-width:88%"><span style="color:var(--cyan)">Fail-closed construction:</span> every cheap refusal happens before proving. Failure emits no file and never drops the requested memo.</div>
-    </section>
-
-    <section class="slide" data-page="07">
-      <span class="kicker">Circuit</span>
-      <h2>The circuit proves one equation and nothing wider</h2>
-      <div class="rule"></div>
-      <div class="circuit-grid">
-        <div class="card" style="min-height:250px"><span class="pill dark">PRIVATE WITNESS</span><p class="body-lg" style="margin-top:30px;font-weight:800">coin.nonce<br>coin.token_type<br>coin.value<br>spending secret sk</p></div>
-        <div class="equation">N = SHA-256(<br>domain || coin || 0x01 || sk<br>)</div>
-        <div class="card green center" style="min-height:250px"><span class="pill" style="color:#fff;background:var(--green)">PUBLIC STATEMENT</span><p class="body-lg green-text" style="margin-top:55px;font-weight:800">C<br>carrier nullifier N</p></div>
-      </div>
-      <div class="metrics"><div class="metric"><strong>k = 13</strong><span>degree</span></div><div class="metric"><strong>5,693</strong><span>rows</span></div><div class="metric"><strong>7</strong><span>private fields</span></div><div class="metric"><strong>3</strong><span>public inputs</span></div><div class="metric"><strong>5,248 B</strong><span>proof size</span></div><div class="metric"><strong>minor 2</strong><span>backend</span></div></div>
-    </section>
-
-    <section class="slide" data-page="08">
-      <span class="kicker">Verification</span>
-      <h2>How the proof is validated</h2>
-      <div class="rule"></div>
-      <div class="verify-layout">
-        <div class="verify-steps body">
-          <div class="verify-step"><span class="n">01</span><strong>Decode structure</strong><span class="muted">magic, version, ordering, bounds, exact end</span></div>
-          <div class="verify-step"><span class="n">02</span><strong>Parse offer</strong><span class="muted">claimed N must name a user-owned input</span></div>
-          <div class="verify-step"><span class="n">03</span><strong>Recompute C</strong><span class="muted">memo + exact enclosed offer bytes</span></div>
-          <div class="verify-step"><span class="n">04</span><strong>Rebuild statement</strong><span class="muted">[C, N₀, N₁] from public data only</span></div>
-          <div class="verify-step"><span class="n">05</span><strong>Verify attestation</strong><span class="muted">offline with checksum-pinned key</span></div>
-          <div class="verify-step"><span class="n">06</span><strong>Verify offer</strong><span class="muted">unchanged Offer::well_formed(segment)</span></div>
-        </div>
-        <div class="card trust center"><strong class="muted">TRUST RESULT</strong><span class="pill green">AUTHENTICATED</span><span class="pill red">UNTRUSTED</span><span class="pill amber">NO MESSAGE</span><p class="small amber-text"><strong>NoMessage</strong> means absent now, not never authored.</p></div>
-      </div>
-    </section>
-
-    <section class="slide" data-page="09">
-      <span class="kicker">Privacy</span>
-      <h2>Why the proof does not leak the spender's identity</h2>
-      <div class="rule"></div>
-      <div class="grid-2 privacy body">
-        <div class="card green"><h3 class="green-text">Verifier learns</h3><ul class="list"><li>Memo plaintext, intentionally visible in the file</li><li>Carrier nullifier already visible in the enclosed offer</li><li>Commitment C, recomputable from public file contents</li><li>Whether the proof and enclosed offer validate</li></ul></div>
-        <div class="card"><h3>Verifier does not learn</h3><ul class="list warn"><li>Spending secret</li><li>Public key or new identity handle</li><li>Coin nonce, token type, or value</li><li>Merkle path, balance, or ownership metadata</li></ul></div>
-      </div>
-      <div class="callout dark" style="margin:4vh auto 0;max-width:86%">Zero knowledge hides the witness. It does not hide the memo, and it does not make authorship deniable to someone holding the file.</div>
-    </section>
-
-    <section class="slide" data-page="10">
-      <span class="kicker">Implementation</span>
-      <h2>Key code changes: one standalone crate, six clear boundaries</h2>
-      <div class="rule"></div>
-      <div class="code-grid body">
-        <div class="card code-card"><strong>memo.rs + packing.rs</strong><span class="muted">Validate 1..=512 bytes and injectively pack length + 31-byte chunks.</span></div>
-        <div class="card code-card"><strong>commit.rs</strong><span class="muted">Hash exact offer bytes and derive the shared context commitment C.</span></div>
-        <div class="card code-card"><strong>circuit.rs + circuits/</strong><span class="muted">Assemble the 7-field witness, 3-field statement, and nullifier equation.</span></div>
-        <div class="card code-card"><strong>container.rs</strong><span class="muted">Canonical ZSWPMEMO v1 codec with hostile-length and trailing-byte rejection.</span></div>
-        <div class="card code-card"><strong>attest.rs + verify.rs</strong><span class="muted">Fail-closed construction and ordered trust-aware verification.</span></div>
-        <div class="card code-card"><strong>cli.rs + e2e/</strong><span class="muted">attest, verify, inspect, safe carrier-file input, and unmodified-node settlement.</span></div>
-      </div>
-      <div class="callout" style="margin:3.5vh auto 0;max-width:38%;color:var(--green);background:var(--green-bg)">Upstream ledger and node: unchanged</div>
-    </section>
-
-    <section class="slide" data-page="11">
-      <span class="kicker">CLI</span>
-      <h2>The user flow is three commands with distinct trust semantics</h2>
-      <div class="rule"></div>
-      <div class="grid-2 cli">
-        <div class="card dark terminal"><pre>$ zswap-memo-attest attest \
-  --offer maker.offer \
-  --memo-file note.txt \
-  --carrier-file carrier.txt \
-  --out maker.zswpmemo
-
-$ zswap-memo-attest verify maker.zswpmemo
-$ zswap-memo-attest inspect maker.zswpmemo</pre></div>
-        <div class="state-stack body">
-          <div class="card green state"><strong class="green-text">attest</strong><span>Writes only after every check and proving succeeds.</span></div>
-          <div class="card state" style="border-color:var(--navy);background:var(--cyan)"><strong>verify</strong><span>Only this command may report AUTHENTICATED.</span></div>
-          <div class="card amber state"><strong class="amber-text">inspect</strong><span>Structural dump only. Authenticity is NOT CHECKED.</span></div>
-        </div>
-      </div>
-      <p class="body red-text center" style="margin-top:4vh;font-weight:800">Use --carrier-file to keep the spending secret out of shell history and process listings.</p>
-    </section>
-
-    <section class="slide" data-page="12">
-      <span class="kicker">Trade-offs</span>
-      <h2>The approach is strong on attribution, weak on delivery guarantees</h2>
-      <div class="rule"></div>
-      <div class="grid-2 body" style="margin-top:5vh">
-        <div class="card green" style="min-height:48vh"><h3 class="green-text" style="margin-bottom:32px">Advantages</h3><ul class="list"><li>No ledger, transaction, node, fee, or activation change</li><li>Authorization by the actual input spending secret</li><li>Exact memo bytes bound to exact offer bytes</li><li>No public key or coin attributes disclosed</li><li>Offline, fail-closed verification</li></ul></div>
-        <div class="card red" style="min-height:48vh"><h3 class="red-text" style="margin-bottom:32px">Limitations</h3><ul class="list warn"><li>Relays can strip the memo and proof</li><li>No on-chain delivery, history, revocation, or uniqueness</li><li>Plaintext can leak content and writing style</li><li>About 5.3 KB plus framing</li><li>Tooling and verifier keys become a distribution surface</li></ul></div>
-      </div>
-    </section>
-
-    <section class="slide" data-page="13">
-      <span class="kicker">Boundary evidence</span>
-      <h2>What unchanged settlement proves, and what it does not</h2>
-      <div class="rule"></div>
-      <div class="settle-flow"><div class="settle-node" style="color:var(--green);border-color:var(--green);background:var(--green-bg)">Attested offer file</div><div class="settle-node">Extract exact offer bytes</div><div class="settle-node">Build normal transaction</div><div class="settle-node" style="color:#fff;border-color:var(--ink);background:var(--ink)">Unmodified node</div></div>
-      <div class="pill green" style="margin:4vh 0 0 auto;width:34%">Validated &nbsp;→&nbsp; Applying &nbsp;→&nbsp; FINALIZED</div>
-      <div class="grid-2 body" style="margin-top:6vh"><div class="card green"><h3 class="green-text">It demonstrates</h3><p style="margin-top:14px">The exact offer and submitted transaction bytes are unchanged, so normal node validation and settlement still apply.</p></div><div class="card amber"><h3 class="amber-text">It does not demonstrate</h3><p style="margin-top:14px">Node awareness of the memo, strip resistance, or interchangeability between the attestation and spend proving backends.</p></div></div>
-    </section>
-
-    <section class="slide" data-page="14">
-      <span class="kicker">Recommendation</span>
-      <h2>When attribution matters more than guaranteed delivery</h2>
-      <div class="rule"></div>
-      <div class="grid-2 close-grid"><div><h3 class="green-text">Use it when</h3><ul><li>offer files already move off chain</li><li>the recipient can run a verifier</li><li>avoiding a coordinated hard fork matters</li><li>stripping is an explicit, acceptable risk</li></ul></div><div><h3 class="red-text">Do not use it as</h3><ul><li>proof that a memo was delivered</li><li>proof that no memo was ever sent</li><li>a permanent audit trail</li><li>an identity signature for a person or organization</li></ul></div></div>
-      <div class="close-callout"><strong>One proof, one carrier nullifier, one exact memo, one exact offer file.</strong><span>That narrow claim is why the design is useful, reviewable, and deployable without consensus change.</span></div>
-    </section>
-  </main>
-
-  <div class="controls" aria-label="Slide controls"><button id="prev" title="Previous slide" aria-label="Previous slide">←</button><button id="full" title="Toggle fullscreen" aria-label="Toggle fullscreen">⛶</button><button id="next" title="Next slide" aria-label="Next slide">→</button></div>
-  <script>
-    (() => {
-      const slides = [...document.querySelectorAll('.slide')];
-      const progress = document.getElementById('progress');
-      let index = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1) || 1) - 1));
-      function show(next) {
-        index = Math.max(0, Math.min(slides.length - 1, next));
-        slides.forEach((s, i) => s.classList.toggle('active', i === index));
-        progress.style.width = `${((index + 1) / slides.length) * 100}%`;
-        history.replaceState(null, '', `#${index + 1}`);
-        document.title = `${slides[index].querySelector('h1,h2')?.textContent.trim() || 'Off-chain attested memos'} · ${index + 1}/${slides.length}`;
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Authenticated Memos Without a Hard Fork</title>
+    <style>
+      /* Midnight deck shell. Geometry and naming follow the other technical decks. */
+      :root {
+        --md-white: #ffffff;
+        --md-black: #0a0a0a;
+        --md-blue: #0000fe;
+        --md-grey: #cccccc;
+        --md-grey-light: #e6e6e6;
+        --md-muted-on-light: #5f5f5f;
+        --md-font: "Outfit", "Poppins", "Avenir Next", "Century Gothic",
+          ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+        --md-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+          "Liberation Mono", monospace;
+        --md-design-w: 1280;
+        --md-design-h: 720;
       }
-      document.getElementById('next').addEventListener('click', () => show(index + 1));
-      document.getElementById('prev').addEventListener('click', () => show(index - 1));
-      document.getElementById('full').addEventListener('click', async () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
-      addEventListener('keydown', (event) => {
-        if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(index + 1); }
-        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(index - 1); }
-        if (event.key === 'Home') show(0);
-        if (event.key === 'End') show(slides.length - 1);
-        if (event.key.toLowerCase() === 'f') document.getElementById('full').click();
-      });
-      addEventListener('hashchange', () => show(Number(location.hash.slice(1) || 1) - 1));
-      show(index);
-    })();
-  </script>
-</body>
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+      body { background: #000; font-family: var(--md-font); }
+      button, a { font: inherit; }
+      .md-slide {
+        container-type: size;
+        position: relative;
+        display: none;
+        width: min(100vw, calc(100vh * var(--md-design-w) / var(--md-design-h)));
+        aspect-ratio: var(--md-design-w) / var(--md-design-h);
+        margin: 0 auto;
+        overflow: hidden;
+        --md-u: 0.078125cqw;
+        background: var(--md-bg);
+        color: var(--md-fg);
+        font-size: calc(16 * var(--md-u));
+        line-height: 1.55;
+      }
+      .md-slide[data-active] { display: block; }
+      .md-slide--white {
+        --md-bg: var(--md-white); --md-fg: var(--md-black);
+        --md-fg-muted: var(--md-muted-on-light); --md-accent: var(--md-blue);
+        --md-rule: var(--md-grey-light);
+      }
+      .md-slide--light {
+        --md-bg: var(--md-grey-light); --md-fg: var(--md-black);
+        --md-fg-muted: var(--md-muted-on-light); --md-accent: var(--md-blue);
+        --md-rule: var(--md-grey);
+      }
+      .md-slide--black {
+        --md-bg: var(--md-black); --md-fg: var(--md-white);
+        --md-fg-muted: #b5b5b5; --md-accent: var(--md-white);
+        --md-rule: #333333;
+      }
+      .md-slide--blue {
+        --md-bg: var(--md-blue); --md-fg: var(--md-white);
+        --md-fg-muted: var(--md-grey); --md-accent: var(--md-white);
+        --md-rule: #3333fe;
+      }
+      .md-body {
+        position: absolute;
+        inset: calc(48 * var(--md-u)) calc(75 * var(--md-u)) calc(64 * var(--md-u));
+        display: flex;
+        flex-direction: column;
+      }
+      .md-slide--title .md-body {
+        inset: auto auto calc(72 * var(--md-u)) calc(75 * var(--md-u));
+        width: calc(1130 * var(--md-u));
+      }
+      .md-eyebrow {
+        margin: 0 0 calc(22 * var(--md-u));
+        color: var(--md-fg-muted);
+        font-size: calc(19 * var(--md-u));
+        font-weight: 500;
+      }
+      .md-title {
+        max-width: calc(780 * var(--md-u));
+        margin: 0;
+        font-size: calc(58 * var(--md-u));
+        font-weight: 500;
+        line-height: 1.02;
+        letter-spacing: calc(-1.5 * var(--md-u));
+      }
+      .md-lead {
+        max-width: calc(780 * var(--md-u));
+        margin: calc(24 * var(--md-u)) 0 0;
+        color: var(--md-fg-muted);
+        font-size: calc(22 * var(--md-u));
+        line-height: 1.38;
+      }
+      .md-heading {
+        margin: 0;
+        font-size: calc(39 * var(--md-u));
+        font-weight: 500;
+        line-height: 1.08;
+        letter-spacing: calc(-0.6 * var(--md-u));
+      }
+      .md-subhead {
+        margin: 0 0 calc(10 * var(--md-u));
+        font-size: calc(18 * var(--md-u));
+        font-weight: 650;
+        line-height: 1.25;
+      }
+      .md-text { margin: 0; font-size: calc(16 * var(--md-u)); line-height: 1.55; }
+      .md-text--small { font-size: calc(13.5 * var(--md-u)); line-height: 1.5; }
+      .md-text--muted { color: var(--md-fg-muted); }
+      .md-accent { color: var(--md-accent); }
+      .md-mono { font-family: var(--md-font-mono); }
+      .deck-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, .92fr);
+        gap: calc(50 * var(--md-u));
+        align-items: start;
+        margin-bottom: calc(30 * var(--md-u));
+      }
+      .md-grow { flex: 1; min-height: 0; }
+      .md-cols { display: grid; gap: calc(22 * var(--md-u)); }
+      .md-stack { display: flex; flex-direction: column; gap: calc(14 * var(--md-u)); }
+      .deck-card {
+        min-width: 0;
+        border: calc(1 * var(--md-u)) solid var(--md-rule);
+        border-top: calc(4 * var(--md-u)) solid var(--md-rule);
+        padding: calc(18 * var(--md-u));
+        background: color-mix(in srgb, var(--md-bg) 92%, var(--md-fg) 8%);
+      }
+      .deck-card--accent { border-top-color: var(--md-accent); }
+      .deck-card--dark { background: var(--md-black); color: var(--md-white); border-color: #333; }
+      .deck-card--blue { background: var(--md-blue); color: var(--md-white); border-color: var(--md-blue); }
+      .deck-card p + p { margin-top: calc(9 * var(--md-u)); }
+      .deck-points {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: calc(28 * var(--md-u));
+        width: 100%;
+        margin-top: calc(42 * var(--md-u));
+      }
+      .deck-point {
+        display: grid;
+        grid-template-columns: calc(34 * var(--md-u)) 1fr;
+        gap: calc(12 * var(--md-u));
+      }
+      .deck-point__n {
+        color: var(--md-fg-muted);
+        font-family: var(--md-font-mono);
+        font-size: calc(12 * var(--md-u));
+      }
+      .md-footer {
+        position: absolute;
+        left: calc(75 * var(--md-u));
+        right: calc(75 * var(--md-u));
+        bottom: calc(24 * var(--md-u));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--md-fg-muted);
+        font-size: calc(9 * var(--md-u));
+      }
+      .md-logo {
+        color: var(--md-fg);
+        font-size: calc(12 * var(--md-u));
+        font-weight: 800;
+        letter-spacing: calc(2.2 * var(--md-u));
+      }
+      .md-logo::before { content: "MIDNIGHT"; }
+      .md-footer__meta { display: flex; gap: calc(18 * var(--md-u)); }
+      .deck-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-size: calc(12.5 * var(--md-u));
+        line-height: 1.38;
+      }
+      .deck-table th, .deck-table td {
+        border-bottom: calc(1 * var(--md-u)) solid var(--md-rule);
+        padding: calc(10 * var(--md-u)) calc(11 * var(--md-u));
+        text-align: left;
+        vertical-align: top;
+      }
+      .deck-table th {
+        color: var(--md-fg-muted);
+        font-size: calc(10.5 * var(--md-u));
+        font-weight: 650;
+        letter-spacing: calc(.4 * var(--md-u));
+        text-transform: uppercase;
+      }
+      .deck-table tr.chosen td { background: #eeeeff; }
+      .deck-code {
+        margin: 0;
+        padding: calc(17 * var(--md-u));
+        overflow: hidden;
+        background: var(--md-black);
+        color: var(--md-white);
+        font-family: var(--md-font-mono);
+        font-size: calc(12 * var(--md-u));
+        line-height: 1.48;
+        white-space: pre-wrap;
+      }
+      .deck-code .c { color: #9a9a9a; }
+      .deck-code .b { color: #7d7dff; }
+      .flow {
+        position: relative;
+        height: calc(328 * var(--md-u));
+        margin-top: calc(8 * var(--md-u));
+      }
+      .flow svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .flow-node {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        padding: calc(12 * var(--md-u));
+        border: calc(2 * var(--md-u)) solid var(--md-blue);
+        background: var(--md-white);
+        color: var(--md-black);
+        text-align: center;
+        font-size: calc(13 * var(--md-u));
+        font-weight: 650;
+        line-height: 1.25;
+      }
+      .flow-node small { display: block; margin-top: calc(4 * var(--md-u)); font-weight: 400; }
+      .flow-node--black { border-color: var(--md-black); background: var(--md-black); color: white; }
+      .flow-node--blue { background: var(--md-blue); color: white; }
+      .flow-label {
+        position: absolute;
+        color: var(--md-fg-muted);
+        font-family: var(--md-font-mono);
+        font-size: calc(10 * var(--md-u));
+        text-transform: uppercase;
+      }
+      .byte-strip {
+        display: grid;
+        grid-template-columns: .65fr 1.55fr .8fr .85fr 1fr;
+        margin-top: calc(14 * var(--md-u));
+      }
+      .byte-strip > div {
+        min-height: calc(110 * var(--md-u));
+        display: grid;
+        place-items: center;
+        padding: calc(13 * var(--md-u));
+        border: calc(1 * var(--md-u)) solid var(--md-rule);
+        text-align: center;
+        font-size: calc(12.5 * var(--md-u));
+        line-height: 1.3;
+      }
+      .byte-strip b { display: block; margin-bottom: calc(6 * var(--md-u)); }
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: calc(17 * var(--md-u));
+      }
+      .step {
+        position: relative;
+        padding: calc(16 * var(--md-u));
+        border-top: calc(4 * var(--md-u)) solid var(--md-rule);
+      }
+      .step--accent { border-top-color: var(--md-blue); background: #eeeeff; }
+      .step:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        right: calc(-15 * var(--md-u));
+        top: calc(72 * var(--md-u));
+        z-index: 2;
+        color: var(--md-blue);
+        font-size: calc(18 * var(--md-u));
+      }
+      .step__n {
+        display: block;
+        margin-bottom: calc(22 * var(--md-u));
+        color: var(--md-fg-muted);
+        font-family: var(--md-font-mono);
+        font-size: calc(11 * var(--md-u));
+      }
+      .equation {
+        display: grid;
+        min-height: calc(142 * var(--md-u));
+        place-items: center;
+        padding: calc(18 * var(--md-u));
+        background: var(--md-black);
+        color: white;
+        font-family: var(--md-font-mono);
+        font-size: calc(17 * var(--md-u));
+        line-height: 1.55;
+        text-align: center;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: calc(10 * var(--md-u));
+      }
+      .metric {
+        padding: calc(12 * var(--md-u));
+        border-top: calc(3 * var(--md-u)) solid var(--md-blue);
+        background: #eeeeff;
+        color: var(--md-black);
+        text-align: center;
+        font-size: calc(11 * var(--md-u));
+      }
+      .metric b { display: block; color: var(--md-blue); font-size: calc(17 * var(--md-u)); }
+      .verify-list { display: grid; gap: calc(8 * var(--md-u)); }
+      .verify-row {
+        display: grid;
+        grid-template-columns: calc(38 * var(--md-u)) calc(220 * var(--md-u)) 1fr;
+        gap: calc(14 * var(--md-u));
+        align-items: center;
+        min-height: calc(43 * var(--md-u));
+        border-bottom: calc(1 * var(--md-u)) solid var(--md-rule);
+      }
+      .verify-row__n { color: var(--md-blue); font-family: var(--md-font-mono); }
+      .privacy-list {
+        margin: 0;
+        padding-left: calc(20 * var(--md-u));
+        font-size: calc(14 * var(--md-u));
+        line-height: 1.55;
+      }
+      .privacy-list li { margin-bottom: calc(7 * var(--md-u)); }
+      .privacy-list li::marker { color: var(--md-blue); }
+      .privacy-list--no li::marker { content: "×  "; color: var(--md-black); font-weight: 800; }
+      .boundary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: calc(40 * var(--md-u));
+        align-items: center;
+        margin-top: calc(26 * var(--md-u));
+      }
+      .boundary-node {
+        position: relative;
+        display: grid;
+        min-height: calc(86 * var(--md-u));
+        place-items: center;
+        padding: calc(12 * var(--md-u));
+        border: calc(2 * var(--md-u)) solid var(--md-blue);
+        text-align: center;
+        font-size: calc(13.5 * var(--md-u));
+        font-weight: 650;
+      }
+      .boundary-node:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        right: calc(-31 * var(--md-u));
+        color: white;
+        font-size: calc(25 * var(--md-u));
+      }
+      .boundary-node:last-child {
+        background: var(--md-black);
+        color: white;
+        border-color: var(--md-black);
+      }
+      .deck-callout {
+        margin-top: calc(18 * var(--md-u));
+        padding: calc(14 * var(--md-u)) calc(18 * var(--md-u));
+        border-left: calc(5 * var(--md-u)) solid var(--md-blue);
+        background: #eeeeff;
+        color: var(--md-black);
+        font-size: calc(14 * var(--md-u));
+        line-height: 1.45;
+      }
+      @media print {
+        html, body { height: auto; overflow: visible; background: white; }
+        .md-slide { display: block; width: 13.333in; page-break-after: always; }
+      }
+    </style>
+  </head>
+  <body class="md-deck">
+    <section class="md-slide md-slide--black md-slide--title deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Midnight 2.x · ZSwap · off-chain attribution</p>
+        <h1 class="md-title">Authenticated memos without a hard fork</h1>
+        <p class="md-lead">A standalone zero-knowledge proof travels with the offer file. The offer bytes, transaction bytes, ledger, and node stay unchanged.</p>
+        <div class="deck-points">
+          <div class="deck-point"><span class="deck-point__n">01</span><p class="md-text"><b>Authorize with the spending secret.</b> The proof says the memo author controls exactly one user-owned input in the enclosed offer.</p></div>
+          <div class="deck-point"><span class="deck-point__n">02</span><p class="md-text"><b>Reveal no new identity handle.</b> The verifier sees the existing nullifier, not a public key or coin attributes.</p></div>
+          <div class="deck-point"><span class="deck-point__n">03</span><p class="md-text"><b>Accept one explicit limit.</b> A relay can strip the complete attestation and recover the original offer.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="md-slide md-slide--white deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Authenticated memos without a hard fork</p>
+        <div class="deck-head">
+          <h2 class="md-heading">The problem is trust, not carrying bytes</h2>
+          <p class="md-text">ZSwap offers already move off chain. A plain sidecar can carry a message, but any relay could replace it or claim a different input authored it. Putting the field in consensus would solve delivery, but it would also trigger a versioned ledger and node rollout.</p>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns:repeat(3,1fr)">
+          <div class="deck-card deck-card--accent"><h3 class="md-subhead">Offer alone</h3><p class="md-text md-text--small">Moves value and exposes input nullifiers, but has no trusted human message.</p></div>
+          <div class="deck-card"><h3 class="md-subhead">Unsigned sidecar</h3><p class="md-text md-text--small">Easy to deploy, but forgeable, alterable, graftable onto another offer, and re-attributable.</p></div>
+          <div class="deck-card"><h3 class="md-subhead">Design target</h3><p class="md-text md-text--small">Bind exact memo bytes to exact offer bytes and one input's spending secret, without changing consensus objects.</p></div>
+        </div>
+        <div class="deck-callout"><b>Narrow claim:</b> whoever created this proof knew the spending secret corresponding to this carrier nullifier when authorizing this exact memo for this exact offer file.</div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>2/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--light deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Decision</p>
+        <div class="deck-head">
+          <h2 class="md-heading">The alternatives trade consensus coupling for delivery</h2>
+          <p class="md-text">The selected design optimizes for deployability and cryptographic attribution. It does not pretend that an optional off-chain file can guarantee delivery.</p>
+        </div>
+        <table class="deck-table md-grow">
+          <colgroup><col style="width:19%"><col style="width:23%"><col style="width:15%"><col style="width:21%"><col style="width:22%"></colgroup>
+          <thead><tr><th>Approach</th><th>Authorizes with</th><th>Consensus</th><th>Strongest property</th><th>Main cost</th></tr></thead>
+          <tbody>
+            <tr class="chosen"><td><b>Off-chain proof + container</b></td><td>One input's spending secret</td><td>Unchanged</td><td>Forge, alteration, graft, and re-attribution resistance</td><td>Attestation can be stripped</td></tr>
+            <tr><td>On-chain input memo</td><td>Spend proof statement</td><td>Hard fork</td><td>Consensus-level delivery and history</td><td>Format, fee, activation, wallet, indexer rollout</td></tr>
+            <tr><td>Offer-level annex</td><td>Spend proof + nullifier</td><td>Hard fork</td><td>Strip resistance</td><td>Same coordinated activation surface</td></tr>
+            <tr><td>Public-key signature</td><td>Disclosed signing key</td><td>Unchanged</td><td>Simple commodity verification</td><td>Key is not intrinsically linked to an offer input</td></tr>
+            <tr><td>Unsigned sidecar</td><td>Nothing</td><td>Unchanged</td><td>Lowest implementation cost</td><td>No trustworthy attribution</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>3/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--white deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">UML component flow</p>
+        <div class="deck-head">
+          <h2 class="md-heading">Proof-aware tools surround proof-unaware consensus</h2>
+          <p class="md-text">The maker creates the offer and attestation. Relays transport one canonical file. The reader verifies it offline, then extracts the original offer for ordinary settlement. The dashed boundary is where memo awareness ends.</p>
+        </div>
+        <div class="flow" role="img" aria-label="Maker creates an attested offer file, relay transports it, reader verifies and extracts the unchanged offer, toolkit builds a normal transaction, unmodified node validates it">
+          <svg viewBox="0 0 1130 328" aria-hidden="true">
+            <defs><marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#0000fe"/></marker></defs>
+            <g fill="none" stroke="#0000fe" stroke-width="3" marker-end="url(#flow-arrow)">
+              <path d="M178 106H248"/><path d="M408 106H474"/><path d="M664 106H730"/>
+              <path d="M820 156V205H210V228"/><path d="M290 270H350"/><path d="M510 270H570"/>
+            </g>
+            <path d="M905 20V310" stroke="#0a0a0a" stroke-width="2" stroke-dasharray="7 7"/>
+            <path d="M770 270H960" stroke="#0000fe" stroke-width="3" marker-end="url(#flow-arrow)"/>
+          </svg>
+          <span class="flow-label" style="left:0;top:0">Off-chain trust domain</span>
+          <span class="flow-label" style="right:0;top:0">Consensus domain</span>
+          <div class="flow-node" style="left:0;top:calc(54 * var(--md-u));width:calc(178 * var(--md-u));height:calc(104 * var(--md-u))">Maker wallet<small>offer + coin + spending secret</small></div>
+          <div class="flow-node flow-node--black" style="left:calc(248 * var(--md-u));top:calc(54 * var(--md-u));width:calc(160 * var(--md-u));height:calc(104 * var(--md-u))">attest()<small>validate, commit, prove</small></div>
+          <div class="flow-node flow-node--blue" style="left:calc(474 * var(--md-u));top:calc(54 * var(--md-u));width:calc(190 * var(--md-u));height:calc(104 * var(--md-u))">ZSWPMEMO file<small>offer + memo + N + proof</small></div>
+          <div class="flow-node" style="left:calc(730 * var(--md-u));top:calc(54 * var(--md-u));width:calc(180 * var(--md-u));height:calc(104 * var(--md-u))">Relay / taker<small>transports exact file</small></div>
+          <div class="flow-node" style="left:calc(130 * var(--md-u));top:calc(228 * var(--md-u));width:calc(160 * var(--md-u));height:calc(84 * var(--md-u))">verify()<small>offline trust result</small></div>
+          <div class="flow-node" style="left:calc(350 * var(--md-u));top:calc(228 * var(--md-u));width:calc(160 * var(--md-u));height:calc(84 * var(--md-u))">Extract offer<small>exact original bytes</small></div>
+          <div class="flow-node" style="left:calc(570 * var(--md-u));top:calc(228 * var(--md-u));width:calc(200 * var(--md-u));height:calc(84 * var(--md-u))">Normal transaction<small>ordinary toolkit path</small></div>
+          <div class="flow-node flow-node--black" style="right:0;top:calc(228 * var(--md-u));width:calc(170 * var(--md-u));height:calc(84 * var(--md-u))">Unmodified node<small>never parses the memo</small></div>
+        </div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>4/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--white deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Canonical container</p>
+        <div class="deck-head">
+          <h2 class="md-heading">The original offer stays byte-identical</h2>
+          <p class="md-text">The container is versioned and bounded before allocation. It rejects duplicate or out-of-order sections, unknown section kinds, reserved bits, trailing bytes, and size declarations outside the published limits.</p>
+        </div>
+        <div class="byte-strip">
+          <div style="background:#0a0a0a;color:white"><span><b>Header</b><span class="md-mono">ZSWPMEMO</span><br>v1, reserved 0</span></div>
+          <div><span><b>Offer section</b>exact bytes, verbatim<br>1 byte to 16 MiB</span></div>
+          <div style="background:#eeeeff"><span><b>Memo</b>1 to 512 bytes</span></div>
+          <div><span><b>Carrier</b>32-byte nullifier</span></div>
+          <div style="background:#0000fe;color:white"><span><b>Proof</b>5,248 bytes in v1</span></div>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns:repeat(3,1fr);margin-top:calc(24 * var(--md-u))">
+          <div class="deck-card deck-card--accent"><h3 class="md-subhead">Exact-byte binding</h3><p class="md-text md-text--small">The context commitment hashes the enclosed offer bytes directly. No normalization or reserialization step can drift.</p></div>
+          <div class="deck-card"><h3 class="md-subhead">Safe decoding</h3><p class="md-text md-text--small">Every declared length is capped before copying. Canonical ordering gives one encoding for one logical file.</p></div>
+          <div class="deck-card"><h3 class="md-subhead">Stripping behavior</h3><p class="md-text md-text--small">Removing the wrapper yields the original offer. That preserves compatibility, but means <b>NoMessage</b> is not proof that no memo was authored.</p></div>
+        </div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>5/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--light deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Proof generation</p>
+        <div class="deck-head">
+          <h2 class="md-heading">Construction fails closed before writing a file</h2>
+          <p class="md-text">The attester rejects cheap errors first, derives one public context commitment, proves ownership of the selected carrier, then emits the container only after the complete operation succeeds.</p>
+        </div>
+        <div class="steps md-grow">
+          <div class="step"><span class="step__n">01</span><h3 class="md-subhead">Validate</h3><p class="md-text md-text--small">Memo size, offer parse, user-owned carrier, and offer well-formedness.</p></div>
+          <div class="step"><span class="step__n">02</span><h3 class="md-subhead">Hash</h3><p class="md-text md-text--small"><span class="md-mono">offer_hash = SHA-256(exact offer bytes)</span></p></div>
+          <div class="step"><span class="step__n">03</span><h3 class="md-subhead">Pack</h3><p class="md-text md-text--small">Length field, then 31-byte little-endian chunks.</p></div>
+          <div class="step"><span class="step__n">04</span><h3 class="md-subhead">Commit</h3><p class="md-text md-text--small"><span class="md-mono">C = transient_commit(packed memo, context)</span></p></div>
+          <div class="step"><span class="step__n">05</span><h3 class="md-subhead">Prove</h3><p class="md-text md-text--small">Private coin fields + spending secret, public commitment + nullifier.</p></div>
+          <div class="step step--accent"><span class="step__n">06</span><h3 class="md-subhead">Encode</h3><p class="md-text md-text--small">Pinned prover key and canonical v1 container. No partial output.</p></div>
+        </div>
+        <div class="deck-callout">The same commitment function is called by construction and verification. This prevents the prover and verifier from silently choosing different byte packing or context rules.</div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>6/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--black deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Circuit and privacy</p>
+        <div class="deck-head">
+          <h2 class="md-heading">The circuit proves one ownership equation</h2>
+          <p class="md-text">The circuit witnesses the carrier coin and spending secret, recomputes its nullifier, and constrains it to the public carrier nullifier. The memo and offer enter through the public commitment <span class="md-mono">C</span>.</p>
+        </div>
+        <div class="md-cols" style="grid-template-columns:1fr .9fr 1fr;align-items:stretch">
+          <div class="deck-card deck-card--dark"><h3 class="md-subhead">Private witness</h3><p class="md-text">coin nonce<br>token type<br>value<br>spending secret <span class="md-mono">sk</span></p></div>
+          <div class="equation">N = SHA-256(<br>domain || coin || 0x01 || sk<br>)</div>
+          <div class="deck-card deck-card--blue"><h3 class="md-subhead">Public statement</h3><p class="md-text">context commitment <span class="md-mono">C</span><br>carrier nullifier <span class="md-mono">N</span></p></div>
+        </div>
+        <div class="metrics" style="margin-top:calc(20 * var(--md-u))">
+          <div class="metric"><b>k = 13</b>degree</div><div class="metric"><b>5,693</b>rows</div><div class="metric"><b>7</b>private fields</div><div class="metric"><b>3</b>public inputs</div><div class="metric"><b>5,248 B</b>proof</div><div class="metric"><b>minor 2</b>backend</div>
+        </div>
+        <div class="md-cols" style="grid-template-columns:1fr 1fr;margin-top:calc(18 * var(--md-u))">
+          <p class="md-text md-text--small"><b>Verifier learns:</b> plaintext memo, existing offer nullifier, recomputable <span class="md-mono">C</span>, and the final validity result.</p>
+          <p class="md-text md-text--small"><b>Verifier does not learn:</b> <span class="md-mono">sk</span>, a public key, coin nonce, token type, value, Merkle path, balance, or ownership metadata.</p>
+        </div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>7/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--white deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Offline validation</p>
+        <div class="deck-head">
+          <h2 class="md-heading">Verification is ordered from cheapest to strongest</h2>
+          <p class="md-text">Only full verification may report <b>Authenticated</b>. Inspection is a structural view and must never imply trust.</p>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns:1.45fr .55fr;gap:calc(34 * var(--md-u))">
+          <div class="verify-list">
+            <div class="verify-row"><span class="verify-row__n">01</span><b>Decode structure</b><span class="md-text md-text--small md-text--muted">magic, version, ordering, bounds, exact end</span></div>
+            <div class="verify-row"><span class="verify-row__n">02</span><b>Parse offer + carrier</b><span class="md-text md-text--small md-text--muted">claimed nullifier must name a user-owned input</span></div>
+            <div class="verify-row"><span class="verify-row__n">03</span><b>Recompute context</b><span class="md-text md-text--small md-text--muted">memo + exact enclosed offer bytes produce <span class="md-mono">C</span></span></div>
+            <div class="verify-row"><span class="verify-row__n">04</span><b>Build statement</b><span class="md-text md-text--small md-text--muted">public inputs derived without private wallet data</span></div>
+            <div class="verify-row"><span class="verify-row__n">05</span><b>Verify proof</b><span class="md-text md-text--small md-text--muted">checksum-pinned verifier key, fully offline</span></div>
+            <div class="verify-row"><span class="verify-row__n">06</span><b>Verify offer</b><span class="md-text md-text--small md-text--muted">unchanged <span class="md-mono">Offer::well_formed(segment)</span></span></div>
+          </div>
+          <div class="md-stack">
+            <div class="deck-card deck-card--blue"><h3 class="md-subhead">AUTHENTICATED</h3><p class="md-text md-text--small">All six stages passed.</p></div>
+            <div class="deck-card"><h3 class="md-subhead">UNTRUSTED</h3><p class="md-text md-text--small">Any structural, carrier, commitment, proof, or offer check failed.</p></div>
+            <div class="deck-card deck-card--accent"><h3 class="md-subhead">NO MESSAGE</h3><p class="md-text md-text--small">No wrapper is present now. It does not prove none was authored.</p></div>
+          </div>
+        </div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>8/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--light deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Key implementation changes</p>
+        <div class="deck-head">
+          <h2 class="md-heading">One standalone crate, six reviewable boundaries</h2>
+          <p class="md-text">The prototype deliberately avoids changes to the ledger and node. Each module owns one invariant, while the CLI exposes different trust semantics for creation, verification, and inspection.</p>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns:1fr 1fr">
+          <div class="md-stack">
+            <div class="deck-card deck-card--accent"><h3 class="md-subhead md-mono">memo.rs + packing.rs</h3><p class="md-text md-text--small">Enforce 1 to 512 bytes. Injectively encode length plus 31-byte little-endian chunks.</p></div>
+            <div class="deck-card"><h3 class="md-subhead md-mono">commit.rs</h3><p class="md-text md-text--small">Hash exact offer bytes and derive the shared memo + offer context commitment.</p></div>
+            <div class="deck-card"><h3 class="md-subhead md-mono">circuit.rs + circuits/</h3><p class="md-text md-text--small">Assemble the 7-field witness, 3-field statement, and nullifier ownership equation.</p></div>
+          </div>
+          <div class="md-stack">
+            <div class="deck-card"><h3 class="md-subhead md-mono">container.rs</h3><p class="md-text md-text--small">Canonical <span class="md-mono">ZSWPMEMO</span> v1 codec with hostile-length, ordering, and trailing-byte rejection.</p></div>
+            <div class="deck-card deck-card--accent"><h3 class="md-subhead md-mono">attest.rs + verify.rs</h3><p class="md-text md-text--small">Fail-closed construction and the ordered trust-aware verification pipeline.</p></div>
+            <div class="deck-card"><h3 class="md-subhead md-mono">cli.rs + e2e/</h3><p class="md-text md-text--small"><span class="md-mono">attest</span>, <span class="md-mono">verify</span>, <span class="md-mono">inspect</span>, carrier-file input, tamper checks, and unmodified-node settlement.</p></div>
+          </div>
+        </div>
+        <pre class="deck-code" style="margin-top:calc(16 * var(--md-u))"><span class="b">zswap-memo-attest attest</span> --offer maker.offer --memo-file note.txt --carrier-file carrier.txt --out maker.zswpmemo
+<span class="b">zswap-memo-attest verify</span> maker.zswpmemo     <span class="c"># may report AUTHENTICATED</span>
+<span class="b">zswap-memo-attest inspect</span> maker.zswpmemo    <span class="c"># structure only, authenticity not checked</span></pre>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>9/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--white deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Trade-offs</p>
+        <div class="deck-head">
+          <h2 class="md-heading">Strong attribution, intentionally weak delivery guarantees</h2>
+          <p class="md-text">This is a compatibility-first design. It gives a recipient evidence about authorship and file integrity without claiming the network has seen, stored, or preserved the memo.</p>
+        </div>
+        <div class="md-cols md-grow" style="grid-template-columns:1fr 1fr">
+          <div class="deck-card deck-card--accent"><h3 class="md-subhead">Advantages</h3><ul class="privacy-list"><li>No ledger, transaction, node, fee, or activation change</li><li>Authorization by the actual carrier input's spending secret</li><li>Exact memo bytes bound to exact offer bytes</li><li>No public key or coin attributes disclosed</li><li>Offline, fail-closed verification</li><li>Original offer remains usable by existing tooling</li></ul></div>
+          <div class="deck-card"><h3 class="md-subhead">Limitations</h3><ul class="privacy-list privacy-list--no"><li>Relays can strip the entire memo + proof wrapper</li><li>No on-chain delivery, history, revocation, or uniqueness</li><li>Memo plaintext and writing style can reveal information</li><li>About 5.3 KB of proof plus container framing</li><li>Verifier and proving keys become distribution artifacts</li><li>Not a signature for a person or organization</li></ul></div>
+        </div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>10/11</span></span></footer>
+    </section>
+
+    <section class="md-slide md-slide--blue deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">Settlement boundary</p>
+        <div class="deck-head">
+          <h2 class="md-heading">Verify the wrapper, settle the original offer</h2>
+          <p class="md-text">After successful verification, tooling extracts the exact offer bytes and follows the normal transaction path. The memo and attestation are never serialized into the settlement transaction.</p>
+        </div>
+        <div class="boundary">
+          <div class="boundary-node" style="background:white;color:#0a0a0a">Authenticated <span class="md-mono">ZSWPMEMO</span></div>
+          <div class="boundary-node" style="background:white;color:#0a0a0a">Extract exact offer bytes</div>
+          <div class="boundary-node" style="background:white;color:#0a0a0a">Build normal transaction</div>
+          <div class="boundary-node">Unmodified node validates and applies</div>
+        </div>
+        <div class="md-cols" style="grid-template-columns:1fr 1fr;margin-top:calc(40 * var(--md-u))">
+          <div class="deck-card" style="background:white;color:#0a0a0a"><h3 class="md-subhead">Use it when</h3><p class="md-text">Offer files already move off chain, the recipient can run a verifier, avoiding a coordinated hard fork matters, and stripping is an accepted risk.</p></div>
+          <div class="deck-card" style="background:#0a0a0a;color:white;border-color:#0a0a0a"><h3 class="md-subhead">Do not use it as</h3><p class="md-text">Proof of delivery, proof that no memo ever existed, a permanent audit trail, or a public identity signature.</p></div>
+        </div>
+        <div class="deck-callout" style="background:#0000c4;border-left-color:white;color:white"><b>One proof, one carrier nullifier, one exact memo, one exact offer.</b> The narrow claim is what makes the design useful without consensus change.</div>
+      </div>
+      <footer class="md-footer"><span class="md-logo"></span><span class="md-footer__meta"><span>Off-chain attested memos</span><span>11/11</span></span></footer>
+    </section>
+
+    <script>
+      // Same clamped keyboard and click navigation used by the other blog decks.
+      (() => {
+        const slides = [...document.querySelectorAll(".deck-slide")];
+        let i = 0;
+        const show = (n) => {
+          i = Math.max(0, Math.min(slides.length - 1, n));
+          slides.forEach((slide, index) =>
+            index === i ? slide.setAttribute("data-active", "") : slide.removeAttribute("data-active")
+          );
+          document.title = `${slides[i].querySelector("h1,h2")?.textContent.trim() || "Authenticated memos"} | ${i + 1}/${slides.length}`;
+        };
+        addEventListener("keydown", (event) => {
+          if (["ArrowRight", "PageDown", " ", "Spacebar"].includes(event.key)) {
+            event.preventDefault(); show(i + 1);
+          } else if (["ArrowLeft", "PageUp"].includes(event.key)) {
+            event.preventDefault(); show(i - 1);
+          } else if (event.key === "Home") { show(0); }
+          else if (event.key === "End") { show(slides.length - 1); }
+        });
+        addEventListener("click", (event) => show(event.clientX < innerWidth / 3 ? i - 1 : i + 1));
+        show(0);
+      })();
+    </script>
+  </body>
 </html>
