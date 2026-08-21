@@ -316,7 +316,7 @@
   "site": {
     "title": "acedward @ mnf",
     "tagline": "What we're building, why, and where the code lives.",
-    "updated": "2026-08-19"
+    "updated": "2026-08-21"
   },
   "sections": [
     {
@@ -858,10 +858,16 @@
         ]
       },
       "prose": [
-        "A ZSwap offer moves value but carries no message. Attaching a proved memo to an offer would let the sender say something alongside the swap, provably, without breaking the shielded model.",
-        "This touches two layers, so it's two experiments in parallel: one in the ledger, one in the node. They have grown into a full implementation with a versioned transition, and both review PRs carry a breaking-change notice."
+        "A ZSwap offer moves value but carries no message. A proved memo lets the holder verify that one input's spending secret authorized exact memo bytes for one exact offer, without exposing a public key or coin attributes.",
+        "There are now two implementation paths. The ledger and node path gives the memo consensus-level delivery through a versioned transition. The off-chain path keeps the offer bytes and every consensus surface unchanged by carrying the memo and its proof in a separate offer-file container. That avoids a hard fork, with one explicit trade-off: a relay can strip the container back to the original offer."
       ],
       "rows": [
+        {
+          "id": "zswap-offchain-attested-memos",
+          "title": "Off-chain attested offer-file memos",
+          "note": "standalone Midnight 2.x prototype with offline verification, frozen implementation vectors, a demo CLI, and unchanged settlement on unmodified nodes. Stripping remains possible. Local only.",
+          "links": []
+        },
         {
           "id": "midnight-ledger-zswap-memo",
           "title": "midnight-ledger-zswap-memo",
@@ -1096,6 +1102,15 @@
   <script type="application/json" id="data-timeline">
 {
   "entries": [
+    {
+      "date": "2026-08-21",
+      "kind": "shipped",
+      "text": "Built a standalone Midnight 2.x prototype for attaching a spending-secret-authorized memo to an offer file without changing the offer or any consensus surface. The file verifies offline, settles through unmodified nodes, and documents stripping as the accepted trade-off.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "zswap-offchain-attested-memos"
+      }
+    },
     {
       "date": "2026-08-19",
       "kind": "published",
