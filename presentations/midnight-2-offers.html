@@ -163,9 +163,17 @@
     .diagram .lane-band.alt { fill: #f0f2f5; }
     .diagram .box { fill: var(--white); stroke: var(--line); }
     .diagram .box.ours { fill: #eef4ff; stroke: var(--blue); }
+    .diagram .box.aa-box { fill: var(--green-bg); stroke: var(--green); }
+    .diagram .box.of-box { fill: var(--amber-bg); stroke: var(--amber); }
     .diagram .box.upstream { fill: #ffffff; stroke: #aeb5bd; }
     .diagram .box-title { font-size: 13px; font-weight: 750; }
     .diagram .box-sub { font-size: 10.5px; fill: var(--muted); font-family: ui-monospace, monospace; }
+    .diagram .module { fill: none; stroke-width: 1.6; stroke-dasharray: 7 5; }
+    .diagram .module.aa-mod { stroke: var(--green); }
+    .diagram .module.of-mod { stroke: var(--amber); }
+    .diagram .module-label { font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+    .diagram .module-label.aa-lab { fill: var(--green); }
+    .diagram .module-label.of-lab { fill: var(--amber); }
     .diagram .edge { stroke: var(--blue); stroke-width: 1.8; fill: none; }
 
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -267,10 +275,9 @@
       <h2>Four layers, one compose network</h2>
       <div class="rule"></div>
       <div class="diagram-wrap">
-        <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-label="Layered architecture: browser layer with console, swap frontend and injected wallets; service layer with umbra-evm, kernel, batcher and solver; infrastructure layer with PostgreSQL, Celestia and proof servers; blockchain layer with the Midnight node and indexer">
+        <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-label="Layered architecture with two vertical modules: the Account Abstraction Module stacking the web console over the AA relay, and the Offer Files Module stacking the zswap-da frontend over the kernel and batcher; beside them umbra-evm, web-memo, injected wallets and the COW solver; below them PostgreSQL, Celestia, proof servers and the wallet toolkit; at the bottom the Midnight node and indexer">
           <g>
-            <rect class="lane-band" x="14" y="14" width="1092" height="104"/>
-            <rect class="lane-band alt" x="14" y="126" width="1092" height="104"/>
+            <rect class="lane-band" x="14" y="14" width="1092" height="216"/>
             <rect class="lane-band" x="14" y="238" width="1092" height="104"/>
             <rect class="lane-band alt" x="14" y="350" width="1092" height="104"/>
             <text class="lane-label" x="28" y="36">BROWSER</text>
@@ -279,49 +286,55 @@
             <text class="lane-label" x="28" y="372">BLOCKCHAIN</text>
           </g>
           <g>
-            <rect class="box ours" x="150" y="40" width="220" height="60" rx="6"/>
-            <text class="box-title" x="260" y="65" text-anchor="middle">AA web console</text>
-            <text class="box-sub" x="260" y="84" text-anchor="middle">:10700 · this repo</text>
-            <rect class="box ours" x="400" y="40" width="200" height="60" rx="6"/>
-            <text class="box-title" x="500" y="65" text-anchor="middle">zswap-da frontend</text>
-            <text class="box-sub" x="500" y="84" text-anchor="middle">:10600 · effectstream template</text>
-            <rect class="box ours" x="630" y="40" width="190" height="60" rx="6"/>
-            <text class="box-title" x="725" y="65" text-anchor="middle">web-memo (embedded)</text>
-            <text class="box-sub" x="725" y="84" text-anchor="middle">acedward/web-memo</text>
-            <rect class="box upstream" x="850" y="40" width="230" height="60" rx="6"/>
-            <text class="box-title" x="965" y="65" text-anchor="middle">Injected EVM wallets · Lace</text>
-            <text class="box-sub" x="965" y="84" text-anchor="middle">MetaMask, Rabby · mnemonic import</text>
+            <rect class="module aa-mod" x="150" y="22" width="230" height="204" rx="10"/>
+            <text class="module-label aa-lab" x="265" y="38" text-anchor="middle">ACCOUNT ABSTRACTION MODULE</text>
+            <rect class="box aa-box" x="162" y="48" width="206" height="52" rx="6"/>
+            <text class="box-title" x="265" y="69" text-anchor="middle">AA web console</text>
+            <text class="box-sub" x="265" y="86" text-anchor="middle">:10700 · this repo</text>
+            <rect class="box aa-box" x="162" y="160" width="206" height="52" rx="6"/>
+            <text class="box-title" x="265" y="181" text-anchor="middle">AA relay</text>
+            <text class="box-sub" x="265" y="198" text-anchor="middle">console backend · EIP-712 in</text>
           </g>
           <g>
-            <rect class="box ours" x="150" y="152" width="180" height="60" rx="6"/>
-            <text class="box-title" x="240" y="177" text-anchor="middle">umbra-evm</text>
-            <text class="box-sub" x="240" y="196" text-anchor="middle">:8545 · acedward/UmbraDB</text>
-            <rect class="box ours" x="360" y="152" width="180" height="60" rx="6"/>
-            <text class="box-title" x="450" y="177" text-anchor="middle">Offer-files kernel</text>
-            <text class="box-sub" x="450" y="196" text-anchor="middle">:9999 · zswap-offerfiles-kernel</text>
-            <rect class="box ours" x="570" y="152" width="160" height="60" rx="6"/>
-            <text class="box-title" x="650" y="177" text-anchor="middle">Batcher</text>
-            <text class="box-sub" x="650" y="196" text-anchor="middle">:3334 · same repo</text>
-            <rect class="box ours" x="760" y="152" width="170" height="60" rx="6"/>
-            <text class="box-title" x="845" y="177" text-anchor="middle">COW solver + sink</text>
-            <text class="box-sub" x="845" y="196" text-anchor="middle">:10800 · observation mode</text>
-            <rect class="box ours" x="960" y="152" width="120" height="60" rx="6"/>
-            <text class="box-title" x="1020" y="177" text-anchor="middle">AA relay</text>
-            <text class="box-sub" x="1020" y="196" text-anchor="middle">console backend</text>
+            <rect class="module of-mod" x="400" y="22" width="230" height="204" rx="10"/>
+            <text class="module-label of-lab" x="515" y="38" text-anchor="middle">OFFER FILES MODULE</text>
+            <rect class="box of-box" x="412" y="48" width="206" height="52" rx="6"/>
+            <text class="box-title" x="515" y="69" text-anchor="middle">zswap-da frontend</text>
+            <text class="box-sub" x="515" y="86" text-anchor="middle">:10600 · effectstream template</text>
+            <rect class="box of-box" x="412" y="132" width="206" height="42" rx="6"/>
+            <text class="box-title" x="515" y="149" text-anchor="middle">Offer-files kernel</text>
+            <text class="box-sub" x="515" y="165" text-anchor="middle">:9999 · zswap-offerfiles-kernel</text>
+            <rect class="box of-box" x="412" y="180" width="206" height="42" rx="6"/>
+            <text class="box-title" x="515" y="197" text-anchor="middle">Batcher</text>
+            <text class="box-sub" x="515" y="213" text-anchor="middle">:3334 · same repo</text>
           </g>
           <g>
-            <rect class="box upstream" x="150" y="264" width="200" height="60" rx="6"/>
-            <text class="box-title" x="250" y="289" text-anchor="middle">PostgreSQL (shared)</text>
-            <text class="box-sub" x="250" y="308" text-anchor="middle">db offerfiles + db umbra</text>
-            <rect class="box upstream" x="380" y="264" width="200" height="60" rx="6"/>
-            <text class="box-title" x="480" y="289" text-anchor="middle">Celestia DA devnet</text>
-            <text class="box-sub" x="480" y="308" text-anchor="middle">:26658 · one container</text>
-            <rect class="box upstream" x="610" y="264" width="220" height="60" rx="6"/>
-            <text class="box-title" x="720" y="289" text-anchor="middle">Proof servers ×2</text>
-            <text class="box-sub" x="720" y="308" text-anchor="middle">:6300 · v6 keys + experimental</text>
-            <rect class="box upstream" x="860" y="264" width="220" height="60" rx="6"/>
-            <text class="box-title" x="970" y="289" text-anchor="middle">Wallet toolkit + funding</text>
-            <text class="box-sub" x="970" y="308" text-anchor="middle">fund-wallet.sh, verify.sh</text>
+            <rect class="box ours" x="660" y="48" width="200" height="52" rx="6"/>
+            <text class="box-title" x="760" y="69" text-anchor="middle">web-memo (embedded)</text>
+            <text class="box-sub" x="760" y="86" text-anchor="middle">acedward/web-memo</text>
+            <rect class="box upstream" x="890" y="48" width="200" height="52" rx="6"/>
+            <text class="box-title" x="990" y="69" text-anchor="middle">Injected EVM wallets · Lace</text>
+            <text class="box-sub" x="990" y="86" text-anchor="middle">MetaMask, Rabby · mnemonic</text>
+            <rect class="box ours" x="660" y="160" width="200" height="52" rx="6"/>
+            <text class="box-title" x="760" y="181" text-anchor="middle">umbra-evm</text>
+            <text class="box-sub" x="760" y="198" text-anchor="middle">:8545 · acedward/UmbraDB</text>
+            <rect class="box ours" x="890" y="160" width="200" height="52" rx="6"/>
+            <text class="box-title" x="990" y="181" text-anchor="middle">COW solver + sink</text>
+            <text class="box-sub" x="990" y="198" text-anchor="middle">:10800 · observation mode</text>
+          </g>
+          <g>
+            <rect class="box upstream" x="155" y="264" width="220" height="60" rx="6"/>
+            <text class="box-title" x="265" y="289" text-anchor="middle">Proof servers ×2</text>
+            <text class="box-sub" x="265" y="308" text-anchor="middle">:6300 · v6 keys + experimental</text>
+            <rect class="box upstream" x="405" y="264" width="200" height="60" rx="6"/>
+            <text class="box-title" x="505" y="289" text-anchor="middle">Celestia DA devnet</text>
+            <text class="box-sub" x="505" y="308" text-anchor="middle">:26658 · one container</text>
+            <rect class="box upstream" x="660" y="264" width="200" height="60" rx="6"/>
+            <text class="box-title" x="760" y="289" text-anchor="middle">PostgreSQL (shared)</text>
+            <text class="box-sub" x="760" y="308" text-anchor="middle">db offerfiles + db umbra</text>
+            <rect class="box upstream" x="890" y="264" width="200" height="60" rx="6"/>
+            <text class="box-title" x="990" y="289" text-anchor="middle">Wallet toolkit + funding</text>
+            <text class="box-sub" x="990" y="308" text-anchor="middle">fund-wallet.sh, verify.sh</text>
           </g>
           <g>
             <rect class="box upstream" x="290" y="376" width="240" height="60" rx="6"/>
@@ -332,17 +345,17 @@
             <text class="box-sub" x="700" y="420" text-anchor="middle">:8088 · GraphQL v4</text>
           </g>
           <g>
-            <line class="edge" x1="260" y1="100" x2="1000" y2="152"/>
-            <line class="edge" x1="500" y1="100" x2="460" y2="152"/>
-            <line class="edge" x1="240" y1="212" x2="250" y2="264"/>
-            <line class="edge" x1="450" y1="212" x2="475" y2="264"/>
-            <line class="edge" x1="600" y1="212" x2="600" y2="376"/>
-            <line class="edge" x1="1015" y1="212" x2="730" y2="264"/>
+            <line class="edge" x1="265" y1="100" x2="265" y2="160"/>
+            <line class="edge" x1="515" y1="100" x2="515" y2="132"/>
+            <line class="edge" x1="265" y1="212" x2="265" y2="264"/>
+            <line class="edge" x1="505" y1="222" x2="505" y2="264"/>
+            <line class="edge" x1="600" y1="222" x2="645" y2="376"/>
+            <line class="edge" x1="760" y1="212" x2="760" y2="264"/>
             <line class="edge" x1="530" y1="406" x2="580" y2="406"/>
           </g>
         </svg>
       </div>
-      <p class="small muted" style="margin-top:calc(12 * var(--u))">Blue boxes are repos we manage; grey boxes are consumed upstream, unmodified. No service addresses another by a host port, so remapping ports cannot break the stack.</p>
+      <p class="small muted" style="margin-top:calc(12 * var(--u))">Green: the Account Abstraction Module. Amber: the Offer Files Module. Blue: other repos we manage; grey: upstream, unmodified. No service addresses another by a host port, so remapping ports cannot break the stack.</p>
       <aside hidden>[Sources] README.md, stack table; console infrastructure tab</aside>
     </section>
 
@@ -428,7 +441,7 @@
     </section>
 
     <section class="slide" data-page="07" aria-label="The offer files lane">
-      <p class="kicker">Component / <code>offerfiles</code></p>
+      <p class="kicker">The Offer Files Module / <code>offerfiles</code></p>
       <h2>The offer-files lane, split into real services</h2>
       <div class="rule"></div>
       <div class="grow">
@@ -463,7 +476,7 @@
     </section>
 
     <section class="slide" data-page="09" aria-label="The AA profile">
-      <p class="kicker">Component / <code>aa</code></p>
+      <p class="kicker">The Account Abstraction Module / <code>aa</code></p>
       <h2>Account abstraction: contracts plus an overlay</h2>
       <div class="rule"></div>
       <div class="cols">
