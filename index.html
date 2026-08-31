@@ -730,19 +730,21 @@
       "deps": {
         "dependsOn": [
           "offer-files",
-          "midnight-evm"
+          "midnight-evm",
+          "intent-solver",
+          "proved-messages"
         ],
         "neededBy": []
       },
       "prose": [
         "Every demo we build needs the same thing underneath: a local Midnight chain, an indexer, a proof server, and wallets that already hold enough NIGHT and DUST to pay a fee. Each demo was rebuilding that from scratch, and each one got it slightly wrong in its own way. This is that groundwork published once, as a single Docker Compose project: one command brings the whole thing up and blocks until it is genuinely usable, and one command wipes it.",
-        "It ships with the Midnight 2.0.0-rc.4 stack, prefunded wallets plus a CLI to fund more, mnemonics that can be typed straight into Lace, and a read-only <code>eth_*</code> JSON-RPC view of the chain so Ethereum tooling can read Midnight state. The offer files backend and the swap frontend are the next two profiles: their ports are reserved and they wait on the ledger-v9 migration of the Effectstream packages the kernel pins."
+        "It has since become the place where all of this work runs together. On top of the Midnight 2.0.0-rc.4 core (with prefunded wallets, a funding CLI, Lace-importable mnemonics, and the read-only <code>eth_*</code> JSON-RPC view), opt-in profiles bring up the offer-files kernel and batcher over a local Celestia devnet, the COW solver, the swap frontend, the AA contracts, and a web console that ties every piece together, with the memo web app embedded and the half-size MinoCrab proving key available as an overlay. One shared PostgreSQL serves the whole stack, nothing addresses anything by a host port, and a second full copy runs beside the first on another port block."
       ],
       "rows": [
         {
           "id": "midnight-2-offers",
           "title": "midnight-2-offers: one-command Midnight 2.x demo stack",
-          "note": "node 2.0.0-rc.4 with indexer and proof server, prefunded NIGHT and DUST wallets, a funding CLI, and a read-only <code>eth_*</code> JSON-RPC view of the chain. Runs on any free port block, so several copies coexist on one machine. New public repo.",
+          "note": "node 2.0.0-rc.4 with indexer and proof server, prefunded NIGHT and DUST wallets, a funding CLI, and a read-only <code>eth_*</code> JSON-RPC view of the chain. Runs on any free port block, so several copies coexist on one machine. Now the hub that concentrates all the work on this page: every other lane runs here as an opt-in profile.",
           "links": [
             {
               "label": "Repo",
@@ -765,14 +767,35 @@
         },
         {
           "id": "demo-infra-offerfiles-profiles",
-          "title": "Offer files backend and swap frontend as profiles",
-          "note": "the kernel, the batcher, a local Celestia devnet and the zswap-da frontend, brought up by the same command. Ports reserved, not built yet: the kernel and the template pin ledger-v8 through packages that pin it as an exact dependency, so they cannot run against a 2.x chain until those move.",
+          "title": "The offer-files lane, live on ledger v9",
+          "note": "the migration that unblocked these profiles is done: the kernel moved from ledger v8 to v9, split into deploy, kernel, and batcher as separate containers over a local Celestia devnet, with the COW solver running in observation mode beside them and a v9-migrated zswap-da swap frontend. The contract deploys once per stack and the address persists across restarts.",
+          "links": [
+            {
+              "label": "PR #49",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/49"
+            },
+            {
+              "label": "PR #50",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/50"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/49"
+        },
+        {
+          "id": "aa-wallet-console",
+          "title": "Midnight-EVM [AA] Wallet: the stack's web console",
+          "note": "a wallet-shaped product: connect any injected EVM wallet (MetaMask, Rabby) and the AA Manager's read surface executes immediately for that address. A registered account sees its balances as typed, balance-annotated token lists and gets three operations: withdraw, transfer, and publish a real MIP-0005 <code>swapoffer1&hellip;</code> to the kernel. Shielded withdrawals go to any pasted <code>mn_shield-addr&hellip;</code>; the relay recovers the signer's key from each EIP-712 signature, proves <code>execute</code> (with the half-size k=18 key as an opt-in overlay), and submits, so the browser never holds a Midnight key. The other tabs: the live offer book with the solver feed, an infrastructure canvas probing every component, the embedded memo app, and a pin table of every repo in the stack.",
           "links": [
             {
               "label": "Repo",
               "href": "https://github.com/acedward/midnight-2-offers"
             }
-          ]
+          ],
+          "href": "https://github.com/acedward/midnight-2-offers"
         }
       ]
     },
@@ -1077,7 +1100,8 @@
       "deps": {
         "dependsOn": [],
         "neededBy": [
-          "offer-files"
+          "offer-files",
+          "demo-infra"
         ]
       },
       "prose": [
@@ -1186,7 +1210,9 @@
         "dependsOn": [
           "offer-files"
         ],
-        "neededBy": []
+        "neededBy": [
+          "demo-infra"
+        ]
       },
       "prose": [
         "When two offers happen to want the opposite of each other, they can settle directly instead of going through a pool. Finding those coincidences of wants across the offer files is what the solver does. The current cut is a posted-price solver rebuilt on the kernel's current main, and it now also answers intents from the unmodified Midnight Intents relay, settling them on-chain from liquidity posted in the kernel."
@@ -1396,6 +1422,15 @@
       "ref": {
         "section": "intent-solver",
         "row": "intent-solver"
+      }
+    },
+    {
+      "date": "2026-08-27",
+      "kind": "shipped",
+      "text": "The demo stack became the hub that concentrates all the work: the offer-files lane migrated to ledger v9 and running (kernel, batcher, Celestia, solver, swap frontend), and a wallet-shaped web console where any injected EVM wallet drives the AA Manager, proves execute with the half-size key as an overlay, and publishes real MIP-0005 offers to the kernel, with the memo app embedded.",
+      "ref": {
+        "section": "demo-infra",
+        "row": "aa-wallet-console"
       }
     },
     {
