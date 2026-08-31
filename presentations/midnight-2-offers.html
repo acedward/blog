@@ -165,6 +165,8 @@
     .diagram .box.ours { fill: #eef4ff; stroke: var(--blue); }
     .diagram .box.aa-box { fill: var(--green-bg); stroke: var(--green); }
     .diagram .box.of-box { fill: var(--amber-bg); stroke: var(--amber); }
+    .diagram .box.umbra-box { fill: var(--red-bg); stroke: var(--red); }
+    .diagram .box.cow-box { fill: #ffe3cd; stroke: #d96a14; }
     .diagram .box.upstream { fill: #ffffff; stroke: #aeb5bd; }
     .diagram .box-title { font-size: 13px; font-weight: 750; }
     .diagram .box-sub { font-size: 10.5px; fill: var(--muted); font-family: ui-monospace, monospace; }
@@ -315,10 +317,10 @@
             <rect class="box upstream" x="890" y="48" width="200" height="52" rx="6"/>
             <text class="box-title" x="990" y="69" text-anchor="middle">Injected EVM wallets · Lace</text>
             <text class="box-sub" x="990" y="86" text-anchor="middle">MetaMask, Rabby · mnemonic</text>
-            <rect class="box ours" x="660" y="160" width="200" height="52" rx="6"/>
+            <rect class="box umbra-box" x="660" y="160" width="200" height="52" rx="6"/>
             <text class="box-title" x="760" y="181" text-anchor="middle">umbra-evm</text>
             <text class="box-sub" x="760" y="198" text-anchor="middle">:8545 · acedward/UmbraDB</text>
-            <rect class="box ours" x="890" y="160" width="200" height="52" rx="6"/>
+            <rect class="box cow-box" x="890" y="160" width="200" height="52" rx="6"/>
             <text class="box-title" x="990" y="181" text-anchor="middle">COW solver + sink</text>
             <text class="box-sub" x="990" y="198" text-anchor="middle">:10800 · observation mode</text>
           </g>
@@ -355,7 +357,7 @@
           </g>
         </svg>
       </div>
-      <p class="small muted" style="margin-top:calc(12 * var(--u))">Green: the Account Abstraction Module. Amber: the Offer Files Module. Blue: other repos we manage; grey: upstream, unmodified. No service addresses another by a host port, so remapping ports cannot break the stack.</p>
+      <p class="small muted" style="margin-top:calc(12 * var(--u))">Green: the Account Abstraction Module. Amber: the Offer Files Module. Red: umbra-evm. Orange: the COW solver. Blue: other repos we manage; grey: upstream, unmodified. No service addresses another by a host port, so remapping ports cannot break the stack.</p>
       <aside hidden>[Sources] README.md, stack table; console infrastructure tab</aside>
     </section>
 
