@@ -316,7 +316,7 @@
   "site": {
     "title": "acedward @ mnf",
     "tagline": "What we're building, why, and where the code lives.",
-    "updated": "2026-08-21"
+    "updated": "2026-08-23"
   },
   "sections": [
     {
@@ -329,7 +329,8 @@
           "proved-messages"
         ],
         "neededBy": [
-          "intent-solver"
+          "intent-solver",
+          "demo-infra"
         ]
       },
       "prose": [
@@ -509,7 +510,9 @@
         "dependsOn": [
           "umbra-indexer"
         ],
-        "neededBy": []
+        "neededBy": [
+          "demo-infra"
+        ]
       },
       "prose": [
         "The EVM has a decade of tooling built around a small number of interfaces: <code>eth_getLogs</code>, <code>eth_subscribe</code>, JSON-RPC, accounts. If Midnight speaks those interfaces, that tooling works without anyone porting it.",
@@ -602,6 +605,78 @@
             }
           ],
           "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-v4-unbalanced-zswap-offers",
+          "title": "AA v4: publishable unbalanced ZSwap offers",
+          "note": "measures five mitigation designs for contract-held coins. A two-phase escrow keeps the published offer off custody maps, stays guaranteed through the 16-cell test range, and settles from a file through an independent wallet. PR open.",
+          "links": [
+            {
+              "label": "PR #4",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/4"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/unbalanced-zswap-offers.html"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/4"
+        }
+      ]
+    },
+    {
+      "id": "demo-infra",
+      "title": "Midnight 2.x Demo Stack",
+      "deps": {
+        "dependsOn": [
+          "offer-files",
+          "midnight-evm"
+        ],
+        "neededBy": []
+      },
+      "prose": [
+        "Every demo we build needs the same thing underneath: a local Midnight chain, an indexer, a proof server, and wallets that already hold enough NIGHT and DUST to pay a fee. Each demo was rebuilding that from scratch, and each one got it slightly wrong in its own way. This is that groundwork published once, as a single Docker Compose project: one command brings the whole thing up and blocks until it is genuinely usable, and one command wipes it.",
+        "It ships with the Midnight 2.0.0-rc.4 stack, prefunded wallets plus a CLI to fund more, mnemonics that can be typed straight into Lace, and a read-only <code>eth_*</code> JSON-RPC view of the chain so Ethereum tooling can read Midnight state. The offer files backend and the swap frontend are the next two profiles: their ports are reserved and they wait on the ledger-v9 migration of the Effectstream packages the kernel pins."
+      ],
+      "rows": [
+        {
+          "id": "midnight-2-offers",
+          "title": "midnight-2-offers: one-command Midnight 2.x demo stack",
+          "note": "node 2.0.0-rc.4 with indexer and proof server, prefunded NIGHT and DUST wallets, a funding CLI, and a read-only <code>eth_*</code> JSON-RPC view of the chain. Runs on any free port block, so several copies coexist on one machine. New public repo.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-2-offers"
+        },
+        {
+          "id": "lace-importable-wallets",
+          "title": "Wallets you can import into Lace by typing one phrase",
+          "note": "Lace takes a mnemonic, never a hex seed, so the prefunded dev wallets were unreachable from its import screen. Three repeated-word phrases now cover it, and <code>abandon</code> x23 <code>diesel</code> turns out to be Midnight's own test wallet: it is already funded at genesis, so that import needs no funding step at all.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-2-offers"
+        },
+        {
+          "id": "demo-infra-offerfiles-profiles",
+          "title": "Offer files backend and swap frontend as profiles",
+          "note": "the kernel, the batcher, a local Celestia devnet and the zswap-da frontend, brought up by the same command. Ports reserved, not built yet: the kernel and the template pin ledger-v8 through packages that pin it as an exact dependency, so they cannot run against a 2.x chain until those move.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ]
         }
       ]
     },
@@ -868,11 +943,15 @@
           "note": "standalone Midnight 2.x prototype with offline verification, frozen implementation vectors, a demo CLI, and unchanged settlement on unmodified nodes. Stripping remains possible. Local only.",
           "links": [
             {
+              "label": "Repo",
+              "href": "https://github.com/acedward/zswap-memo-attest"
+            },
+            {
               "label": "Slides",
               "href": "presentations/zswap-attested-memos.html"
             }
           ],
-          "href": "presentations/zswap-attested-memos.html"
+          "href": "https://github.com/acedward/zswap-memo-attest"
         },
         {
           "id": "midnight-ledger-zswap-memo",
@@ -1108,6 +1187,15 @@
   <script type="application/json" id="data-timeline">
 {
   "entries": [
+    {
+      "date": "2026-08-23",
+      "kind": "shipped",
+      "text": "Published the groundwork every Midnight demo needs, as one Docker Compose project: node 2.0.0-rc.4 with its indexer and proof server, wallets that already hold NIGHT and DUST, a CLI to fund more, mnemonics importable into Lace, and a read-only eth_* JSON-RPC view of the chain. One command up, one command gone, on any free port block.",
+      "ref": {
+        "section": "demo-infra",
+        "row": "midnight-2-offers"
+      }
+    },
     {
       "date": "2026-08-21",
       "kind": "shipped",
@@ -1531,6 +1619,23 @@
   <script type="application/json" id="data-presentations">
 {
   "entries": [
+    {
+      "id": "pres-unbalanced-zswap-offers",
+      "date": "2026-08-21",
+      "title": "Publishable unbalanced ZSwap offers at custody scale",
+      "text": "The maker-to-taker UML flow, the two-phase escrow contract, tamper-evident offer files, measured alternatives, trade-offs, and the fail-closed evidence path.",
+      "href": "presentations/unbalanced-zswap-offers.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/unbalanced-zswap-offers.html"
+        }
+      ],
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v4-unbalanced-zswap-offers"
+      }
+    },
     {
       "id": "pres-zswap-attested-memos",
       "date": "2026-08-21",
