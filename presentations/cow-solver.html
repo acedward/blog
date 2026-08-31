@@ -600,7 +600,7 @@
       <div class="md-slide__logo"><span class="md-logo md-logo--lg"></span></div>
       <div class="md-body">
         <h1 class="md-title">The COW Solver</h1>
-        <p class="md-lead">A posted-price solver for ZSwap offer files on Midnight. It finds offers that want the opposite of each other and completes them into one settled, shielded swap.</p>
+        <p class="md-lead">A coincidence-of-wants solver for ZSwap offer files on Midnight. It finds offers that want the opposite of each other &#8212; and answers intents from the Midnight Intents DEX &#8212; completing them into one settled, shielded swap.</p>
         <div class="deck-points">
             <div class="deck-point">
               <span class="deck-point__n">01</span>
@@ -608,11 +608,11 @@
             </div>
             <div class="deck-point">
               <span class="deck-point__n">02</span>
-              <p class="md-text"><b>The solver adds liquidity, not trust.</b> It matches crossing offers, or takes the other side from its own inventory at posted prices. The ledger verifies every completion, so an invalid fill simply never lands.</p>
+              <p class="md-text"><b>The solver adds reach, not trust.</b> It builds the other half of a taker&#8217;s swap from the exact offer files that cross it; the relay merges the halves and submits. The ledger verifies every completion, so an invalid fill simply never lands.</p>
             </div>
             <div class="deck-point">
               <span class="deck-point__n">03</span>
-              <p class="md-text"><b>Fail closed, everywhere.</b> Every candidate is validated before matching and again before any funds move. A timeout, a malformed answer or any doubt reads as no.</p>
+              <p class="md-text"><b>Fail closed, everywhere.</b> Every offer file the solver uses must be live and valid at the moment of the merge. A timeout, a malformed answer or any doubt reads as no.</p>
             </div>
         </div>
       </div>
@@ -625,19 +625,20 @@
           <h2 class="md-heading md-heading--sm">From published offer to settled swap</h2>
           <div>
             <p class="md-text">
-              One direction of trust. Intents enter as offer files published
-              to Celestia and projected into a book by the backend. The solver
-              completes them: against a crossing offer when wants coincide, or
-              from its own inventory at posted prices.
+              Makers publish their liquidity as offer files to Celestia; the
+              backend projects them into a book it serves to anyone. Takers
+              send intents through the Midnight Intents relay; the solver
+              builds the other half from the exact offer files that cross
+              them, and the relay merges and submits.
             </p>
           </div>
         </div>
         <div class="md-grow" style="display:flex; align-items:center">
-          <svg class="deck-diagram" viewBox="0 0 1160 310" role="img" aria-label="Intents enter as offer files written to the Midnight Intents offer spec, published by user wallets through Celestia and the Offer Files backend; the COW solver matches them or fills from its own inventory, and the batcher settles on Midnight">
+          <svg class="deck-diagram" viewBox="0 0 1160 310" role="img" aria-label="Maker wallets publish offer files written to the Midnight Intents offer spec through Celestia; the Offer Files backend serves the book to anyone; the COW solver pulls it and answers the relay's swap jobs with a proved half built from the crossing offer files; the Midnight Intents relay, which takers reach for quotes and intents, merges the halves and submits, and Midnight settles">
           <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--md-fg)"/></marker></defs>
           <rect x="11" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
-          <text x="95" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">User wallets</text>
-          <text x="95" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">publish offer files: the intents</text>
+          <text x="95" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Maker wallets</text>
+          <text x="95" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">publish offer files: the liquidity</text>
           <line x1="182" y1="145" x2="200" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
           <rect x="205" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
           <text x="289" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Celestia</text>
@@ -645,15 +646,15 @@
           <line x1="376" y1="145" x2="394" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
           <rect x="399" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
           <text x="483" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Offer Files backend</text>
-          <text x="483" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">projects the current book</text>
+          <text x="483" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">serves the book to anyone</text>
           <line x1="570" y1="145" x2="588" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
           <rect x="593" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-accent)" stroke-width="3"/>
           <text x="677" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">COW Solver</text>
-          <text x="677" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">match or fill, posted prices</text>
+          <text x="677" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">matches wants, merges zswaps</text>
           <line x1="764" y1="145" x2="782" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
           <rect x="787" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
-          <text x="871" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Batcher</text>
-          <text x="871" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">balances and submits</text>
+          <text x="871" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Intents relay</text>
+          <text x="871" y="160" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">merges the halves, submits</text>
           <line x1="958" y1="145" x2="976" y2="145" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
           <rect x="981" y="108" width="168" height="74" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5"/>
           <text x="1065" y="138" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="17" font-weight="700">Midnight</text>
@@ -661,22 +662,22 @@
           <path d="M 1065 188 C 1065 256, 483 256, 483 192" fill="none" stroke="var(--md-fg-muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#arr)"/>
           <text x="774" y="274" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="12">chain state flows back: offers, consumptions, expiries</text>
           <path d="M 635 102 C 635 68, 483 68, 483 102" fill="none" stroke="var(--md-accent)" stroke-width="1.5" marker-end="url(#arr)"/>
-          <text x="531" y="56" text-anchor="middle" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="12">validate before matching, and again before funds move</text>
+          <text x="531" y="56" text-anchor="middle" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="12">pull-only: fetch once, then a websocket &#8212; exact files at merge time</text>
           <rect x="26" y="14" width="190" height="52" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5" stroke-dasharray="3 3"/>
           <text x="121" y="36" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="14" font-weight="700">Midnight Intents offer spec</text>
           <text x="121" y="54" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">proposed MIP: format and validity</text>
           <line x1="121" y1="69" x2="121" y2="103" stroke="var(--md-fg)" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#arr)"/>
           <text x="129" y="90" text-anchor="start" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">offers conform to it</text>
           <rect x="703" y="14" width="190" height="52" rx="6" fill="none" stroke="var(--md-fg)" stroke-width="1.5" stroke-dasharray="3 3"/>
-          <text x="798" y="36" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="14" font-weight="700">Solver inventory</text>
-          <text x="798" y="54" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">the other side of one-sided fills</text>
+          <text x="798" y="36" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="14" font-weight="700">Taker wallets</text>
+          <text x="798" y="54" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">quotes &amp; intents, via the relay</text>
           <line x1="733" y1="69" x2="733" y2="103" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#arr)"/>
           </svg>
         </div>
         <div class="md-cols" style="grid-template-columns: 1fr 1fr">
           <div class="deck-card deck-card--accent">
             <h3 class="md-subhead">The backend is the only door</h3>
-            <p class="md-text md-text--small">It indexes Celestia and Midnight together and serves the current book, validating every offer against the Midnight Intents offer spec: a non-conforming file never enters the book. The solver never reads either chain directly.</p>
+            <p class="md-text md-text--small">It indexes Celestia and Midnight together and serves the current book, validating every offer against the Midnight Intents offer spec: a non-conforming file never enters the book. It keeps no solver state and never pushes &#8212; solvers pull, and never read either chain directly.</p>
           </div>
           <div class="deck-card">
             <h3 class="md-subhead">Midnight has the last word</h3>
@@ -688,7 +689,147 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation</span>
-          <span class="md-footer__page">2/6</span>
+          <span class="md-footer__page">2/7</span>
+        </span>
+      </footer>
+    </section>
+
+    <section class="md-slide md-slide--white md-slide--content deck-slide">
+      <div class="md-body">
+        <p class="md-eyebrow">The COW Solver</p>
+        <div class="deck-head deck-head--split">
+          <h2 class="md-heading md-heading--sm">The interface, as a conversation</h2>
+          <div>
+            <p class="md-text md-text--small">
+              <a href="https://github.com/shieldedtech/midnight-intents-swaps">midnight-intents-swaps</a>
+              defines the solver integration, verified against a clean main.
+              The solver dials out everywhere, running two independent
+              processes: mirroring the book from the backend, and a registered
+              relay websocket that pushes book-derived price ladders every
+              second. Quotes are interpolated from those ladders at the relay;
+              the taker&#8217;s proved intent stays there too. The solver builds the
+              inverse half from maker offer files, and the relay merges the
+              two halves and submits.
+            </p>
+          </div>
+        </div>
+        <div class="md-grow" style="display:flex; align-items:center; justify-content:center">
+          <svg class="deck-diagram" style="max-height: calc(455 * var(--md-u))" viewBox="0 0 1160 704" role="img" aria-label="UML sequence diagram, verified against a clean origin/main of midnight-intents-swaps. Lifelines: maker wallet, taker wallet, Midnight Intents relay, COW solver, Offer Files backend, Midnight. The book fills: makers publish zswap offer files via Celestia; the backend discovers, validates and indexes them. Two independent solver processes follow: mirroring the book (fetch once, then a websocket for increments, composing and caching routes; the backend keeps no COW state) and registering at the relay (an outbound authenticated websocket carrying tokenIds and maxParallelSwaps, plus price ladders derived from the cached routes, re-pushed every second). A taker asks: POST /quote is answered at the relay by conservative interpolation over the COW's pushed ladders, returning amountOut and a quoteId pinning this solver, with no solver round-trip. An intent arrives: the taker posts its proved partial transaction; the relay re-checks the winner's ladder, keeps the bytes, and sends the solver a numeric swap job; the solver fetches the exact zswap files from the backend, builds and proves the inverse half from maker offers, funding the DUST, and returns swap-tx bytes; the relay merges the halves, submits to Midnight single-flight, and notifies the solver with tx-submitted or submit-failed. The taker polls the job to done; the solver separately watches the backend until the maker files are consumed.">
+            <defs>
+              <marker id="sarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--md-fg)"/></marker>
+              <marker id="sarrm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--md-fg-muted)"/></marker>
+            </defs>
+
+            <!-- lifelines -->
+            <line x1="80" y1="54" x2="80" y2="680" stroke="var(--md-fg-muted)" stroke-width="1" stroke-dasharray="4 4"/>
+            <line x1="215" y1="54" x2="215" y2="680" stroke="var(--md-fg-muted)" stroke-width="1" stroke-dasharray="4 4"/>
+            <line x1="415" y1="54" x2="415" y2="680" stroke="var(--md-fg-muted)" stroke-width="1" stroke-dasharray="4 4"/>
+            <line x1="650" y1="54" x2="650" y2="680" stroke="var(--md-fg-muted)" stroke-width="1" stroke-dasharray="4 4"/>
+            <line x1="875" y1="54" x2="875" y2="680" stroke="var(--md-fg-muted)" stroke-width="1" stroke-dasharray="4 4"/>
+            <line x1="1090" y1="54" x2="1090" y2="680" stroke="var(--md-fg-muted)" stroke-width="1" stroke-dasharray="4 4"/>
+
+            <!-- participants -->
+            <rect x="20" y="4" width="120" height="50" rx="6" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1.5"/>
+            <text x="80" y="25" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="15" font-weight="700">Maker wallet</text>
+            <text x="80" y="42" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">provides liquidity</text>
+            <rect x="155" y="4" width="120" height="50" rx="6" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1.5"/>
+            <text x="215" y="25" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="15" font-weight="700">Taker wallet</text>
+            <text x="215" y="42" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">DEX user</text>
+            <rect x="315" y="4" width="200" height="50" rx="6" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1.5"/>
+            <text x="415" y="25" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="15" font-weight="700">Midnight Intents relay</text>
+            <text x="415" y="42" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">PMR &#183; quotes, merges &amp; submits</text>
+            <rect x="570" y="4" width="160" height="50" rx="6" fill="var(--md-bg)" stroke="var(--md-accent)" stroke-width="3"/>
+            <text x="650" y="25" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="15" font-weight="700">COW Solver</text>
+            <text x="650" y="42" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">fills swaps from maker offers</text>
+            <rect x="785" y="4" width="180" height="50" rx="6" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1.5"/>
+            <text x="875" y="25" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="15" font-weight="700">Offer Files backend</text>
+            <text x="875" y="42" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">zswap-da sync node</text>
+            <rect x="1030" y="4" width="120" height="50" rx="6" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1.5"/>
+            <text x="1090" y="25" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="15" font-weight="700">Midnight</text>
+            <text x="1090" y="42" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">node &#183; executes</text>
+
+            <!-- activations -->
+            <rect x="871" y="82" width="8" height="12" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="646" y="136" width="8" height="74" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="871" y="136" width="8" height="46" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="411" y="244" width="8" height="56" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="411" y="330" width="8" height="48" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="411" y="428" width="8" height="232" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="646" y="460" width="8" height="142" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="871" y="492" width="8" height="44" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+            <rect x="1086" y="614" width="8" height="14" fill="var(--md-bg)" stroke="var(--md-fg)" stroke-width="1"/>
+
+            <!-- phase: the book fills -->
+            <text x="20" y="70" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em">THE BOOK FILLS &#183; MAKERS PUBLISH OFFER FILES</text>
+            <line x1="80" y1="88" x2="869" y2="88" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="475" y="83" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">publish zswap offer files</text>
+            <text x="475" y="100" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">via Celestia &#183; discovered, validated and indexed by the backend</text>
+
+            <!-- phase: the solver mirrors the book (independent process) -->
+            <text x="20" y="124" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em">THE SOLVER MIRRORS THE BOOK &#183; PULL-ONLY, A PROCESS OF ITS OWN</text>
+            <line x1="654" y1="142" x2="869" y2="142" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="762" y="137" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">fetch the book once, then a websocket</text>
+            <text x="762" y="154" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">the backend keeps no COW state &#8212; it serves anyone</text>
+            <line x1="871" y1="176" x2="656" y2="176" stroke="var(--md-fg-muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#sarrm)"/>
+            <text x="762" y="171" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">current offers, then increments</text>
+            <path d="M 654 190 L 684 190 L 684 204 L 660 204" fill="none" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="694" y="195" text-anchor="start" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">compose &amp; cache routes</text>
+            <text x="694" y="208" text-anchor="start" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">a small cache &#8212; routes are expensive to rebuild</text>
+
+            <!-- phase: the solver registers at the relay (independent process) -->
+            <text x="20" y="232" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em">THE SOLVER REGISTERS AT THE RELAY &#183; A SEPARATE, INDEPENDENT PROCESS</text>
+            <line x1="650" y1="250" x2="421" y2="250" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="533" y="245" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">connect &amp; register &#8212; Bearer SOLVER_AUTH_TOKEN</text>
+            <text x="533" y="262" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">tokenIds &amp; maxParallelSwaps &#8212; re-pushed on every reconnect (2 s)</text>
+            <line x1="650" y1="282" x2="421" y2="282" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="533" y="277" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">push price ladders</text>
+            <text x="533" y="294" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">derived from the cached routes &#183; re-pushed every second</text>
+
+            <!-- phase: a taker asks -->
+            <text x="20" y="318" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em">A TAKER ASKS &#183; QUOTES COME FROM THE PUSHED LADDERS</text>
+            <line x1="215" y1="336" x2="409" y2="336" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="312" y="331" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">POST /quote</text>
+            <text x="312" y="348" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">tokenIn &#183; tokenOut &#183; amountIn</text>
+            <line x1="411" y1="368" x2="217" y2="368" stroke="var(--md-fg-muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#sarrm)"/>
+            <text x="312" y="363" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">{ amountOut &#183; quoteId }</text>
+            <text x="312" y="380" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">interpolated from the COW&#8217;s ladders &#8212; no solver round-trip</text>
+            <text x="312" y="392" text-anchor="middle" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="10.5" font-weight="600">quoteId pins this solver for the intent</text>
+
+            <!-- phase: an intent arrives -->
+            <text x="20" y="416" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="11" font-weight="700" letter-spacing="0.1em">AN INTENT ARRIVES &#183; SOLVE, MERGE AT THE RELAY, SETTLE</text>
+            <line x1="215" y1="434" x2="409" y2="434" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="312" y="429" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">POST /intent &#8212; raw proved partial tx</text>
+            <text x="312" y="446" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">the relay re-checks the winner&#8217;s ladder before assigning the job</text>
+            <line x1="419" y1="466" x2="644" y2="466" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="533" y="461" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">swap job { jobId &#183; amounts }</text>
+            <text x="533" y="478" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">numbers only &#8212; the taker&#8217;s bytes stay at the relay</text>
+            <line x1="654" y1="498" x2="869" y2="498" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="762" y="493" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">fetch the exact zswap files</text>
+            <text x="762" y="510" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">the inverse side comes from maker offers</text>
+            <line x1="871" y1="530" x2="656" y2="530" stroke="var(--md-fg-muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#sarrm)"/>
+            <text x="762" y="525" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">exact bytes &#8212; live and valid only</text>
+            <text x="762" y="542" text-anchor="middle" fill="var(--md-accent)" font-family="Outfit, sans-serif" font-size="10.5" font-weight="600">anything else reads as no &#8594; job-error</text>
+            <path d="M 654 556 L 684 556 L 684 570 L 660 570" fill="none" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="694" y="561" text-anchor="start" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">build &amp; prove the inverse half</text>
+            <text x="694" y="574" text-anchor="start" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">merge maker files &#183; balance &#183; fund the DUST</text>
+            <line x1="646" y1="596" x2="421" y2="596" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="533" y="591" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">swap-tx { jobId &#183; txBytes }</text>
+            <line x1="419" y1="620" x2="1084" y2="620" stroke="var(--md-fg)" stroke-width="1.5" marker-end="url(#sarr)"/>
+            <text x="985" y="615" text-anchor="middle" fill="var(--md-fg)" font-family="Outfit, sans-serif" font-size="12" font-weight="600">merge &amp; submit</text>
+            <text x="985" y="632" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">userTx.merge(solverTx) &#183; single-flight</text>
+            <line x1="419" y1="652" x2="644" y2="652" stroke="var(--md-fg-muted)" stroke-width="1.5" stroke-dasharray="5 5" marker-end="url(#sarrm)"/>
+            <text x="533" y="647" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">tx-submitted / submit-failed</text>
+            <text x="533" y="664" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="10.5">on failure the solver reverts its wallet view</text>
+
+            <text x="580" y="698" text-anchor="middle" fill="var(--md-fg-muted)" font-family="Outfit, sans-serif" font-size="11">The taker polls GET /jobs/:jobId to done { txId }; the solver separately watches the backend until the maker files&#8217; nullifiers are spent.</text>
+          </svg>
+        </div>
+      </div>
+      <footer class="md-footer">
+        <span class="md-logo"></span>
+        <span class="md-footer__meta">
+          <span>2026 Midnight Foundation</span>
+          <span class="md-footer__page">3/7</span>
         </span>
       </footer>
     </section>
@@ -733,7 +874,7 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation</span>
-          <span class="md-footer__page">3/6</span>
+          <span class="md-footer__page">4/7</span>
         </span>
       </footer>
     </section>
@@ -745,27 +886,27 @@
           <h2 class="md-heading md-heading--sm">The solver never guesses</h2>
           <div>
             <p class="md-text">
-              Discovery and validation both go through the backend, so every
-              candidate the solver acts on is derived from chain state, and every
-              action is checked twice.
+              Everything the solver knows, it pulled for itself. The backend
+              serves anyone and pushes to no one, and every file the solver
+              uses is checked at the moment it matters.
             </p>
           </div>
         </div>
         <div class="md-cols md-grow" style="grid-template-columns: 1fr 1fr">
           <div class="md-stack md-stack--gap">
             <div class="deck-card deck-card--accent">
-              <h3 class="md-subhead">One door for discovery</h3>
-              <p class="md-text md-text--small">The solver reads the backend's projection of the book: a snapshot plus a live stream of changes. It has no Celestia connection of its own.</p>
+              <h3 class="md-subhead">Pull-only, cache built once</h3>
+              <p class="md-text md-text--small">On startup the solver fetches the whole book once, then keeps a websocket open and builds a small local cache incrementally &#8212; routes are expensive to rebuild. It has no Celestia connection of its own, and the backend never learns it exists.</p>
             </div>
             <div class="deck-card deck-card--accent">
-              <h3 class="md-subhead">A verdict before matching</h3>
-              <p class="md-text md-text--small">Each candidate is sent to a validation endpoint that answers from indexed chain state without side effects: live, consumed, expired or unsupported, with a stable machine-readable reason.</p>
+              <h3 class="md-subhead">Exact files, not cached copies</h3>
+              <p class="md-text md-text--small">When a swap job arrives, the solver requests the exact zswap files it intends to use. The backend serves them only live and valid, from indexed chain state, with a stable machine-readable refusal otherwise.</p>
             </div>
           </div>
           <div class="md-stack md-stack--gap">
             <div class="deck-card">
-              <h3 class="md-subhead">Checked again before funds move</h3>
-              <p class="md-text md-text--small">The verdict is asked again at the moment a match is about to execute. Only a fresh live answer lets wallet and batcher work begin.</p>
+              <h3 class="md-subhead">The cache quotes, it never settles</h3>
+              <p class="md-text md-text--small">Cached routes feed the price ladders pushed to the relay every second; takers are quoted by conservative interpolation over them. Only files fetched fresh when a swap job arrives can enter the solver&#8217;s half.</p>
             </div>
             <div class="deck-card">
               <h3 class="md-subhead">Refusal is the default</h3>
@@ -778,7 +919,7 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation</span>
-          <span class="md-footer__page">4/6</span>
+          <span class="md-footer__page">5/7</span>
         </span>
       </footer>
     </section>
@@ -790,8 +931,9 @@
           <h2 class="md-heading md-heading--sm">Matching and settlement</h2>
           <div>
             <p class="md-text">
-              A match becomes one balanced transaction. Balance is verified
-              before submission, and the ledger enforces it again at settlement.
+              A taker&#8217;s half and the solver&#8217;s half become one merged
+              transaction at the relay, and the ledger enforces balance again
+              at settlement.
             </p>
           </div>
         </div>
@@ -802,18 +944,18 @@
               <p class="md-text md-text--small">When two offers want the opposite of each other they settle directly against each other, with no pool in between. That coincidence is what the solver hunts for.</p>
             </div>
             <div class="deck-card deck-card--accent">
-              <h3 class="md-subhead">Posted-price fills</h3>
-              <p class="md-text md-text--small">When no crossing offer exists, the solver takes the other side from its own inventory at the prices it has posted. Liquidity without a counterparty in the book.</p>
+              <h3 class="md-subhead">Virtual offers &#8212; a later round</h3>
+              <p class="md-text md-text--small">When no single offer crosses, a route can: &#8722;10&#8202;A&#8201;+5&#8202;B and &#8722;5&#8202;B&#8201;+20&#8202;C together imply &#8722;10&#8202;A&#8201;+20&#8202;C. The solver will advertise such composed routes and, on acceptance, merge the real files behind them.</p>
             </div>
           </div>
           <div class="md-stack md-stack--gap">
             <div class="deck-card">
               <h3 class="md-subhead">Zero imbalance or nothing</h3>
-              <p class="md-text md-text--small">The completed transaction is only submitted when every declared ledger segment is readable and carries zero imbalance beyond dust. Anything else is refused before it leaves.</p>
+              <p class="md-text md-text--small">The solver&#8217;s half must balance &#8212; it adds the DUST that funds the fee and proves the result. A half that cannot balance becomes a job-error, never a submission.</p>
             </div>
             <div class="deck-card">
-              <h3 class="md-subhead">The batcher finishes it</h3>
-              <p class="md-text md-text--small">The balancing batcher merges, balances and submits. On Midnight the offer's nullifier is spent: consumed exactly once, settled exactly once.</p>
+              <h3 class="md-subhead">The relay finishes it</h3>
+              <p class="md-text md-text--small">The solver returns its proved half over the websocket; the relay merges it with the taker&#8217;s and submits, single-flight. On Midnight the offer&#8217;s nullifier is spent &#8212; consumed exactly once &#8212; and tx-submitted or submit-failed flows back to the solver.</p>
             </div>
           </div>
         </div>
@@ -822,7 +964,7 @@
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation</span>
-          <span class="md-footer__page">5/6</span>
+          <span class="md-footer__page">6/7</span>
         </span>
       </footer>
     </section>
@@ -849,19 +991,19 @@
             <p class="md-text md-text--small">Every proof and every balance is checked at settlement. A wrong completion is rejected by the ledger regardless of what the solver believed.</p>
           </div>
           <div class="deck-card">
-            <h3 class="md-subhead">Data-only publication</h3>
-            <p class="md-text md-text--small">The solver also serves indicative pairs and levels on a read-only surface, provably from one snapshot. Nothing on that surface can execute a trade.</p>
+            <h3 class="md-subhead">Priced in the open, verified on chain</h3>
+            <p class="md-text md-text--small">Every taker quote is priced from ladders the solver pushed seconds before &#8212; book-backed, conservative, always honourable. A quote binds nothing &#8212; funds move only when both proved halves merge and the ledger verifies them.</p>
           </div>
         </div>
         <p class="md-text md-text--small" style="margin-top: calc(24 * var(--md-u))">
-          Where it lives: <a href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/48">zswap-offerfiles-kernel, draft PR #48</a>, rebuilt on the kernel's current main.
+          Where it lives: <a href="https://github.com/effectstream/zswap-offerfiles-kernel/pull/48">zswap-offerfiles-kernel, draft PR #48</a>, rebuilt on the kernel's current main. Integrates with <a href="https://github.com/shieldedtech/midnight-intents-swaps">midnight-intents-swaps</a> as a standard relay solver &#8212; contract verified against its main and confirmed with its team.
         </p>
       </div>
       <footer class="md-footer">
         <span class="md-logo"></span>
         <span class="md-footer__meta">
           <span>2026 Midnight Foundation</span>
-          <span class="md-footer__page">6/6</span>
+          <span class="md-footer__page">7/7</span>
         </span>
       </footer>
     </section>

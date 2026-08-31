@@ -106,3 +106,8 @@ links PR #1 and Repo.
 
 Do never add personal names or personal tasks into the blog.
 This is a public page for sharing my work.
+
+**Private projects.** If a project folder in the workspace contains a file named
+`.private`, skip that project entirely: none of its work gets a row, a timeline
+entry, or a mention anywhere on the page. When sweeping projects for updates,
+check for `.private` first and move on if it is present.

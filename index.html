@@ -316,7 +316,7 @@
   "site": {
     "title": "acedward @ mnf",
     "tagline": "What we're building, why, and where the code lives.",
-    "updated": "2026-08-23"
+    "updated": "2026-08-31"
   },
   "sections": [
     {
@@ -625,6 +625,102 @@
             }
           ],
           "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/4"
+        },
+        {
+          "id": "aa-minocrab-port",
+          "title": "Compiling the Manager with an alternative compiler",
+          "note": "all nine circuits of the AA Manager rewritten in MinoCrab, a Rust eDSL that emits Midnight ZKIR directly, each port checked to compute the same statement as the compactc artifact before measuring. The headline <code>execute</code> circuit drops from 382,770 rows to 211,028 and crosses down a proving-key size class; the saving is native byte reversal replacing per-byte explode-and-rebuild chains, so it applies to byte-heavy circuits, not whole contracts. The port also surfaced a defect the test suites could not see: three of <code>execute</code>'s seven actions had no provable run at all.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            },
+            {
+              "label": "MinoCrab",
+              "href": "https://github.com/sig-net/minocrab"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-execute-provability",
+          "title": "Restoring provability to the Manager's custody path",
+          "note": "a switched-off pool subtraction still computed its arithmetic, hashing a negative value into a coin commitment nothing could ever satisfy, so unshielded withdrawal and both internal transfers could never prove. The obvious fixes were refuted by measurement (the compiler folds a guarded clamp into a byte-identical circuit); the shipped repair clamps on a condition the compiler cannot fold, adds seven rows, and all three actions now produce real proofs. Breaking: <code>execute</code>'s keys regenerate. Merged.",
+          "links": [
+            {
+              "label": "PR #9",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/9"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/9"
+        },
+        {
+          "id": "aa-debit-fragment",
+          "title": "The fragment that was never there",
+          "note": "investigated a proof-server refusal that looked like 755 bytes of foreign material appended to every debit call. Nothing was being appended: the bytes are the debit's own execution record, the refusal is correct and specified, and the real cause is the same masked-branch underflow the provability fix repairs, so no workaround could ever have produced a proof. Reproducible with two files and two HTTP requests; also corrected seven wrong statements in the record it inherited.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-withdraw-effects",
+          "title": "One field apart",
+          "note": "with provability restored, withdrawals proved cleanly and were then refused by the node's effects check. Decoding both sides of the check showed the claimed payout and the real one differed in exactly one field: the recipient type's two arms were swapped, labelling a user's address as a contract's. The repair swaps the arms (the first withdrawal ever accepted landed with it) and refuses the three contract-recipient shapes the ledger cannot settle at these pins, before any proof is computed. Breaking: keys regenerate and a deployed Manager must be redeployed. Merged.",
+          "links": [
+            {
+              "label": "PR #10",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/10"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/10"
+        },
+        {
+          "id": "aa-prove-benchmark",
+          "title": "Measuring what the alternative compiler actually saves",
+          "note": "a row count is not a proving time, so both artifacts were keyed and proved through one pinned prover on identical preimages. The port proves the circuit in half the time (38.5s down to 19.3s), key generation falls 61.6%, and the proving key halves to 544 MB, the number that made this circuit a deployment risk. Proof size, public statement, and verifier key do not move, so nothing on-chain changes. Proving cost tracks the padded size class, not occupied rows: a row saving that does not cross a class boundary buys almost nothing.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-k18-rebuild",
+          "title": "The half-size key, rebuilt on the fixed contract",
+          "note": "the port rebuilt from the current tip with all three repairs, which let the equivalence gate run across all seven custody actions for the first time. The wider gate caught and fixed a payout-recipient bug in the port itself, confirmed by replaying an accepted run through the ledger's own virtual machine. The 544 MB proving key stands against the 1.14 GB original with about twenty percent of the smaller size class still unused, and the on-chain footprint is unchanged.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-minocrab-repo",
+          "title": "AA-midnight-evm-experiment-minocrab: the port, published",
+          "note": "the Rust-eDSL port of the Manager as a standalone public repository anyone can clone and build: the compiler pinned as a git dependency to the exact commit every published number was measured with, nothing compiled committed, expected hashes published for everything regenerable, and the caveats at the top rather than the bottom (unaudited third-party compiler; equivalence tested, not proven). New public repo.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-minocrab"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-minocrab"
         }
       ]
     },
@@ -697,13 +793,65 @@
       ],
       "rows": [
         {
+          "id": "effectstream-stagenet",
+          "title": "Effectstream on Midnight Stagenet",
+          "note": "an explicit Stagenet service profile in the Midnight environment, and a template contract deployed live on Stagenet and read back through the indexer. Profile merged.",
+          "links": [
+            {
+              "label": "PR #897",
+              "href": "https://github.com/effectstream/effectstream/pull/897"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/897"
+        },
+        {
+          "id": "runtime-shutdown",
+          "title": "Deterministic runtime shutdown",
+          "note": "the runtime releases everything it owns (HTTP port, telemetry, event broker, background tasks, database connections) on every exit path, including signals, startup failure, and cancellation mid-startup. Ports rebind immediately after shutdown, and cleanup errors keep their causal order instead of being swallowed. Merged.",
+          "links": [
+            {
+              "label": "PR #908",
+              "href": "https://github.com/effectstream/effectstream/pull/908"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/908"
+        },
+        {
+          "id": "start-from-latest",
+          "title": "Start from \"latest\"",
+          "note": "<code>startBlockHeight: \"latest\"</code> for the NTP and Midnight protocols: resolved once at first boot, persisted with provenance, and reused on every restart. Start-policy definitions live beside each sync protocol; the generic runtime only reconciles. Open.",
+          "links": [
+            {
+              "label": "PR #907",
+              "href": "https://github.com/effectstream/effectstream/pull/907"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/907"
+        },
+        {
           "id": "single-page-template",
           "title": "Project template: single page",
-          "note": "a literal one-file Bun example that watches a Midnight counter and serves basic HTML. Open. Slides walk through what it does, how to run it, and the whole program.",
+          "note": "a literal one-file Bun example that watches a Midnight counter and serves basic HTML, since rebuilt on the current public APIs instead of a template-only facade. Open. Slides walk through what it does, how to run it, and the whole program.",
           "links": [
             {
               "label": "PR #865",
               "href": "https://github.com/effectstream/effectstream/pull/865"
+            },
+            {
+              "label": "PR #906",
+              "href": "https://github.com/effectstream/effectstream/pull/906"
             },
             {
               "label": "Repo",
@@ -986,6 +1134,38 @@
           "href": "https://github.com/acedward/midnight-node-zswap-memo/pull/5"
         },
         {
+          "id": "spend-proof-memo-binding",
+          "title": "spend-proof-memo-binding: authenticated memos on unmodified nodes",
+          "note": "the canonical transaction is unchanged and old nodes accept it; a detached companion spend proof authenticates the memo with the input's own spending secret, no key revealed, and a zero-value output anchor leaves permanent on-chain evidence if the off-chain memo is stripped. Ships additive ledger helpers, a fixed legacy-v6 local WASM prover, and JS/WASM bindings; a candidate design for MIP-0006's authenticated messages without key leakage. PR open.",
+          "links": [
+            {
+              "label": "PR #2",
+              "href": "https://github.com/acedward/midnight-ledger/pull/2"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-ledger/tree/00003-spend-proof-memo-binding"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-ledger/pull/2"
+        },
+        {
+          "id": "web-memo",
+          "title": "web-memo: authenticated memos in the browser",
+          "note": "paste an offer file and its memo wrapper and the page says what the memo claims, which spend it is bound to, and which of six trust states applies: no network request, no key, no wallet, because the verifier key is compiled into the WASM bundle. The other half builds a real pair (mint, spend, memo committed to that spend) proved by a proof server you run yourself, anchored to a demo state so the offer can never settle. A stripped memo is visible as such, and a hostile memo renders as text and nothing else. New public repo.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/web-memo"
+            },
+            {
+              "label": "Live",
+              "href": "https://web-memo.pages.dev"
+            }
+          ],
+          "href": "https://web-memo.pages.dev"
+        },
+        {
           "id": "zswap-memo-slides",
           "title": "Why one memo field is a hard fork",
           "note": "short deck: the one-slot mechanism, what ships where, and the coordinated activation.",
@@ -1009,13 +1189,13 @@
         "neededBy": []
       },
       "prose": [
-        "When two offers happen to want the opposite of each other, they can settle directly instead of going through a pool. Finding those coincidences of wants across the offer files is what the solver does. The current cut is a posted-price solver rebuilt on the kernel's current main, with an end-to-end acceptance harness of its own."
+        "When two offers happen to want the opposite of each other, they can settle directly instead of going through a pool. Finding those coincidences of wants across the offer files is what the solver does. The current cut is a posted-price solver rebuilt on the kernel's current main, and it now also answers intents from the unmodified Midnight Intents relay, settling them on-chain from liquidity posted in the kernel."
       ],
       "rows": [
         {
           "id": "intent-solver",
           "title": "Intent Solver COW",
-          "note": "end-to-end acceptance in progress, draft PR. Supersedes PR #38.",
+          "note": "the solver is now compatible with the Midnight Intents Phase 1 relay: it accepts any reference-valid demand at or below its advertised output and keeps the surplus, publishes only liquidity it can actually execute, and the whole stack (chain services, offer-files kernel, batcher, solver, unmodified relay) runs as separate Docker Compose components. An end-to-end run consumes an offer on the relay and settles it on-chain from a zswap posted in the kernel, including a lower-demand fill where the user receives exactly what they asked. PR open, supersedes PR #38.",
           "links": [
             {
               "label": "PR #48",
@@ -1024,6 +1204,10 @@
             {
               "label": "Repo",
               "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+            },
+            {
+              "label": "Relay",
+              "href": "https://github.com/shieldedtech/midnight-intents-swaps"
             }
           ],
           "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/48"
@@ -1031,7 +1215,7 @@
         {
           "id": "cow-solver-slides",
           "title": "How the COW solver works",
-          "note": "short deck: offers as proved half-swaps, the Celestia to Midnight pipeline, validation before funds move, and settlement as one balanced transaction.",
+          "note": "short deck, updated for the intents integration: offers as proved half-swaps, the Celestia to Midnight pipeline, answering intents from the Midnight Intents relay, and settlement as one balanced transaction.",
           "links": [
             {
               "label": "Slides",
@@ -1187,6 +1371,78 @@
   <script type="application/json" id="data-timeline">
 {
   "entries": [
+    {
+      "date": "2026-08-30",
+      "kind": "shipped",
+      "text": "Gave the Effectstream runtime deterministic resource boundaries: every exit path, including signals and cancellation mid-startup, releases the HTTP port, telemetry, event broker, background tasks, and database connections, so ports rebind immediately and cleanup errors keep their causal order.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "runtime-shutdown"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "kind": "shipped",
+      "text": "Effectstream reached Midnight Stagenet: an explicit Stagenet service profile merged, and a template contract deployed live on Stagenet and read back through the indexer.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "effectstream-stagenet"
+      }
+    },
+    {
+      "date": "2026-08-28",
+      "kind": "progress",
+      "text": "The COW solver now settles orders from the unmodified Midnight Intents relay: a full cross-stack run, with every service its own Docker Compose component, consumes an offer on the relay and settles it on-chain from a zswap posted in the kernel, the solver keeping the surplus on lower-demand fills.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "date": "2026-08-26",
+      "kind": "published",
+      "text": "A new public repo: the MinoCrab port of the AA Manager, standalone and buildable from a fresh clone. The same circuit one proving-key size class smaller (544 MB against 1.14 GB) and proving in half the time, with the compiler pinned to the measured commit and expected hashes published for everything regenerable.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-minocrab-repo"
+      }
+    },
+    {
+      "date": "2026-08-26",
+      "kind": "shipped",
+      "text": "Fixed the AA Manager's withdrawal at the node's effects check: the recipient type's two arms were swapped, labelling a user's address as a contract's, a claim no wallet recipient could ever satisfy. The first withdrawal ever accepted on chain landed with the fix.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-withdraw-effects"
+      }
+    },
+    {
+      "date": "2026-08-25",
+      "kind": "shipped",
+      "text": "Restored provability to the AA Manager's custody path: a switched-off pool subtraction was hashing negative values into coin commitments, leaving unshielded withdrawal and both internal transfers unable to prove at all. Seven rows repair it, holding the proving-key size class.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-execute-provability"
+      }
+    },
+    {
+      "date": "2026-08-25",
+      "kind": "published",
+      "text": "Published web-memo, a browser page that reads and writes authenticated Zswap memos with no key, no wallet, and no network request, and shows a stripped memo as stripped rather than as an absence. Live at web-memo.pages.dev.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "web-memo"
+      }
+    },
+    {
+      "date": "2026-08-25",
+      "kind": "progress",
+      "text": "Opened the spend-proof memo binding PR: authenticated memos on transactions unmodified nodes accept, a detached companion proof from the input's own spending secret, and a zero-value anchor that leaves on-chain evidence when a memo is stripped. A candidate design for MIP-0006.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "spend-proof-memo-binding"
+      }
+    },
     {
       "date": "2026-08-23",
       "kind": "shipped",
@@ -1689,7 +1945,7 @@
       "id": "pres-cow-solver",
       "date": "2026-08-19",
       "title": "How the COW Solver Works",
-      "text": "Offer files as proved half-swaps, the pipeline from Celestia to Midnight, discovery and validation through one backend door, posted-price matching, and why a broken solver can only do nothing.",
+      "text": "Offer files as proved half-swaps, the pipeline from Celestia to Midnight, discovery and validation through one backend door, answering intents from the Midnight Intents relay, and why a broken solver can only do nothing.",
       "href": "presentations/cow-solver.html",
       "links": [
         {
