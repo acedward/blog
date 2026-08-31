@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The components of the midnight-2-offers demo stack: what each part is, which repo it comes from, and how they run together.">
+  <title>midnight-2-offers: the demo stack, component by component</title>
+  <style>
+    :root {
+      --black: #090a0c;
+      --ink: #111418;
+      --muted: #59636e;
+      --white: #ffffff;
+      --paper: #f7f8fa;
+      --line: #c9ced5;
+      --blue: #0000fe;
+      --cyan: #74d5f7;
+      --green: #158765;
+      --green-bg: #e4f5ef;
+      --amber: #a86400;
+      --amber-bg: #fff1d5;
+      --red: #b73b3b;
+      --red-bg: #fbe8e8;
+      --u: min(0.078125vw, 0.138889vh);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: #101318;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { background: #101318; }
+    button { font: inherit; }
+
+    #deck { position: fixed; inset: 0; display: grid; place-items: center; }
+    .slide {
+      position: absolute;
+      display: none;
+      width: calc(1280 * var(--u));
+      height: calc(720 * var(--u));
+      overflow: hidden;
+      padding: calc(48 * var(--u)) calc(70 * var(--u)) calc(58 * var(--u));
+      background: var(--white);
+      box-shadow: 0 calc(24 * var(--u)) calc(80 * var(--u)) #0008;
+    }
+    .slide.active { display: flex; flex-direction: column; }
+    .slide.dark { color: var(--white); background: var(--black); }
+    .slide.light { background: var(--paper); }
+    .slide::after {
+      content: attr(data-page);
+      position: absolute;
+      right: calc(70 * var(--u));
+      bottom: calc(22 * var(--u));
+      color: var(--muted);
+      font-size: calc(12 * var(--u));
+      font-weight: 700;
+    }
+    .slide.dark::after { color: #9da4ad; }
+    .slide::before {
+      content: "MIDNIGHT-2-OFFERS / DEMO STACK";
+      position: absolute;
+      left: calc(70 * var(--u));
+      bottom: calc(22 * var(--u));
+      color: var(--muted);
+      font-size: calc(10 * var(--u));
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .slide.dark::before { color: #9da4ad; }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: calc(62 * var(--u)); line-height: .98; letter-spacing: -.045em; }
+    h2 { font-size: calc(42 * var(--u)); line-height: 1.02; letter-spacing: -.03em; }
+    h3 { font-size: calc(23 * var(--u)); line-height: 1.12; letter-spacing: -.015em; }
+    p, li, td, th { font-size: calc(17 * var(--u)); line-height: 1.35; }
+    code, .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+    code { color: var(--blue); font-size: .9em; }
+    .dark code { color: var(--cyan); }
+
+    .kicker {
+      margin-bottom: calc(16 * var(--u));
+      color: var(--blue);
+      font-size: calc(13 * var(--u));
+      font-weight: 850;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .dark .kicker { color: var(--cyan); }
+    .subtitle {
+      margin-top: calc(18 * var(--u));
+      max-width: calc(760 * var(--u));
+      color: var(--muted);
+      font-size: calc(23 * var(--u));
+      line-height: 1.28;
+    }
+    .dark .subtitle { color: #b9c0c8; }
+    .rule { height: calc(2 * var(--u)); margin: calc(16 * var(--u)) 0 calc(24 * var(--u)); background: var(--ink); }
+    .dark .rule { background: #cbd0d6; }
+    .muted { color: var(--muted); }
+    .accent { color: var(--blue); }
+    .green { color: var(--green); }
+    .red { color: var(--red); }
+    .small { font-size: calc(14 * var(--u)); line-height: 1.35; }
+    .tiny { font-size: calc(12 * var(--u)); line-height: 1.32; }
+    .grow { flex: 1 1 auto; min-height: 0; }
+
+    .title-grid { display: grid; grid-template-columns: 1.24fr .76fr; gap: calc(72 * var(--u)); align-items: center; flex: 1; }
+    .result-block { border-left: calc(5 * var(--u)) solid var(--blue); padding-left: calc(34 * var(--u)); }
+    .result-label { color: #b8c0c8; font-size: calc(15 * var(--u)); font-weight: 700; }
+    .result-number { margin: calc(16 * var(--u)) 0; color: var(--cyan); font-size: calc(56 * var(--u)); font-weight: 850; letter-spacing: -.02em; }
+    .result-copy { color: #d9dde2; font-size: calc(18 * var(--u)); line-height: 1.35; }
+
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: calc(34 * var(--u)); flex: 1; min-height: 0; }
+    .cols.wide-right { grid-template-columns: .78fr 1.22fr; }
+    .cols.wide-left { grid-template-columns: 1.2fr .8fr; }
+    .stack { display: flex; flex-direction: column; gap: calc(18 * var(--u)); }
+    .cards-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: calc(22 * var(--u)); }
+    .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(24 * var(--u)); }
+    .cards-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(18 * var(--u)); }
+    .card {
+      border: calc(1 * var(--u)) solid var(--line);
+      border-radius: calc(14 * var(--u));
+      padding: calc(22 * var(--u));
+      background: var(--white);
+    }
+    .card.blue { border-color: var(--blue); background: #eef4ff; color: var(--ink); }
+    .card.green-card { border-color: var(--green); background: var(--green-bg); }
+    .card.amber-card { border-color: var(--amber); background: var(--amber-bg); }
+    .card h3 { margin-bottom: calc(10 * var(--u)); }
+    .card .who { margin-bottom: calc(10 * var(--u)); color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(12 * var(--u)); font-weight: 750; }
+
+    .callout {
+      margin-top: calc(20 * var(--u));
+      border-left: calc(4 * var(--u)) solid var(--blue);
+      padding: calc(14 * var(--u)) calc(18 * var(--u));
+      background: #eef4ff;
+      font-size: calc(17 * var(--u));
+      font-weight: 700;
+    }
+    .dark .callout { color: var(--white); background: #141b2e; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: calc(30 * var(--u));
+      padding: 0 calc(13 * var(--u));
+      border-radius: calc(18 * var(--u));
+      font-size: calc(13 * var(--u));
+      font-weight: 850;
+    }
+    .pill.green-pill { color: var(--green); background: var(--green-bg); }
+    .pill.blue-pill { color: #17244c; background: var(--cyan); }
+    .pill.grey-pill { color: var(--muted); background: #e5e8ec; }
+
+    ul.clean { margin: calc(12 * var(--u)) 0 0; padding-left: calc(20 * var(--u)); }
+    ul.clean li { margin: calc(9 * var(--u)) 0; }
+    ul.clean li::marker { color: var(--blue); }
+
+    .diagram-wrap { flex: 1; min-height: 0; border: calc(1 * var(--u)) solid var(--line); background: var(--paper); }
+    .diagram { width: 100%; height: 100%; display: block; }
+    .diagram text { font-family: "Helvetica Neue", Arial, sans-serif; fill: var(--ink); }
+    .diagram .lane-label { fill: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .08em; }
+    .diagram .lane-band { fill: #ffffff; stroke: var(--line); }
+    .diagram .lane-band.alt { fill: #f0f2f5; }
+    .diagram .box { fill: var(--white); stroke: var(--line); }
+    .diagram .box.ours { fill: #eef4ff; stroke: var(--blue); }
+    .diagram .box.upstream { fill: #ffffff; stroke: #aeb5bd; }
+    .diagram .box-title { font-size: 13px; font-weight: 750; }
+    .diagram .box-sub { font-size: 10.5px; fill: var(--muted); font-family: ui-monospace, monospace; }
+    .diagram .edge { stroke: var(--blue); stroke-width: 1.8; fill: none; }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { padding: calc(10 * var(--u)) calc(12 * var(--u)); border-bottom: calc(1 * var(--u)) solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--white); background: var(--black); font-size: calc(14 * var(--u)); line-height: 1.15; }
+    td { font-size: calc(14.5 * var(--u)); line-height: 1.22; }
+    td:first-child { font-weight: 750; }
+    td code { font-size: calc(12.5 * var(--u)); }
+
+    .profile-row { display: grid; grid-template-columns: calc(120 * var(--u)) 1fr; gap: calc(14 * var(--u)); align-items: start; padding: calc(11 * var(--u)) 0; border-bottom: calc(1 * var(--u)) solid var(--line); }
+    .profile-row:last-child { border-bottom: 0; }
+    .profile-name { color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(15 * var(--u)); font-weight: 750; }
+    .profile-copy { color: var(--muted); font-size: calc(15 * var(--u)); }
+
+    .code-block { padding: calc(20 * var(--u)); background: var(--black); color: #edf1f5; font-family: ui-monospace, monospace; font-size: calc(14 * var(--u)); line-height: 1.6; white-space: pre-wrap; }
+    .code-blue { color: var(--cyan); }
+    .code-dim { color: #8a93a0; }
+
+    .takeaway { display: flex; flex-direction: column; justify-content: center; flex: 1; }
+    .takeaway h2 { max-width: calc(980 * var(--u)); font-size: calc(58 * var(--u)); }
+    .takeaway-points { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(36 * var(--u)); margin-top: calc(50 * var(--u)); }
+    .takeaway-points article { border-top: calc(3 * var(--u)) solid var(--blue); padding-top: calc(14 * var(--u)); }
+    .takeaway-points b { display: block; margin-bottom: calc(8 * var(--u)); color: var(--cyan); font-size: calc(14 * var(--u)); }
+    .takeaway-points p { color: #ced3d9; font-size: calc(16 * var(--u)); }
+
+    #controls {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateX(-50%);
+      opacity: .24;
+      transition: opacity .2s ease;
+    }
+    #controls:hover, #controls:focus-within { opacity: 1; }
+    #controls button, #counter {
+      min-width: 38px;
+      height: 32px;
+      border: 1px solid #ffffff42;
+      border-radius: 7px;
+      color: #fff;
+      background: #090a0ccc;
+      font-size: 13px;
+    }
+    #controls button { cursor: pointer; }
+    #counter { display: grid; place-items: center; min-width: 64px; padding: 0 10px; }
+
+    @page { size: 16in 9in; margin: 0; }
+    @media print {
+      html, body { width: auto; height: auto; overflow: visible; background: white; }
+      #deck { position: static; display: block; }
+      .slide, .slide.active { position: relative; display: flex; width: 16in; height: 9in; page-break-after: always; box-shadow: none; }
+      .slide:last-child { page-break-after: auto; }
+      #controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="deck" aria-live="polite">
+    <section class="slide dark active" data-page="01" aria-label="Title slide">
+      <div class="title-grid">
+        <div>
+          <p class="kicker">Midnight 2.x / Demo Stack</p>
+          <h1>midnight-2-offers, component by component</h1>
+          <p class="subtitle">One Docker Compose project where every lane of this work runs together. This deck walks the parts: what each one is, which repo it comes from, and how they connect.</p>
+        </div>
+        <div class="result-block">
+          <p class="result-label">The whole stack</p>
+          <div class="result-number">./up.sh --all</div>
+          <p class="result-copy">One command brings everything up and blocks until it is genuinely usable. One command wipes it. Everything is dev-only, on a throwaway local chain.</p>
+        </div>
+      </div>
+      <aside hidden>[Sources] README.md, quickstart and stack table</aside>
+    </section>
+
+    <section class="slide light" data-page="02" aria-label="Why the stack exists">
+      <p class="kicker">Why it exists</p>
+      <h2>The testing module for all of these projects</h2>
+      <div class="rule"></div>
+      <div class="cols">
+        <article class="card">
+          <h3>The problem</h3>
+          <p class="muted" style="margin-top:calc(12 * var(--u))">Every demo needs the same groundwork: a local Midnight chain, an indexer, a proof server, and wallets already holding NIGHT and DUST. Each demo was rebuilding that from scratch, and each one got it slightly wrong in its own way.</p>
+        </article>
+        <article class="card blue">
+          <h3>The answer</h3>
+          <p class="muted" style="margin-top:calc(12 * var(--u))">Publish the groundwork once, then run every project on top of it as an opt-in profile. Each component is pinned to an exact repo and ref, so when a project changes, this stack is where the change is exercised against everything else.</p>
+        </article>
+      </div>
+      <p class="callout">A profile is a compose fragment: <code>core</code> always, then <code>evm</code>, <code>offerfiles</code>, <code>solver</code>, <code>frontend</code>, <code>aa</code> as needed.</p>
+      <aside hidden>[Sources] README.md, "The stack"; compose/ profile fragments</aside>
+    </section>
+
+    <section class="slide" data-page="03" aria-label="Architecture diagram of the whole stack">
+      <p class="kicker">The map</p>
+      <h2>Four layers, one compose network</h2>
+      <div class="rule"></div>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1120 470" role="img" aria-label="Layered architecture: browser layer with console, swap frontend and injected wallets; service layer with umbra-evm, kernel, batcher and solver; infrastructure layer with PostgreSQL, Celestia and proof servers; blockchain layer with the Midnight node and indexer">
+          <g>
+            <rect class="lane-band" x="14" y="14" width="1092" height="104"/>
+            <rect class="lane-band alt" x="14" y="126" width="1092" height="104"/>
+            <rect class="lane-band" x="14" y="238" width="1092" height="104"/>
+            <rect class="lane-band alt" x="14" y="350" width="1092" height="104"/>
+            <text class="lane-label" x="28" y="36">BROWSER</text>
+            <text class="lane-label" x="28" y="148">DAPPS &amp; SERVICES</text>
+            <text class="lane-label" x="28" y="260">INFRASTRUCTURE</text>
+            <text class="lane-label" x="28" y="372">BLOCKCHAIN</text>
+          </g>
+          <g>
+            <rect class="box ours" x="150" y="40" width="220" height="60" rx="6"/>
+            <text class="box-title" x="260" y="65" text-anchor="middle">AA web console</text>
+            <text class="box-sub" x="260" y="84" text-anchor="middle">:10700 · this repo</text>
+            <rect class="box ours" x="400" y="40" width="200" height="60" rx="6"/>
+            <text class="box-title" x="500" y="65" text-anchor="middle">zswap-da frontend</text>
+            <text class="box-sub" x="500" y="84" text-anchor="middle">:10600 · effectstream template</text>
+            <rect class="box ours" x="630" y="40" width="190" height="60" rx="6"/>
+            <text class="box-title" x="725" y="65" text-anchor="middle">web-memo (embedded)</text>
+            <text class="box-sub" x="725" y="84" text-anchor="middle">acedward/web-memo</text>
+            <rect class="box upstream" x="850" y="40" width="230" height="60" rx="6"/>
+            <text class="box-title" x="965" y="65" text-anchor="middle">Injected EVM wallets · Lace</text>
+            <text class="box-sub" x="965" y="84" text-anchor="middle">MetaMask, Rabby · mnemonic import</text>
+          </g>
+          <g>
+            <rect class="box ours" x="150" y="152" width="180" height="60" rx="6"/>
+            <text class="box-title" x="240" y="177" text-anchor="middle">umbra-evm</text>
+            <text class="box-sub" x="240" y="196" text-anchor="middle">:8545 · acedward/UmbraDB</text>
+            <rect class="box ours" x="360" y="152" width="180" height="60" rx="6"/>
+            <text class="box-title" x="450" y="177" text-anchor="middle">Offer-files kernel</text>
+            <text class="box-sub" x="450" y="196" text-anchor="middle">:9999 · zswap-offerfiles-kernel</text>
+            <rect class="box ours" x="570" y="152" width="160" height="60" rx="6"/>
+            <text class="box-title" x="650" y="177" text-anchor="middle">Batcher</text>
+            <text class="box-sub" x="650" y="196" text-anchor="middle">:3334 · same repo</text>
+            <rect class="box ours" x="760" y="152" width="170" height="60" rx="6"/>
+            <text class="box-title" x="845" y="177" text-anchor="middle">COW solver + sink</text>
+            <text class="box-sub" x="845" y="196" text-anchor="middle">:10800 · observation mode</text>
+            <rect class="box ours" x="960" y="152" width="120" height="60" rx="6"/>
+            <text class="box-title" x="1020" y="177" text-anchor="middle">AA relay</text>
+            <text class="box-sub" x="1020" y="196" text-anchor="middle">console backend</text>
+          </g>
+          <g>
+            <rect class="box upstream" x="150" y="264" width="200" height="60" rx="6"/>
+            <text class="box-title" x="250" y="289" text-anchor="middle">PostgreSQL (shared)</text>
+            <text class="box-sub" x="250" y="308" text-anchor="middle">db offerfiles + db umbra</text>
+            <rect class="box upstream" x="380" y="264" width="200" height="60" rx="6"/>
+            <text class="box-title" x="480" y="289" text-anchor="middle">Celestia DA devnet</text>
+            <text class="box-sub" x="480" y="308" text-anchor="middle">:26658 · one container</text>
+            <rect class="box upstream" x="610" y="264" width="220" height="60" rx="6"/>
+            <text class="box-title" x="720" y="289" text-anchor="middle">Proof servers ×2</text>
+            <text class="box-sub" x="720" y="308" text-anchor="middle">:6300 · v6 keys + experimental</text>
+            <rect class="box upstream" x="860" y="264" width="220" height="60" rx="6"/>
+            <text class="box-title" x="970" y="289" text-anchor="middle">Wallet toolkit + funding</text>
+            <text class="box-sub" x="970" y="308" text-anchor="middle">fund-wallet.sh, verify.sh</text>
+          </g>
+          <g>
+            <rect class="box upstream" x="290" y="376" width="240" height="60" rx="6"/>
+            <text class="box-title" x="410" y="401" text-anchor="middle">Midnight node 2.0.0-rc.4</text>
+            <text class="box-sub" x="410" y="420" text-anchor="middle">:9944 · CFG_PRESET=dev</text>
+            <rect class="box upstream" x="580" y="376" width="240" height="60" rx="6"/>
+            <text class="box-title" x="700" y="401" text-anchor="middle">Indexer 4.4.0-rc.1</text>
+            <text class="box-sub" x="700" y="420" text-anchor="middle">:8088 · GraphQL v4</text>
+          </g>
+          <g>
+            <line class="edge" x1="260" y1="100" x2="1000" y2="152"/>
+            <line class="edge" x1="500" y1="100" x2="460" y2="152"/>
+            <line class="edge" x1="240" y1="212" x2="250" y2="264"/>
+            <line class="edge" x1="450" y1="212" x2="475" y2="264"/>
+            <line class="edge" x1="600" y1="212" x2="600" y2="376"/>
+            <line class="edge" x1="1015" y1="212" x2="730" y2="264"/>
+            <line class="edge" x1="530" y1="406" x2="580" y2="406"/>
+          </g>
+        </svg>
+      </div>
+      <p class="small muted" style="margin-top:calc(12 * var(--u))">Blue boxes are repos we manage; grey boxes are consumed upstream, unmodified. No service addresses another by a host port, so remapping ports cannot break the stack.</p>
+      <aside hidden>[Sources] README.md, stack table; console infrastructure tab</aside>
+    </section>
+
+    <section class="slide light" data-page="04" aria-label="The core profile">
+      <p class="kicker">Component / <code>core</code></p>
+      <h2>The chain everything else stands on</h2>
+      <div class="rule"></div>
+      <div class="cards-4">
+        <article class="card">
+          <h3>Midnight node</h3>
+          <p class="who">midnightntwrk (upstream)</p>
+          <p class="muted small">Image <code>2.0.0-rc.4</code>, dev preset, RPC on <code>:9944</code>. The throwaway local chain every component reads and writes.</p>
+        </article>
+        <article class="card">
+          <h3>Indexer</h3>
+          <p class="who">midnightntwrk (upstream)</p>
+          <p class="muted small">Standalone <code>4.4.0-rc.1</code>, GraphQL v4 on <code>:8088</code>. Wallets and services sync from it rather than from raw blocks.</p>
+        </article>
+        <article class="card">
+          <h3>Proof servers ×2</h3>
+          <p class="who">midnightntwrk (upstream)</p>
+          <p class="muted small">Two builds of <code>9.0.0-rc.5</code>: the plain one proves the kernel's v6 keys, the experimental one proves the AA profile's zkir keys.</p>
+        </article>
+        <article class="card blue">
+          <h3>PostgreSQL, shared</h3>
+          <p class="who">postgres:17 + pg_ivm</p>
+          <p class="muted small">One server for the whole stack: db <code>offerfiles</code> is the kernel's book, db <code>umbra</code> is the EVM index. Internal only.</p>
+        </article>
+      </div>
+      <p class="callout">The core profile is always on. Every other profile assumes it and only it.</p>
+      <aside hidden>[Sources] README.md, stack table rows: node, indexer, proof server, postgres</aside>
+    </section>
+
+    <section class="slide" data-page="05" aria-label="Wallets component">
+      <p class="kicker">Component / wallets</p>
+      <h2>Wallets that are already funded</h2>
+      <div class="rule"></div>
+      <div class="cols">
+        <div class="stack">
+          <article class="card">
+            <h3>The manifest</h3>
+            <p class="muted small" style="margin-top:calc(8 * var(--u))"><code>wallets/wallets.json</code> lists every wallet, its seed, and all address forms. Addresses derive from seed plus network id only, so they survive a full reset.</p>
+          </article>
+          <article class="card">
+            <h3>The roster</h3>
+            <p class="muted small" style="margin-top:calc(8 * var(--u))">Three genesis wallets funded from block zero (faucet, batcher, AA deploy) and three demo actors funded on demand by <code>fund-wallet.sh</code>. The console's relay and taker wallets fund themselves when the <code>aa</code> profile comes up.</p>
+          </article>
+        </div>
+        <div class="stack">
+          <article class="card blue">
+            <h3>Lace-importable</h3>
+            <p class="muted small" style="margin-top:calc(8 * var(--u))">Lace takes a mnemonic, never a hex seed, so the demo wallets use repeated-word phrases that can be typed straight into its import screen. One of them turns out to be Midnight's own test wallet, already funded at genesis.</p>
+          </article>
+          <article class="card amber-card">
+            <h3>Dev-only, deliberately public</h3>
+            <p class="muted small" style="margin-top:calc(8 * var(--u))">Every seed and mnemonic in the repo is public and controls value only on the local <code>undeployed</code> chain. Never reuse any of them anywhere else.</p>
+          </article>
+        </div>
+      </div>
+      <aside hidden>[Sources] README.md, "Wallets"; docs/WALLETS.md</aside>
+    </section>
+
+    <section class="slide light" data-page="06" aria-label="The EVM read facade">
+      <p class="kicker">Component / <code>evm</code></p>
+      <h2>umbra-evm: Midnight behind Ethereum's interfaces</h2>
+      <div class="rule"></div>
+      <div class="cols wide-left">
+        <div>
+          <p>A read-only <code>eth_*</code> JSON-RPC server over the chain, from the Umbra Indexer lane of this work. Ethereum tooling reads Midnight state without knowing it is Midnight: <code>eth_getLogs</code>, <code>eth_subscribe</code>, blocks and transactions, chainId <code>2400</code>.</p>
+          <ul class="clean">
+            <li>HTTP on <code>:8545</code>, WebSocket subscriptions on <code>:10021</code>.</li>
+            <li>Indexes into the shared PostgreSQL (db <code>umbra</code>).</li>
+            <li>Read-only by design: it can never sign or submit.</li>
+          </ul>
+        </div>
+        <article class="card blue">
+          <h3>Which repo</h3>
+          <p class="who">acedward/UmbraDB</p>
+          <p class="muted small">Built from the JSON-RPC branch; the work lives in its own PR on that repo. The console's infrastructure tab probes it like every other component.</p>
+        </article>
+      </div>
+      <aside hidden>[Sources] README.md, stack table row umbra-evm; docs/COMPONENTS.md</aside>
+    </section>
+
+    <section class="slide" data-page="07" aria-label="The offer files lane">
+      <p class="kicker">Component / <code>offerfiles</code></p>
+      <h2>The offer-files lane, split into real services</h2>
+      <div class="rule"></div>
+      <div class="grow">
+        <div class="profile-row"><div class="profile-name">celestia</div><div class="profile-copy">A one-container Celestia devnet: the shared DA namespace offers are published to, with a token script for its JSON-RPC on <code>:26658</code>.</div></div>
+        <div class="profile-row"><div class="profile-name">offerfiles-deploy</div><div class="profile-copy">A one-shot container. The offer-files contract deploys exactly once per stack; the address persists in a volume across restarts.</div></div>
+        <div class="profile-row"><div class="profile-name">kernel</div><div class="profile-copy">The Effectstream sync node for the offer book, on <code>:9999</code>, migrated from ledger v8 to v9 so it runs against the 2.x chain. From effectstream/zswap-offerfiles-kernel.</div></div>
+        <div class="profile-row"><div class="profile-name">batcher</div><div class="profile-copy">Its own container on <code>:3334</code>, restarting independently of the kernel. It pays for and submits what users cannot.</div></div>
+      </div>
+      <p class="callout">The v9 migration is what unblocked this whole lane: before it, the kernel pinned ledger v8 and could not speak to a 2.x chain.</p>
+      <aside hidden>[Sources] README.md, stack table rows celestia, kernel, batcher; kernel PR #49</aside>
+    </section>
+
+    <section class="slide light" data-page="08" aria-label="Solver and frontend">
+      <p class="kicker">Components / <code>solver</code> + <code>frontend</code></p>
+      <h2>The two faces of the offer book</h2>
+      <div class="rule"></div>
+      <div class="cols">
+        <article class="card">
+          <span class="pill blue-pill">solver</span>
+          <h3 style="margin-top:calc(16 * var(--u))">COW solver, observation mode</h3>
+          <p class="muted small" style="margin-top:calc(10 * var(--u))">The coincidence-of-wants solver from the Intent Solver lane, ported to ledger v9, watching the book and serving a live feed page on <code>:10800</code> with a relay WebSocket beside it. The Midnight Intents relay it can answer is pinned but not run here; in this stack the solver observes.</p>
+          <p class="who" style="margin-top:calc(12 * var(--u))">zswap-offerfiles-kernel, solver branch</p>
+        </article>
+        <article class="card">
+          <span class="pill blue-pill">frontend</span>
+          <h3 style="margin-top:calc(16 * var(--u))">zswap-da swap SPA</h3>
+          <p class="muted small" style="margin-top:calc(10 * var(--u))">The swap frontend on <code>:10600</code>: browse the book, build an offer, take an offer. A v9-migrated checkout of the Effectstream template, served static with the kernel as its backend.</p>
+          <p class="who" style="margin-top:calc(12 * var(--u))">effectstream templates/zswap-da</p>
+        </article>
+      </div>
+      <aside hidden>[Sources] README.md, stack table rows solver and frontend</aside>
+    </section>
+
+    <section class="slide" data-page="09" aria-label="The AA profile">
+      <p class="kicker">Component / <code>aa</code></p>
+      <h2>Account abstraction: contracts plus an overlay</h2>
+      <div class="rule"></div>
+      <div class="cols">
+        <div class="stack">
+          <article class="card">
+            <h3>Manager + Minter</h3>
+            <p class="who">acedward/AA-midnight-evm-experiment-v3</p>
+            <p class="muted small" style="margin-top:calc(8 * var(--u))">The account-abstraction contracts, sha-pinned to main. Deployed once per stack by a one-shot container; the receipt lands in a volume. Key-breaking merges upstream mean a redeploy here, never a silent drift.</p>
+          </article>
+          <article class="card">
+            <h3>Its own proof server</h3>
+            <p class="who">midnightntwrk (upstream, experimental build)</p>
+            <p class="muted small" style="margin-top:calc(8 * var(--u))">The AA circuits prove through the experimental proof-server build, internal-only, separate from the kernel's.</p>
+          </article>
+        </div>
+        <article class="card green-card">
+          <h3>The k=18 overlay, opt-in</h3>
+          <p class="who">acedward/AA-midnight-evm-experiment-minocrab</p>
+          <p class="muted small" style="margin-top:calc(8 * var(--u))">Set one variable and the headline <code>execute</code> circuit proves with the MinoCrab port's half-size key: 544 MiB instead of 1.14 GiB, about twice as fast. Equivalence-tested against the reference compiler, unaudited, dev chains only. This stack is exactly where an artifact like that gets exercised before anyone trusts it further.</p>
+        </article>
+      </div>
+      <aside hidden>[Sources] README.md, stack table rows AA Manager and k=18 variation</aside>
+    </section>
+
+    <section class="slide light" data-page="10" aria-label="The web console">
+      <p class="kicker">Component / the console</p>
+      <h2>One page that ties every piece together</h2>
+      <div class="rule"></div>
+      <div class="cols wide-left">
+        <div>
+          <p>On <code>:10700</code>, built in this repo. The headline tab is the <b>Midnight-EVM [AA] Wallet</b>: connect any injected EVM wallet and the Manager's read surface executes immediately for that address. A registered account gets its balances and three operations: withdraw, transfer, and publish a real MIP-0005 offer to the kernel.</p>
+          <ul class="clean">
+            <li>The relay recovers the signer's key from each EIP-712 signature, proves <code>execute</code>, and submits: the browser never holds a Midnight key.</li>
+            <li>Shielded withdrawals go to any pasted <code>mn_shield-addr</code>; the address itself carries the recipient's keys.</li>
+            <li>An <b>AA infra</b> tab holds the plumbing: funding, faucet, mint-and-send, the accounts table.</li>
+          </ul>
+        </div>
+        <div class="stack">
+          <article class="card"><h3>The other tabs</h3>
+            <ul class="clean small">
+              <li>The offer book with the solver's live feed embedded.</li>
+              <li>An infrastructure canvas probing every component of this deck.</li>
+              <li>The memo web app, embedded.</li>
+              <li>A pin table of every repo in the stack.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+      <aside hidden>[Sources] README.md, "The web console"; docs/COMPONENTS.md</aside>
+    </section>
+
+    <section class="slide" data-page="11" aria-label="Which repo each part comes from">
+      <p class="kicker">The point of the pins</p>
+      <h2>Every component names its repo and ref</h2>
+      <div class="rule"></div>
+      <table aria-label="Components and their sources">
+        <thead><tr><th style="width:24%">Component</th><th style="width:34%">Source</th><th>Why it is here</th></tr></thead>
+        <tbody>
+          <tr><td>Node, indexer, proof servers</td><td><code>midnightntwrk/*</code> (upstream)</td><td>Consumed as released images, no changes of ours</td></tr>
+          <tr><td>umbra-evm</td><td><code>acedward/UmbraDB</code></td><td>The Umbra Indexer lane's EVM read facade</td></tr>
+          <tr><td>Kernel, batcher, solver</td><td><code>effectstream/zswap-offerfiles-kernel</code></td><td>The Offer Files and Intent Solver lanes, on ledger v9</td></tr>
+          <tr><td>Swap frontend</td><td><code>effectstream</code> templates</td><td>The zswap-da template, v9-migrated</td></tr>
+          <tr><td>AA contracts + console</td><td><code>acedward/AA-midnight-evm-experiment-v3</code></td><td>The Midnight &lt;&gt; EVM lane, sha-pinned</td></tr>
+          <tr><td>k=18 overlay</td><td><code>acedward/AA-midnight-evm-experiment-minocrab</code></td><td>The alternative-compiler port, as an opt-in artifact</td></tr>
+          <tr><td>Memos tab</td><td><code>acedward/web-memo</code></td><td>The Proved Messages lane, embedded live</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted" style="margin-top:calc(14 * var(--u))">A change in any lane lands here as a ref bump, and the stack is where it meets every other lane before anyone calls it done.</p>
+      <aside hidden>[Sources] README.md, stack table; console Repos tab</aside>
+    </section>
+
+    <section class="slide light" data-page="12" aria-label="Operating the stack">
+      <p class="kicker">Operations</p>
+      <h2>Up, verify, reset, twice per machine</h2>
+      <div class="rule"></div>
+      <div class="cols wide-right">
+        <pre class="code-block"><span class="code-dim"># everything, blocking until usable</span>
+./up.sh --all
+
+<span class="code-dim"># exactly core + the named profiles</span>
+./up.sh --converge --with aa
+
+<span class="code-dim"># health + wallets + every profile that is up</span>
+./verify.sh
+
+<span class="code-dim"># a second full stack beside the first</span>
+./scripts/pick-ports.sh &gt; .env.test
+ENV_FILE=.env.test ./up.sh --all
+
+<span class="code-dim"># stop but keep the chain / full reset</span>
+./down.sh
+./down.sh -v</pre>
+        <div class="stack">
+          <article class="card"><h3>Nothing dials a host port</h3><p class="muted small" style="margin-top:calc(8 * var(--u))">Every internal edge runs on the compose network, so remapping the published ports cannot break the stack. That is what makes two copies on one machine possible.</p></article>
+          <article class="card"><h3>Reset is a real reset</h3><p class="muted small" style="margin-top:calc(8 * var(--u))"><code>down.sh -v</code> wipes every chain-keyed volume; wallet addresses survive because they derive from seeds, and the contracts simply redeploy on the next up.</p></article>
+        </div>
+      </div>
+      <aside hidden>[Sources] README.md, quickstart and options; docs/OPERATIONS.md</aside>
+    </section>
+
+    <section class="slide dark" data-page="13" aria-label="Takeaway">
+      <div class="takeaway">
+        <p class="kicker">Takeaway</p>
+        <h2>One stack, every lane, every pin explicit. That is what makes it the testing module.</h2>
+        <div class="takeaway-points">
+          <article><b>01 / Groundwork once</b><p>Chain, indexer, proofs, funded wallets: solved once, reused by every demo.</p></article>
+          <article><b>02 / Projects as profiles</b><p>Each lane of this work is an opt-in compose profile pinned to an exact repo and ref.</p></article>
+          <article><b>03 / Integration is the test</b><p>A change anywhere lands as a ref bump and has to survive the whole stack, in one command.</p></article>
+        </div>
+      </div>
+      <aside hidden>[Sources] README.md</aside>
+    </section>
+  </main>
+
+  <nav id="controls" aria-label="Slide controls">
+    <button id="prev" type="button" aria-label="Previous slide">←</button>
+    <span id="counter" aria-live="polite">1 / 13</span>
+    <button id="next" type="button" aria-label="Next slide">→</button>
+  </nav>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const counter = document.getElementById('counter');
+      let index = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1) || 1) - 1));
+
+      const show = (next) => {
+        index = (next + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        counter.textContent = `${index + 1} / ${slides.length}`;
+        history.replaceState(null, '', `#${index + 1}`);
+      };
+
+      document.getElementById('prev').addEventListener('click', () => show(index - 1));
+      document.getElementById('next').addEventListener('click', () => show(index + 1));
+      addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' ', 'Spacebar'].includes(event.key)) { event.preventDefault(); show(index + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(index - 1); }
+        if (event.key === 'Home') { event.preventDefault(); show(0); }
+        if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+      });
+      addEventListener('hashchange', () => {
+        const requested = Number(location.hash.slice(1));
+        if (Number.isInteger(requested) && requested >= 1 && requested <= slides.length) show(requested - 1);
+      });
+      show(index);
+    })();
+  </script>
+</body>
+</html>
