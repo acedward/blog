@@ -1,14 +1,21 @@
-# acedward @ mnf: project briefs
+# acedward @ mnf: products and proofs of concept
 
-A single-page site that maintains briefs and links for the projects we are
-working on (and have worked on).
+A single-page site that lists the products and proofs of concept we build, one
+entry per product, each with a diagram, a video or image, one line, and the
+code behind it.
 
 - **Live:** https://blog.zkdojo.com/
 - **Published from:** the `main` branch of this repo, via GitHub Pages (custom domain set in `CNAME`).
-- **Source:** `index.html` (plain HTML + inline CSS, no build step), plus standalone
-  slide decks under `presentations/` (one self-contained HTML file each).
+- **Source:**
+  - `index.html`: the product index (plain HTML + inline CSS and JS, no build step).
+    All entries live in the `PUBLISHED`, `PROJECTS` and `OTHER` arrays in its script.
+  - `media/`: the screenshots, video posters, videos and PDFs the entries show.
+  - `presentations/`: standalone slide decks (one self-contained HTML file each).
+  - `updates.html`: the previous blog (weekly updates, timeline and presentations
+    view), kept as a frozen archive and linked from the footer. Do not add new
+    content to it.
 - **Workflow:** no branches. Commit directly to `main`. Every push to `main` publishes.
-- **Last updated:** the page must show a "last updated" timestamp. Update it whenever the content changes.
+- **Last updated:** the footer shows a "Last updated" date. Update it whenever the content changes.
 
 ## Style
 
@@ -16,98 +23,64 @@ working on (and have worked on).
 
 ## Writing entries
 
-Rules for what goes into a row, a note, or a timeline entry:
-
+- **One product per entry.** Normally one product = one repo or one branch
+  (many proofs of concept live on a branch of a shared repo). PRs, specs, decks
+  and follow-up work for the same product go into that entry's links, grouped
+  under headings, never into a new entry.
 - **Results, not process.** Internal workflow (spec approvals, plan reviews,
-  audits, governance gates, "awaiting approval") is not content. Write
-  "Created a spec for X", never "the spec for X was approved".
-- **No test evidence.** Do not cite check counts, pass/fail stats, "verified on
-  preprod", "CI green", "passes twice", or similar. Shipped work is assumed
-  tested; test detail adds no value to a reader.
-- **Lead with the key change.** Say the one thing that matters about the work.
-  Incidental cleanups (removed dead paths, refactors, harness fixes) do not
-  belong unless they are themselves the story.
-- **Never miss a new public repo or PR.** A newly published repo is usually the
-  most important entry of its week: it always gets a row (and a timeline entry)
-  even when other updates feel bigger. When updating, sweep every project for
-  new remotes before writing.
-- **Investigations, specs, and plans count as work.** Code is not the only
-  entry type: an investigation that surfaced findings, a written spec, or a new
-  plan belongs in the timeline (and gets a row when it stands alone), even with
-  no repo or PR to link yet. Frame it as its result: "Created a spec for X",
-  "Investigated X, found Y" — never as approval status or process.
+  audits, governance gates, "awaiting approval") is not content.
+- **No test evidence and no status labels.** Do not cite check counts, pass/fail
+  stats, "verified on preprod", "CI green", or merged/open/draft states.
+- **The line says what the product does,** in one or two sentences, for someone
+  who has never seen it.
+- **Never miss a new public repo.** When updating, sweep every project folder for
+  new remotes and decide which entry each belongs to (or whether it is a new product).
 
 ## Structure
 
-The page reads as a blog. A sticky sidebar on the left lists the sections and
-highlights the one in view. The page is organized by **section**. A section is
-usually a single project, but it can also be a **category** that groups related
-work (e.g. "Games", "Other Small Projects"). Each section has:
+The page has three sections, in this order:
 
-- a **title**
-- an optional **dependency line** (`p.deps`): "Depends on" and "Needed by", linking
-  to other project sections by anchor. Both directions of an edge are shown.
-- one or two paragraphs of **prose** explaining what the project is and why it
-  matters
-- a list of **rows** (`ul.work`)
+1. **Published POC**: apps that are live on stagenet. Each has an `app` URL
+   (the "Open app" button). The video or image comes first, then the diagram.
+2. **Projects**: one full-width row per product: diagram, then video or image.
+3. **Other projects and support**: smaller products and supporting work, in
+   compact rows about a third of the height of a project row (text on the left,
+   a small diagram and a small video or image on the right).
 
-Each **row** is a unit of work (a repo, a pull request, or something else),
-written as one line:
+Each entry is an object with:
 
-- **title**: linked to the PR or repo when there is one, plain text when there isn't
-- **note**: a muted clause with what it does and its status (e.g., "not merged, proof
-  of concept", "Open", "not started yet")
-- **links**: PR, Repo, and optionally Live and Slides, separated by `<span class="sep">·</span>`
+- `id`: anchor id (kebab-case)
+- `title`, and optional `sub` (a short qualifier such as "MIP-0018")
+- `line`: the one-line description
+- `flow`: the diagram, as alternating node and edge labels
+  (`['EVM wallet', 'signs', 'Passport account', ...]`), ideally 3 to 4 nodes;
+  `hl` is the index of the node to highlight (usually the product itself)
+- `media`: `{ kind: 'video', src, poster, cap }`, `{ kind: 'img', src, cap }` or
+  `{ kind: 'slides', pages, pdf, cap }`; leave it out when nothing exists yet and
+  the entry shows a placeholder
+- `links`: `[label, url]` pairs, with `grp('Heading')` to start a group.
+  Helpers: `repo()`, `branch()`, `pr()`, `live()`. A link whose label starts with
+  "Live" also shows a "Live" tag on the entry. Link a slide deck as
+  `['Slides', 'presentations/<deck>.html']`.
 
-There are no tags; status lives in the note.
+## Media
 
-## Slides
-
-Slide decks live in `presentations/` as self-contained HTML files, one per talk.
-A row links to one with a relative href (e.g. `presentations/nixnax.html`) labelled
-"Slides".
-
-The page also has a **Presentations view** (third button in the view bar, next to
-Consolidated and Timeline), driven by the inlined JSON block `data-presentations`
-in `index.html`. It renders a flat list sorted by date, never grouped by week.
-Every new deck gets an entry there in addition to its row link:
-
-- `id`: anchor id, prefixed `pres-` (e.g. `pres-nixnax`)
-- `date`: `YYYY-MM-DD`, the day the deck was published
-- `title`: the deck's name, linked to `href`
-- `text`: one line describing the presentation's own content (its slides), not the
-  project's status; the project story lives in the consolidated view
-- `href`: relative path to the deck file
-- `links`: explicit link list, at minimum `[{ "label": "Slides", "href": <deck> }]`;
-  the deck link is the most important part of the entry, so it appears both on the
-  title and here
-- `ref`: the related project, `{ "section": id }` or `{ "section": id, "row": id }`,
-  matching ids in `data-consolidated`; it renders as a link back to that section
-
-## Adding a row
-
-- Put the row under the **correct section**. If it fits an existing category, add it
-  there. If no section fits, add a new one with its own prose, and add it to the
-  sidebar list.
-- Keep notes short. A note may just explain status (e.g., "not merged, POC").
-- If the section prose should mention the new work, add a clause; don't restate the row.
-- Prose describes the section as a whole. In a category, the per-item detail belongs in
-  the row note, not the prose.
-- Update the "last updated" timestamp on the page.
-- Commit to `main`; it publishes automatically.
-
-## Example
-
-Project: **Umbra Indexer**
-Row: "Read from the node instead of the indexer", note "not merged, proof of concept",
-links PR #1 and Repo.
+- One video or image per entry; prefer a video when one exists.
+- Images: JPEG, about 1400 px wide. They are shown whole (fit) over a blurred
+  copy of themselves on a dark background, so any aspect ratio works.
+- Videos: 1080p H.264 with burned-in subtitles (they start muted), web
+  fast-start (`-movflags +faststart`), and a poster frame
+  (`<name>-poster.jpg`). Keep each file under about 15 MB: re-encode with
+  `-crf 23 -maxrate <kbps>` when the source copy is larger.
+- Look at every image and at frames from every video before adding it: no seed
+  phrases, private keys, credentials or personal names.
 
 ## Other
 
-Do never add personal names or personal tasks into the blog.
+Do never add personal names or personal tasks into the site.
 This is a public page for sharing my work.
 
 **Private projects.** If a project folder in the workspace contains a file named
-`.private`, skip that project entirely: none of its work gets a row, a timeline
-entry, or a mention anywhere on the page. When sweeping projects for updates,
-check for `.private` first and move on if it is present.
+`.private`, skip that project entirely: none of its work gets an entry, a link,
+or a mention anywhere on the page. When sweeping projects for updates, check for
+`.private` first and move on if it is present.

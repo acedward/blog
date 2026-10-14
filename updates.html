@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>acedward @ mnf</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14'/%3E%3C/svg%3E" />
+  <style>
+
+    :root {
+      --bg: #fbfbfa;
+      --fg: #1a1a1a;
+      --muted: #6b6b6b;
+      --line: #e6e6e3;
+      --accent: #3b5bdb;
+      --title-bg: #eeeeea;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f0f10;
+        --fg: #e8e8e6;
+        --muted: #9a9a97;
+        --line: #262628;
+        --accent: #8aa0ff;
+        --title-bg: #1e1e21;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 56px 24px 96px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 56px;
+      align-items: start;
+    }
+    main { min-width: 0; }
+
+    nav.toc {
+      position: sticky;
+      top: 40px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    nav.toc ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-left: 1px solid var(--line);
+    }
+    nav.toc li { margin: 0; }
+    nav.toc a {
+      display: block;
+      padding: 5px 0 5px 14px;
+      margin-left: -1px;
+      border-left: 1px solid transparent;
+      color: var(--muted);
+      text-decoration: none;
+    }
+    nav.toc a:hover { color: var(--fg); }
+    nav.toc a.active {
+      color: var(--fg);
+      border-left-color: var(--accent);
+      font-weight: 600;
+    }
+
+    @media (max-width: 780px) {
+      .layout { grid-template-columns: 1fr; gap: 8px; }
+      nav.toc { position: static; margin-bottom: 24px; }
+      nav.toc ol {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 14px;
+        border-left: 0;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 10px;
+      }
+      nav.toc a { padding: 2px 0; border-left: 0; margin-left: 0; }
+      nav.toc a.active { border-left: 0; }
+    }
+
+    header { margin-bottom: 8px; }
+    header h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+    header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .project {
+      scroll-margin-top: 24px;
+      margin-top: 52px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+    .project:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    .project h2 {
+      margin: 0 0 16px -12px;
+      padding: 7px 12px;
+      background: var(--title-bg);
+      border-radius: 6px;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      font-weight: 700;
+    }
+    .project p {
+      margin: 0 0 14px;
+    }
+    p.deps {
+      margin: -4px 0 16px;
+      font-size: 13.5px;
+      color: var(--muted);
+    }
+    p.deps a { color: var(--accent); text-decoration: none; }
+    p.deps a:hover { text-decoration: underline; }
+    .dep-label { text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; }
+    .project p:last-of-type { margin-bottom: 22px; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88em;
+      background: var(--line);
+      padding: 1px 4px;
+      border-radius: 4px;
+    }
+
+    ul.work {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--line);
+    }
+    ul.work li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    ul.work .title {
+      font-weight: 600;
+      color: var(--fg);
+      text-decoration: none;
+    }
+    a.title:hover { color: var(--accent); text-decoration: underline; }
+    ul.work .note {
+      color: var(--muted);
+    }
+    ul.work .links {
+      display: inline;
+      white-space: nowrap;
+    }
+    ul.work .links a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    ul.work .links a:hover { text-decoration: underline; }
+    .sep { color: var(--muted); }
+
+    footer {
+      margin-top: 72px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer a { color: var(--muted); }
+
+    /* ---- view toggle ---- */
+    .viewbar {
+      display: inline-flex;
+      gap: 4px;
+      margin-top: 16px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+    }
+    .viewbar button {
+      font: inherit;
+      font-size: 13px;
+      padding: 4px 14px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .viewbar button:hover { color: var(--fg); }
+    .viewbar button.active {
+      background: var(--title-bg);
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    /* ---- timeline view ---- */
+    .week {
+      scroll-margin-top: 24px;
+      margin-top: 52px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+    }
+    .week:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    .week h2 {
+      margin: 0 0 4px -12px;
+      padding: 7px 12px;
+      background: var(--title-bg);
+      border-radius: 6px;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+      font-weight: 700;
+    }
+    .week .count {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 13.5px;
+    }
+    .day h3 {
+      margin: 22px 0 0;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+    }
+    ul.entries {
+      list-style: none;
+      margin: 8px 0 0;
+      padding: 0;
+      border-top: 1px solid var(--line);
+    }
+    ul.entries li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    .kind {
+      display: inline-block;
+      min-width: 74px;
+      margin-right: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .kind[data-kind="shipped"], .kind[data-kind="published"] { color: var(--accent); }
+    .where { font-weight: 600; }
+    .where a { color: var(--fg); text-decoration: none; }
+    .where a:hover { color: var(--accent); text-decoration: underline; }
+    .entry-text {
+      margin: 2px 0 0 84px;
+      color: var(--muted);
+    }
+    @media (max-width: 780px) {
+      .kind { display: block; margin-bottom: 2px; }
+      .entry-text { margin-left: 0; }
+    }
+
+    /* ---- presentations view ---- */
+    #view-presentations .kind { min-width: 96px; }
+    #view-presentations .entry-text { margin-left: 106px; }
+    @media (max-width: 780px) {
+      #view-presentations .entry-text { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1 id="site-title"></h1>
+      <p id="site-tagline"></p>
+      <div class="viewbar">
+        <button type="button" data-view="consolidated">Consolidated</button>
+        <button type="button" data-view="timeline">Timeline</button>
+        <button type="button" data-view="presentations">Presentations</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="toc">
+        <ol id="toc"></ol>
+      </nav>
+      <main>
+        <div id="view-consolidated"></div>
+        <div id="view-timeline" hidden></div>
+        <div id="view-presentations" hidden></div>
+
+        <footer>
+          Last updated: <span id="updated"></span> · Published from <code>main</code> · <a href="https://github.com/acedward/blog">source</a>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <script type="application/json" id="data-consolidated">
+{
+  "site": {
+    "title": "acedward @ mnf",
+    "tagline": "What we're building, why, and where the code lives.",
+    "updated": "2026-08-31"
+  },
+  "sections": [
+    {
+      "id": "offer-files",
+      "title": "Offer Files",
+      "deps": {
+        "dependsOn": [
+          "effectstream-improvements",
+          "utxo-pinning",
+          "proved-messages"
+        ],
+        "neededBy": [
+          "intent-solver",
+          "demo-infra"
+        ]
+      },
+      "prose": [
+        "A DEX built on offer files: instead of orders living in a contract, they're published as files to a shared Celestia DA namespace, where anyone can read them and try to match them. The node implementation is the Effectstream kernel, fresh off a production-readiness push.",
+        "This needs two things to exist together: the code and the spec. So alongside the kernel, there are two Midnight improvement proposals, one that generalizes offer files to full proven transactions, and one that defines the shared DA namespace they get published to. Both are implemented and both need revision."
+      ],
+      "rows": [
+        {
+          "id": "zswap-offerfiles-kernel",
+          "title": "core: zswap-offerfiles-kernel",
+          "note": "Effectstream node implementation for a Midnight offer-files DEX through Celestia DA.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+        },
+        {
+          "id": "kernel-production-readiness",
+          "title": "Production readiness and unshielded offers",
+          "note": "exact-identity classification, one settlement one trade, offer hashes on lifecycle events, stored fill verdicts. PRs #43 to #46 merged, closing PR #47 open. Breaking.",
+          "links": [
+            {
+              "label": "PR #47",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/47"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/47"
+        },
+        {
+          "id": "mip-zswap-offer",
+          "title": "mip-zswap-offer: MIP implementation",
+          "note": "serialize, deserialize and validate zswap offers according to the proposed MIP specs.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/mip-zswap-offer"
+            }
+          ],
+          "href": "https://github.com/effectstream/mip-zswap-offer"
+        },
+        {
+          "id": "mip-0005",
+          "title": "MIP-0005: Generalize offer files to full proven transactions",
+          "note": "implemented, needs revision. Open.",
+          "links": [
+            {
+              "label": "PR #227",
+              "href": "https://github.com/midnightntwrk/midnight-improvement-proposals/pull/227"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/midnightntwrk/midnight-improvement-proposals"
+            }
+          ],
+          "href": "https://github.com/midnightntwrk/midnight-improvement-proposals/pull/227"
+        },
+        {
+          "id": "mip-0006",
+          "title": "MIP-0006: Publish swap offers to a shared DA namespace",
+          "note": "implemented, needs revision. Open.",
+          "links": [
+            {
+              "label": "PR #228",
+              "href": "https://github.com/midnightntwrk/midnight-improvement-proposals/pull/228"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/midnightntwrk/midnight-improvement-proposals"
+            }
+          ],
+          "href": "https://github.com/midnightntwrk/midnight-improvement-proposals/pull/228"
+        }
+      ]
+    },
+    {
+      "id": "umbra-indexer",
+      "title": "Umbra Indexer",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": [
+          "effectstream-improvements",
+          "midnight-evm"
+        ]
+      },
+      "prose": [
+        "UmbraDB is where Midnight chain data gets indexed and served. Most of the work here is about where the data actually comes from: the indexer sits between the node and everything downstream, so every assumption it makes about block format and sync behaviour eventually becomes someone else's bug.",
+        "Two directions so far. One is skipping the indexer entirely and reading straight from the node, which we built as a proof of concept to see what it costs. The other is keeping Umbra current with Midnight 2.x: a ledger-v9 decoder, archive sync fixes, and a wallet monitor. Beyond that, we still need to write down what a replacement indexer would actually have to do, and the JSON-RPC and <code>get_logs</code> interfaces still need a written spec."
+      ],
+      "rows": [
+        {
+          "id": "read-from-node",
+          "title": "Read from the node instead of the indexer",
+          "note": "complete and awaiting merge.",
+          "links": [
+            {
+              "label": "PR #1",
+              "href": "https://github.com/acedward/UmbraDB/pull/1"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/UmbraDB"
+            }
+          ],
+          "href": "https://github.com/acedward/UmbraDB/pull/1"
+        },
+        {
+          "id": "umbra-midnight-2",
+          "title": "Update Umbra + Midnight 2.+",
+          "note": "ledger-v9 decoder, archive sync fixes, wallet monitor plus <code>evm_rpc</code> schema, security-audit rounds. Open.",
+          "links": [
+            {
+              "label": "PR #2",
+              "href": "https://github.com/acedward/UmbraDB/pull/2"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/UmbraDB"
+            }
+          ],
+          "href": "https://github.com/acedward/UmbraDB/pull/2"
+        },
+        {
+          "id": "indexer-requirements",
+          "title": "Requirements for indexer replacement",
+          "note": "draft spec written.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/UmbraDB"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/umbra-indexer.html"
+            }
+          ]
+        },
+        {
+          "id": "jsonrpc-getlogs-mip",
+          "title": "JSON-RPC and get_logs MIP spec",
+          "note": "writing the interfaces down as a MIP. Not started yet.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/midnightntwrk/midnight-improvement-proposals"
+            }
+          ]
+        },
+        {
+          "id": "ledger-wasm-replay-exports",
+          "title": "Ledger WASM replay exports",
+          "note": "WASM exports so a JavaScript replay consumer matches the native ledger fold bit for bit, without crossing the JS number boundary; carried as a shareable draft PR on a fork.",
+          "links": [
+            {
+              "label": "PR #1",
+              "href": "https://github.com/acedward/midnight-ledger/pull/1"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-ledger"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-ledger/pull/1"
+        }
+      ]
+    },
+    {
+      "id": "midnight-evm",
+      "title": "Midnight <> EVM",
+      "deps": {
+        "dependsOn": [
+          "umbra-indexer"
+        ],
+        "neededBy": [
+          "demo-infra"
+        ]
+      },
+      "prose": [
+        "The EVM has a decade of tooling built around a small number of interfaces: <code>eth_getLogs</code>, <code>eth_subscribe</code>, JSON-RPC, accounts. If Midnight speaks those interfaces, that tooling works without anyone porting it.",
+        "So we're building the translation layer in pieces: an account abstraction experiment, a mapping from Midnight contract events onto EVM logs (with an ingester and backfill so historical queries work too), and an <code>eth_*</code> JSON-RPC server on top of UmbraDB. The second pass at account abstraction widens the aim: rather than supporting a wallet's <code>erc20.transfer(...)</code>, use EVM signatures to authorise generic trustless messaging. A third pass moves to Midnight 2.x and asks what a contract can custody: the answer so far is any token colour, even ones that did not exist when it was deployed."
+      ],
+      "rows": [
+        {
+          "id": "account-abstraction",
+          "title": "Account abstraction on Midnight",
+          "note": "an experiment bridging Midnight and the EVM.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/aa-contracts.html"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment"
+        },
+        {
+          "id": "umbradb-evm-logs",
+          "title": "umbradb-evm-logs: contract events as EVM logs",
+          "note": "event to log mapping, ingester, <code>eth_getLogs</code> / <code>eth_subscribe</code>, backfill. Open.",
+          "links": [
+            {
+              "label": "PR #4",
+              "href": "https://github.com/acedward/UmbraDB/pull/4"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/UmbraDB"
+            }
+          ],
+          "href": "https://github.com/acedward/UmbraDB/pull/4"
+        },
+        {
+          "id": "umbradb-evm-rpc",
+          "title": "umbradb-evm-rpc: eth_* JSON-RPC server",
+          "note": "JSON-RPC server and methods, one squashed commit. Open.",
+          "links": [
+            {
+              "label": "PR #3",
+              "href": "https://github.com/acedward/UmbraDB/pull/3"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/UmbraDB"
+            }
+          ],
+          "href": "https://github.com/acedward/UmbraDB/pull/3"
+        },
+        {
+          "id": "aa-version-2",
+          "title": "AA version 2",
+          "note": "drops support for wallet <code>erc20.transfer(...)</code> so that EVM signatures can authorise more generic trustless messaging. Blocked: Midnight 2.x gives a contract no supported way to authenticate its immediate caller, and a caller-context spec drafts the fix.",
+          "links": [
+            {
+              "label": "Slides",
+              "href": "presentations/aa-contracts.html"
+            }
+          ]
+        },
+        {
+          "id": "aa-v3-custody",
+          "title": "AA v3: contract token custody on Midnight 2.x",
+          "note": "three escalating experiments: contract-minted tokens moving freely between wallets and contract custody accounts (shielded and unshielded), one Manager custodying four colours at once with atomic two-colour moves, and open-colour custody of colours that did not exist when the custodian was deployed.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            },
+            {
+              "label": "Custody",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00003-contract-token-custody"
+            },
+            {
+              "label": "Multi-token",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00004-multi-token-custody"
+            },
+            {
+              "label": "Open-colour",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/tree/00005-open-colour-custody"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/aa-contracts.html"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-v4-unbalanced-zswap-offers",
+          "title": "AA v4: publishable unbalanced ZSwap offers",
+          "note": "measures five mitigation designs for contract-held coins. A two-phase escrow keeps the published offer off custody maps, stays guaranteed through the 16-cell test range, and settles from a file through an independent wallet. PR open.",
+          "links": [
+            {
+              "label": "PR #4",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/4"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/unbalanced-zswap-offers.html"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/4"
+        },
+        {
+          "id": "aa-minocrab-port",
+          "title": "Compiling the Manager with an alternative compiler",
+          "note": "all nine circuits of the AA Manager rewritten in MinoCrab, a Rust eDSL that emits Midnight ZKIR directly, each port checked to compute the same statement as the compactc artifact before measuring. The headline <code>execute</code> circuit drops from 382,770 rows to 211,028 and crosses down a proving-key size class; the saving is native byte reversal replacing per-byte explode-and-rebuild chains, so it applies to byte-heavy circuits, not whole contracts. The port also surfaced a defect the test suites could not see: three of <code>execute</code>'s seven actions had no provable run at all.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            },
+            {
+              "label": "MinoCrab",
+              "href": "https://github.com/sig-net/minocrab"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-execute-provability",
+          "title": "Restoring provability to the Manager's custody path",
+          "note": "a switched-off pool subtraction still computed its arithmetic, hashing a negative value into a coin commitment nothing could ever satisfy, so unshielded withdrawal and both internal transfers could never prove. The obvious fixes were refuted by measurement (the compiler folds a guarded clamp into a byte-identical circuit); the shipped repair clamps on a condition the compiler cannot fold, adds seven rows, and all three actions now produce real proofs. Breaking: <code>execute</code>'s keys regenerate. Merged.",
+          "links": [
+            {
+              "label": "PR #9",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/9"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/9"
+        },
+        {
+          "id": "aa-debit-fragment",
+          "title": "The fragment that was never there",
+          "note": "investigated a proof-server refusal that looked like 755 bytes of foreign material appended to every debit call. Nothing was being appended: the bytes are the debit's own execution record, the refusal is correct and specified, and the real cause is the same masked-branch underflow the provability fix repairs, so no workaround could ever have produced a proof. Reproducible with two files and two HTTP requests; also corrected seven wrong statements in the record it inherited.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-withdraw-effects",
+          "title": "One field apart",
+          "note": "with provability restored, withdrawals proved cleanly and were then refused by the node's effects check. Decoding both sides of the check showed the claimed payout and the real one differed in exactly one field: the recipient type's two arms were swapped, labelling a user's address as a contract's. The repair swaps the arms (the first withdrawal ever accepted landed with it) and refuses the three contract-recipient shapes the ledger cannot settle at these pins, before any proof is computed. Breaking: keys regenerate and a deployed Manager must be redeployed. Merged.",
+          "links": [
+            {
+              "label": "PR #10",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/10"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3/pull/10"
+        },
+        {
+          "id": "aa-prove-benchmark",
+          "title": "Measuring what the alternative compiler actually saves",
+          "note": "a row count is not a proving time, so both artifacts were keyed and proved through one pinned prover on identical preimages. The port proves the circuit in half the time (38.5s down to 19.3s), key generation falls 61.6%, and the proving key halves to 544 MB, the number that made this circuit a deployment risk. Proof size, public statement, and verifier key do not move, so nothing on-chain changes. Proving cost tracks the padded size class, not occupied rows: a row saving that does not cross a class boundary buys almost nothing.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-k18-rebuild",
+          "title": "The half-size key, rebuilt on the fixed contract",
+          "note": "the port rebuilt from the current tip with all three repairs, which let the equivalence gate run across all seven custody actions for the first time. The wider gate caught and fixed a payout-recipient bug in the port itself, confirmed by replaying an accepted run through the ledger's own virtual machine. The 544 MB proving key stands against the 1.14 GB original with about twenty percent of the smaller size class still unused, and the on-chain footprint is unchanged.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-v3"
+        },
+        {
+          "id": "aa-minocrab-repo",
+          "title": "AA-midnight-evm-experiment-minocrab: the port, published",
+          "note": "the Rust-eDSL port of the Manager as a standalone public repository anyone can clone and build: the compiler pinned as a git dependency to the exact commit every published number was measured with, nothing compiled committed, expected hashes published for everything regenerable, and the caveats at the top rather than the bottom (unaudited third-party compiler; equivalence tested, not proven). New public repo.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/AA-midnight-evm-experiment-minocrab"
+            }
+          ],
+          "href": "https://github.com/acedward/AA-midnight-evm-experiment-minocrab"
+        }
+      ]
+    },
+    {
+      "id": "demo-infra",
+      "title": "Midnight 2.x Demo Stack",
+      "deps": {
+        "dependsOn": [
+          "offer-files",
+          "midnight-evm",
+          "intent-solver",
+          "proved-messages"
+        ],
+        "neededBy": []
+      },
+      "prose": [
+        "Every demo we build needs the same thing underneath: a local Midnight chain, an indexer, a proof server, and wallets that already hold enough NIGHT and DUST to pay a fee. Each demo was rebuilding that from scratch, and each one got it slightly wrong in its own way. This is that groundwork published once, as a single Docker Compose project: one command brings the whole thing up and blocks until it is genuinely usable, and one command wipes it.",
+        "It has since become the place where all of this work runs together. On top of the Midnight 2.0.0-rc.4 core (with prefunded wallets, a funding CLI, Lace-importable mnemonics, and the read-only <code>eth_*</code> JSON-RPC view), opt-in profiles bring up the offer-files kernel and batcher over a local Celestia devnet, the COW solver, the swap frontend, the AA contracts, and a web console that ties every piece together, with the memo web app embedded and the half-size MinoCrab proving key available as an overlay. One shared PostgreSQL serves the whole stack, nothing addresses anything by a host port, and a second full copy runs beside the first on another port block."
+      ],
+      "rows": [
+        {
+          "id": "midnight-2-offers",
+          "title": "midnight-2-offers: one-command Midnight 2.x demo stack",
+          "note": "node 2.0.0-rc.4 with indexer and proof server, prefunded NIGHT and DUST wallets, a funding CLI, and a read-only <code>eth_*</code> JSON-RPC view of the chain. Runs on any free port block, so several copies coexist on one machine. Now the hub that concentrates all the work on this page: every other lane runs here as an opt-in profile. Slides walk the components one by one.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/midnight-2-offers.html"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-2-offers"
+        },
+        {
+          "id": "lace-importable-wallets",
+          "title": "Wallets you can import into Lace by typing one phrase",
+          "note": "Lace takes a mnemonic, never a hex seed, so the prefunded dev wallets were unreachable from its import screen. Three repeated-word phrases now cover it, and <code>abandon</code> x23 <code>diesel</code> turns out to be Midnight's own test wallet: it is already funded at genesis, so that import needs no funding step at all.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-2-offers"
+        },
+        {
+          "id": "demo-infra-offerfiles-profiles",
+          "title": "The offer-files lane, live on ledger v9",
+          "note": "the migration that unblocked these profiles is done: the kernel moved from ledger v8 to v9, split into deploy, kernel, and batcher as separate containers over a local Celestia devnet, with the COW solver running in observation mode beside them and a v9-migrated zswap-da swap frontend. The contract deploys once per stack and the address persists across restarts.",
+          "links": [
+            {
+              "label": "PR #49",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/49"
+            },
+            {
+              "label": "PR #50",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/50"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/49"
+        },
+        {
+          "id": "aa-wallet-console",
+          "title": "Midnight-EVM [AA] Wallet: the stack's web console",
+          "note": "a wallet-shaped product: connect any injected EVM wallet (MetaMask, Rabby) and the AA Manager's read surface executes immediately for that address. A registered account sees its balances as typed, balance-annotated token lists and gets three operations: withdraw, transfer, and publish a real MIP-0005 <code>swapoffer1&hellip;</code> to the kernel. Shielded withdrawals go to any pasted <code>mn_shield-addr&hellip;</code>; the relay recovers the signer's key from each EIP-712 signature, proves <code>execute</code> (with the half-size k=18 key as an opt-in overlay), and submits, so the browser never holds a Midnight key. The other tabs: the live offer book with the solver feed, an infrastructure canvas probing every component, the embedded memo app, and a pin table of every repo in the stack.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-2-offers"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-2-offers"
+        }
+      ]
+    },
+    {
+      "id": "effectstream-improvements",
+      "title": "Effectstream Improvements",
+      "deps": {
+        "dependsOn": [
+          "umbra-indexer"
+        ],
+        "neededBy": [
+          "offer-files"
+        ]
+      },
+      "prose": [
+        "Effectstream is the platform the rest of this work plugs into: chain sync, primitives, batchers, wallets, and starter templates. Adding a chain means teaching it that chain's primitives and how transactions get paid for there.",
+        "Improvements land wherever they're needed: infrastructure, support for a new chain, better Midnight support, a smaller starting template. None of it is one theme, so the list below is simply the current batch."
+      ],
+      "rows": [
+        {
+          "id": "effectstream-stagenet",
+          "title": "Effectstream on Midnight Stagenet",
+          "note": "an explicit Stagenet service profile in the Midnight environment, and a template contract deployed live on Stagenet and read back through the indexer. Profile merged.",
+          "links": [
+            {
+              "label": "PR #897",
+              "href": "https://github.com/effectstream/effectstream/pull/897"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/897"
+        },
+        {
+          "id": "runtime-shutdown",
+          "title": "Deterministic runtime shutdown",
+          "note": "the runtime releases everything it owns (HTTP port, telemetry, event broker, background tasks, database connections) on every exit path, including signals, startup failure, and cancellation mid-startup. Ports rebind immediately after shutdown, and cleanup errors keep their causal order instead of being swallowed. Merged.",
+          "links": [
+            {
+              "label": "PR #908",
+              "href": "https://github.com/effectstream/effectstream/pull/908"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/908"
+        },
+        {
+          "id": "start-from-latest",
+          "title": "Start from \"latest\"",
+          "note": "<code>startBlockHeight: \"latest\"</code> for the NTP and Midnight protocols: resolved once at first boot, persisted with provenance, and reused on every restart. Start-policy definitions live beside each sync protocol; the generic runtime only reconciles. Open.",
+          "links": [
+            {
+              "label": "PR #907",
+              "href": "https://github.com/effectstream/effectstream/pull/907"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/907"
+        },
+        {
+          "id": "single-page-template",
+          "title": "Project template: single page",
+          "note": "a literal one-file Bun example that watches a Midnight counter and serves basic HTML, since rebuilt on the current public APIs instead of a template-only facade. Open. Slides walk through what it does, how to run it, and the whole program.",
+          "links": [
+            {
+              "label": "PR #865",
+              "href": "https://github.com/effectstream/effectstream/pull/865"
+            },
+            {
+              "label": "PR #906",
+              "href": "https://github.com/effectstream/effectstream/pull/906"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/effectstream.html"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/865"
+        },
+        {
+          "id": "solana-support",
+          "title": "Solana support",
+          "note": "sync, primitives, gasless batcher, wallets and a starter template. Merged.",
+          "links": [
+            {
+              "label": "PR #815",
+              "href": "https://github.com/effectstream/effectstream/pull/815"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/815"
+        },
+        {
+          "id": "midnight-2-events",
+          "title": "Midnight 2.+ event support",
+          "note": "adds a stagenet v2 contract template. Open.",
+          "links": [
+            {
+              "label": "PR #860",
+              "href": "https://github.com/effectstream/effectstream/pull/860"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/860"
+        },
+        {
+          "id": "multi-batcher",
+          "title": "Multi batcher",
+          "note": "one batcher process can serve many products. Open.",
+          "links": [
+            {
+              "label": "PR #855",
+              "href": "https://github.com/effectstream/effectstream/pull/855"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/855"
+        },
+        {
+          "id": "batcher-sync-restore",
+          "title": "Batcher sync and restore",
+          "note": "a batcher rebuilds its dust state from the chain after a wipe and resumes paying fees. Merged into the multi-batcher branch.",
+          "links": [
+            {
+              "label": "PR #872",
+              "href": "https://github.com/effectstream/effectstream/pull/872"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/872"
+        },
+        {
+          "id": "batcher-request-tracking",
+          "title": "Batcher request tracking",
+          "note": "full request lifecycle tracking, four breaking changes. Open, stacks on the multi-batcher PR.",
+          "links": [
+            {
+              "label": "PR #873",
+              "href": "https://github.com/effectstream/effectstream/pull/873"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/873"
+        },
+        {
+          "id": "batcher-receipt-events-fix",
+          "title": "Batcher receipt and events fix",
+          "note": "two bugs found while building request tracking: a reverted single-input batch resolves its caller as success, and several lifecycle events never fire on the async path. Fix not started yet.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ]
+        },
+        {
+          "id": "effectstream-docker-image",
+          "title": "Effectstream Docker image",
+          "note": "versioned offline template runtime with system dependencies and binaries. Open.",
+          "links": [
+            {
+              "label": "PR #867",
+              "href": "https://github.com/effectstream/effectstream/pull/867"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/867"
+        },
+        {
+          "id": "faster-startup",
+          "title": "Faster startup on complex Midnight setups",
+          "note": "speeds up Night-Bitcoin wallet launch with a prefunded genesis. Open.",
+          "links": [
+            {
+              "label": "PR #857",
+              "href": "https://github.com/effectstream/effectstream/pull/857"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/857"
+        },
+        {
+          "id": "docs-for-midnight",
+          "title": "Docs for Midnight [DevRel Contribution]",
+          "note": "a contribution to someone else's project, not one of mine: two guides for the Midnight docs. The first indexes one contract's public state and serves it over HTTP, with no local stack to run. The second builds a DApp whose state lives on Midnight and an EVM chain at once, joined by a rollup rather than a bridge. Both open.",
+          "links": [
+            {
+              "label": "PR #1240",
+              "href": "https://github.com/midnightntwrk/midnight-docs/pull/1240"
+            },
+            {
+              "label": "PR #1241",
+              "href": "https://github.com/midnightntwrk/midnight-docs/pull/1241"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/midnightntwrk/midnight-docs/pull/1240"
+        }
+      ]
+    },
+    {
+      "id": "umbra-effectstream",
+      "title": "Umbra + Effectstream",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": []
+      },
+      "prose": [
+        "Effectstream has its own sync layer, and UmbraDB has the archives. Connecting the two means Effectstream can read Midnight primitives without running its own indexing stack.",
+        "The first primitive we went after is <code>UnshieldedCreate</code>, read from an unmodified Umbra archive, devnet only. That's as far as it goes for now: the rest is blocked until Umbra is extended to expose more data."
+      ],
+      "rows": [
+        {
+          "id": "unshielded-create-from-umbra",
+          "title": "Fetch Midnight Primitive [UnshieldedCreate] from UmbraDB",
+          "note": "devnet only, draft PR. Blocked on Umbra exposing more data.",
+          "links": [
+            {
+              "label": "PR #866",
+              "href": "https://github.com/effectstream/effectstream/pull/866"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/effectstream"
+            }
+          ],
+          "href": "https://github.com/effectstream/effectstream/pull/866"
+        }
+      ]
+    },
+    {
+      "id": "utxo-pinning",
+      "title": "UTXO Pinning",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": [
+          "offer-files"
+        ]
+      },
+      "prose": [
+        "Work on UTXO pinning, starting with a dust wallet experiment. It now works end to end in a real browser: a confirmed DUST-registered successor is protected from ordinary spending automatically, persists through reload, and spends only through an explicit override. The repo is unpublished and cannot be forked, so there's still nothing to link. The behaviour also needs a MIP of its own."
+      ],
+      "rows": [
+        {
+          "id": "dust-wallet-experiment",
+          "title": "Dust Wallet Experiment",
+          "note": "unpublished; core pinning, coin selection, lifecycle errors and browser integration done, presale-race integration in progress.",
+          "links": []
+        },
+        {
+          "id": "pinning-mip",
+          "title": "MIP Spec for Pinning",
+          "note": "a MIP describing how pinning should work.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/midnightntwrk/midnight-improvement-proposals"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "proved-messages",
+      "title": "Proved Messages in ZSwaps",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": [
+          "offer-files",
+          "demo-infra"
+        ]
+      },
+      "prose": [
+        "A ZSwap offer moves value but carries no message. A proved memo lets the holder verify that one input's spending secret authorized exact memo bytes for one exact offer, without exposing a public key or coin attributes.",
+        "There are now two implementation paths. The ledger and node path gives the memo consensus-level delivery through a versioned transition. The off-chain path keeps the offer bytes and every consensus surface unchanged by carrying the memo and its proof in a separate offer-file container. That avoids a hard fork, with one explicit trade-off: a relay can strip the container back to the original offer."
+      ],
+      "rows": [
+        {
+          "id": "zswap-offchain-attested-memos",
+          "title": "Off-chain attested offer-file memos",
+          "note": "standalone Midnight 2.x prototype with offline verification, frozen implementation vectors, a demo CLI, and unchanged settlement on unmodified nodes. Stripping remains possible. Local only.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/zswap-memo-attest"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/zswap-attested-memos.html"
+            }
+          ],
+          "href": "https://github.com/acedward/zswap-memo-attest"
+        },
+        {
+          "id": "midnight-ledger-zswap-memo",
+          "title": "midnight-ledger-zswap-memo",
+          "note": "ledger-side implementation, review PR.",
+          "links": [
+            {
+              "label": "PR #5",
+              "href": "https://github.com/acedward/midnight-ledger-zswap-memo/pull/5"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-ledger-zswap-memo"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-ledger-zswap-memo/pull/5"
+        },
+        {
+          "id": "midnight-node-zswap-memo",
+          "title": "midnight-node-zswap-memo",
+          "note": "node-side implementation, review PR.",
+          "links": [
+            {
+              "label": "PR #5",
+              "href": "https://github.com/acedward/midnight-node-zswap-memo/pull/5"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-node-zswap-memo"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-node-zswap-memo/pull/5"
+        },
+        {
+          "id": "spend-proof-memo-binding",
+          "title": "spend-proof-memo-binding: authenticated memos on unmodified nodes",
+          "note": "the canonical transaction is unchanged and old nodes accept it; a detached companion spend proof authenticates the memo with the input's own spending secret, no key revealed, and a zero-value output anchor leaves permanent on-chain evidence if the off-chain memo is stripped. Ships additive ledger helpers, a fixed legacy-v6 local WASM prover, and JS/WASM bindings; a candidate design for MIP-0006's authenticated messages without key leakage. PR open.",
+          "links": [
+            {
+              "label": "PR #2",
+              "href": "https://github.com/acedward/midnight-ledger/pull/2"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-ledger/tree/00003-spend-proof-memo-binding"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-ledger/pull/2"
+        },
+        {
+          "id": "web-memo",
+          "title": "web-memo: authenticated memos in the browser",
+          "note": "paste an offer file and its memo wrapper and the page says what the memo claims, which spend it is bound to, and which of six trust states applies: no network request, no key, no wallet, because the verifier key is compiled into the WASM bundle. The other half builds a real pair (mint, spend, memo committed to that spend) proved by a proof server you run yourself, anchored to a demo state so the offer can never settle. A stripped memo is visible as such, and a hostile memo renders as text and nothing else. New public repo.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/web-memo"
+            },
+            {
+              "label": "Live",
+              "href": "https://web-memo.pages.dev"
+            }
+          ],
+          "href": "https://web-memo.pages.dev"
+        },
+        {
+          "id": "zswap-memo-slides",
+          "title": "Why one memo field is a hard fork",
+          "note": "short deck: the one-slot mechanism, what ships where, and the coordinated activation.",
+          "links": [
+            {
+              "label": "Slides",
+              "href": "presentations/zswap-memos.html"
+            }
+          ],
+          "href": "presentations/zswap-memos.html"
+        }
+      ]
+    },
+    {
+      "id": "intent-solver",
+      "title": "Intent Solver COW",
+      "deps": {
+        "dependsOn": [
+          "offer-files"
+        ],
+        "neededBy": [
+          "demo-infra"
+        ]
+      },
+      "prose": [
+        "When two offers happen to want the opposite of each other, they can settle directly instead of going through a pool. Finding those coincidences of wants across the offer files is what the solver does. The current cut is a posted-price solver rebuilt on the kernel's current main, and it now also answers intents from the unmodified Midnight Intents relay, settling them on-chain from liquidity posted in the kernel."
+      ],
+      "rows": [
+        {
+          "id": "intent-solver",
+          "title": "Intent Solver COW",
+          "note": "the solver is now compatible with the Midnight Intents Phase 1 relay: it accepts any reference-valid demand at or below its advertised output and keeps the surplus, publishes only liquidity it can actually execute, and the whole stack (chain services, offer-files kernel, batcher, solver, unmodified relay) runs as separate Docker Compose components. An end-to-end run consumes an offer on the relay and settles it on-chain from a zswap posted in the kernel, including a lower-demand fill where the user receives exactly what they asked. PR open, supersedes PR #38.",
+          "links": [
+            {
+              "label": "PR #48",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/48"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zswap-offerfiles-kernel"
+            },
+            {
+              "label": "Relay",
+              "href": "https://github.com/shieldedtech/midnight-intents-swaps"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-offerfiles-kernel/pull/48"
+        },
+        {
+          "id": "cow-solver-slides",
+          "title": "How the COW solver works",
+          "note": "short deck, updated for the intents integration: offers as proved half-swaps, the Celestia to Midnight pipeline, answering intents from the Midnight Intents relay, and settlement as one balanced transaction.",
+          "links": [
+            {
+              "label": "Slides",
+              "href": "presentations/cow-solver.html"
+            }
+          ],
+          "href": "presentations/cow-solver.html"
+        }
+      ]
+    },
+    {
+      "id": "wasm",
+      "title": "Compile & Deploy Midnight Contracts (Web / WASM)",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": []
+      },
+      "prose": [
+        "Compiling a Compact contract normally means installing a toolchain first. Ship the compiler as WebAssembly and the browser becomes the toolchain: write, compile and deploy a Midnight contract from a tab, with nothing installed locally. There's a live demo."
+      ],
+      "rows": [
+        {
+          "id": "zkir-wasm-experiment",
+          "title": "zkir-wasm-experiment",
+          "note": "compile and deploy Midnight contracts in the browser (WASM).",
+          "links": [
+            {
+              "label": "Live",
+              "href": "https://compact-wasm.pages.dev/"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zkir-wasm-experiment"
+            }
+          ],
+          "href": "https://compact-wasm.pages.dev/"
+        },
+        {
+          "id": "merge-zkir-upstream",
+          "title": "Merge ZKIR fixes upstream",
+          "note": "the changes ZKIR needed to build for the browser should land upstream instead of living here.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zkir-wasm-experiment"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "games",
+      "title": "Games",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": []
+      },
+      "prose": [
+        "Games on Midnight, where the hard part is speed: a turn cannot afford to wait for a block. The pattern is to settle on chain at the start and at the end, and keep everything in between off it. Nix-Nax is the first one; more are coming."
+      ],
+      "rows": [
+        {
+          "id": "nix-nax",
+          "title": "nix-nax",
+          "note": "turns take a few milliseconds because only the initial and final settlement happen on chain. Published and playable. Slides cover the game, the Merkle commitment that makes settlement cheap, and the Compact contract published as a starting point for learning. An open tutorial builds that contract one circuit at a time, from game-ID state and witness identity to action tokens, chunked settlement and minting to the winner, ending with a full game against a local network.",
+          "links": [
+            {
+              "label": "Live",
+              "href": "https://nixnax.zkdojo.com/"
+            },
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/nix-nax"
+            },
+            {
+              "label": "Slides",
+              "href": "presentations/nixnax.html"
+            },
+            {
+              "label": "Tutorial (PR #16)",
+              "href": "https://github.com/effectstream/nix-nax/pull/16"
+            }
+          ],
+          "href": "https://nixnax.zkdojo.com/"
+        },
+        {
+          "id": "games-docs",
+          "title": "games docs",
+          "note": "learning Compact by building six games: Kachina (sponsored transactions), Dust to Dust (tradeable characters), BlockKart (racing leaderboards), Safe Solver (puzzles), Go Fish (trustless shuffling), and Werewolf (social deduction).",
+          "links": [
+            {
+              "label": "Live",
+              "href": "https://effectstream.github.io/docs/learn-compact-with-games"
+            }
+          ],
+          "href": "https://effectstream.github.io/docs/learn-compact-with-games"
+        }
+      ]
+    },
+    {
+      "id": "other",
+      "title": "Other Small Projects",
+      "deps": {
+        "dependsOn": [],
+        "neededBy": []
+      },
+      "prose": [
+        "Smaller builds that don't need a section of their own yet."
+      ],
+      "rows": [
+        {
+          "id": "shielded-night",
+          "title": "shielded-night",
+          "note": "shielded NIGHT for the offer-files DEX. Brief pending.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/shielded-night"
+            }
+          ],
+          "href": "https://github.com/effectstream/shielded-night"
+        },
+        {
+          "id": "zswap-presale",
+          "title": "zswap-presale",
+          "note": "an Effectstream template for a ZSwap presale on Midnight. A contract issues shielded tokens at a fixed price, buyers submit unbalanced ZSwap offers, and an intermediary batches them into a single <code>exchange</code> call per block. Holders can cancel until the sale locks.",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/effectstream/zswap-presale"
+            }
+          ],
+          "href": "https://github.com/effectstream/zswap-presale"
+        },
+        {
+          "id": "wallet-dust-utxo-example",
+          "title": "midnight-wallet-dust-utxo-example",
+          "note": "how fast can a single Midnight wallet build, prove and send transactions to a node?",
+          "links": [
+            {
+              "label": "Repo",
+              "href": "https://github.com/acedward/midnight-wallet-dust-utxo-example"
+            }
+          ],
+          "href": "https://github.com/acedward/midnight-wallet-dust-utxo-example"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+
+  <script type="application/json" id="data-timeline">
+{
+  "entries": [
+    {
+      "date": "2026-08-30",
+      "kind": "shipped",
+      "text": "Gave the Effectstream runtime deterministic resource boundaries: every exit path, including signals and cancellation mid-startup, releases the HTTP port, telemetry, event broker, background tasks, and database connections, so ports rebind immediately and cleanup errors keep their causal order.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "runtime-shutdown"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "kind": "shipped",
+      "text": "Effectstream reached Midnight Stagenet: an explicit Stagenet service profile merged, and a template contract deployed live on Stagenet and read back through the indexer.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "effectstream-stagenet"
+      }
+    },
+    {
+      "date": "2026-08-28",
+      "kind": "progress",
+      "text": "The COW solver now settles orders from the unmodified Midnight Intents relay: a full cross-stack run, with every service its own Docker Compose component, consumes an offer on the relay and settles it on-chain from a zswap posted in the kernel, the solver keeping the surplus on lower-demand fills.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "date": "2026-08-27",
+      "kind": "shipped",
+      "text": "The demo stack became the hub that concentrates all the work: the offer-files lane migrated to ledger v9 and running (kernel, batcher, Celestia, solver, swap frontend), and a wallet-shaped web console where any injected EVM wallet drives the AA Manager, proves execute with the half-size key as an overlay, and publishes real MIP-0005 offers to the kernel, with the memo app embedded.",
+      "ref": {
+        "section": "demo-infra",
+        "row": "aa-wallet-console"
+      }
+    },
+    {
+      "date": "2026-08-26",
+      "kind": "published",
+      "text": "A new public repo: the MinoCrab port of the AA Manager, standalone and buildable from a fresh clone. The same circuit one proving-key size class smaller (544 MB against 1.14 GB) and proving in half the time, with the compiler pinned to the measured commit and expected hashes published for everything regenerable.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-minocrab-repo"
+      }
+    },
+    {
+      "date": "2026-08-26",
+      "kind": "shipped",
+      "text": "Fixed the AA Manager's withdrawal at the node's effects check: the recipient type's two arms were swapped, labelling a user's address as a contract's, a claim no wallet recipient could ever satisfy. The first withdrawal ever accepted on chain landed with the fix.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-withdraw-effects"
+      }
+    },
+    {
+      "date": "2026-08-25",
+      "kind": "shipped",
+      "text": "Restored provability to the AA Manager's custody path: a switched-off pool subtraction was hashing negative values into coin commitments, leaving unshielded withdrawal and both internal transfers unable to prove at all. Seven rows repair it, holding the proving-key size class.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-execute-provability"
+      }
+    },
+    {
+      "date": "2026-08-25",
+      "kind": "published",
+      "text": "Published web-memo, a browser page that reads and writes authenticated Zswap memos with no key, no wallet, and no network request, and shows a stripped memo as stripped rather than as an absence. Live at web-memo.pages.dev.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "web-memo"
+      }
+    },
+    {
+      "date": "2026-08-25",
+      "kind": "progress",
+      "text": "Opened the spend-proof memo binding PR: authenticated memos on transactions unmodified nodes accept, a detached companion proof from the input's own spending secret, and a zero-value anchor that leaves on-chain evidence when a memo is stripped. A candidate design for MIP-0006.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "spend-proof-memo-binding"
+      }
+    },
+    {
+      "date": "2026-08-23",
+      "kind": "shipped",
+      "text": "Published the groundwork every Midnight demo needs, as one Docker Compose project: node 2.0.0-rc.4 with its indexer and proof server, wallets that already hold NIGHT and DUST, a CLI to fund more, mnemonics importable into Lace, and a read-only eth_* JSON-RPC view of the chain. One command up, one command gone, on any free port block.",
+      "ref": {
+        "section": "demo-infra",
+        "row": "midnight-2-offers"
+      }
+    },
+    {
+      "date": "2026-08-21",
+      "kind": "shipped",
+      "text": "Built a standalone Midnight 2.x prototype for attaching a spending-secret-authorized memo to an offer file without changing the offer or any consensus surface. The file verifies offline, settles through unmodified nodes, and documents stripping as the accepted trade-off.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "zswap-offchain-attested-memos"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "published",
+      "text": "Slide deck: Umbra as a Midnight indexer. Why replay is the hard part, how wallets sync, why replace the indexer instead of forking it, and a small-core scope.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "progress",
+      "text": "Pinning now works in a real browser: a confirmed DUST-registered successor is protected from ordinary spending, persists through reload, reports pinned and spendable balances with a clear blocked-funds error, and spends only through an explicit override. Presale-race integration is next.",
+      "ref": {
+        "section": "utxo-pinning",
+        "row": "dust-wallet-experiment"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "progress",
+      "text": "Production readiness wrapped: exact-identity classification, one settlement one trade, offer hashes on lifecycle events, and stored fill verdicts. PRs #43 to #46 merged; the closing PR #47 is open. Breaking.",
+      "ref": {
+        "section": "offer-files",
+        "row": "kernel-production-readiness"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "kind": "progress",
+      "text": "Open-colour custody: a custodian deployed before any minter exists custodies token colours it discovers as they arrive, including one issued by a contract deployed long after it, with no colour list, no allowlist and no admin, and only the owning account can spend.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v3-custody"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "Multi-token custody: one Manager contract holds four token colours at once, two shielded and two unshielded, keeps them fully isolated, and moves two of them in a single atomic transaction.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v3-custody"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "published",
+      "text": "A new public repo: contract token custody on Midnight 2.x. Tokens minted by a contract are held, sent, split, merged and re-spent across every combination of user wallets and contract custody accounts, shielded and unshielded, and end up equally spendable either way.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v3-custody"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "The solver was rebuilt on the kernel's current main under a fresh PR #48, now with an end-to-end acceptance harness. PR #38 is closed, superseded.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "Both review PRs now carry the breaking-change notice, and the memo version transition is implemented: activation logic, an encoding-differential corpus, and a pinned spec version. Wallet and SDK surface work has started.",
+      "ref": {
+        "section": "proved-messages"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "shipped",
+      "text": "A batcher can rebuild its dust state from the chain after a wipe, so a wiped or migrated batcher resumes paying fees on its own.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "batcher-sync-restore"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "Every batcher request is now tracked through its full lifecycle, with four breaking changes. Stacks on the multi-batcher PR.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "batcher-request-tracking"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "spec",
+      "text": "Building request tracking surfaced two pre-existing batcher bugs, now their own fix project: a single-input batch that the chain reverts still reports success to the waiting caller, and seven lifecycle events (including two error emissions) are never delivered on the async path. Created a spec covering both.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "batcher-receipt-events-fix"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "progress",
+      "text": "No longer a proof of concept: the node-ingest PR is complete, hardened over several review rounds, and awaits merge.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "read-from-node"
+      }
+    },
+    {
+      "date": "2026-08-18",
+      "kind": "spec",
+      "text": "Created a draft replacement spec: surface contract, walletless ingest and replay, projections and queries, confidential wallet processing, operations and cutover, and a Midnight 2.x upgrade.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "date": "2026-08-17",
+      "kind": "spec",
+      "text": "Created a spec and a draft fork PR for ledger WASM replay exports: block close, clamp and normalize stay inside Rust, so a JavaScript replay consumer reproduces the native ledger state byte for byte.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "ledger-wasm-replay-exports"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "kind": "blocked",
+      "text": "AA v2 is blocked: Midnight 2.x gives a Compact contract no supported way to authenticate its immediate caller. Created a spec for a sound caller-context predicate to fix exactly that; the work continues in a v3 repo built around contract custody.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-version-2"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "kind": "spec",
+      "text": "Created a spec for offer-file memo authenticity: a publisher or recipient can identify the maker's authorized memo unambiguously and reject relay injection, defined at the offer-file and discovery layer without imposing a one-memo rule on consensus.",
+      "ref": {
+        "section": "proved-messages"
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "kind": "spec",
+      "text": "Created the spec for generic account abstraction: EVM signatures authorising generic trustless messaging.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-version-2"
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "kind": "spec",
+      "text": "Created the posted-price solver spec and its end-to-end acceptance criteria.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "date": "2026-08-17",
+      "kind": "progress",
+      "text": "Tutorial in review: three pages that build the contract one circuit at a time, from game-ID state and witness identity to action tokens, chunked settlement and minting to the winner. A last page plays a full game against a local network.",
+      "ref": {
+        "section": "games",
+        "row": "nix-nax"
+      }
+    },
+    {
+      "date": "2026-08-17",
+      "kind": "progress",
+      "text": "Two guides opened against the Midnight docs: indexing one contract's public state over HTTP with no local stack, and a DApp whose state lives on Midnight and an EVM chain at once.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "docs-for-midnight"
+      }
+    },
+    {
+      "date": "2026-08-17",
+      "kind": "started",
+      "text": "How fast can a single Midnight wallet build, prove and send transactions to a node?",
+      "ref": {
+        "section": "other",
+        "row": "wallet-dust-utxo-example"
+      }
+    },
+    {
+      "date": "2026-08-16",
+      "kind": "published",
+      "text": "Slide deck: the game, the Merkle commitment that makes settlement cheap, and the Compact contract published as a starting point for learning.",
+      "ref": {
+        "section": "games",
+        "row": "nix-nax"
+      }
+    },
+    {
+      "date": "2026-08-16",
+      "kind": "published",
+      "text": "Slide deck on the single-page template: the whole program on one slide, how to run it, and when you outgrow it.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "single-page-template"
+      }
+    },
+    {
+      "date": "2026-08-16",
+      "kind": "reorg",
+      "text": "Games became a category of its own rather than a single project, with more than Nix-Nax coming.",
+      "ref": {
+        "section": "games"
+      }
+    },
+    {
+      "date": "2026-08-14",
+      "kind": "progress",
+      "text": "The page became a blog: prose per project, a sticky sidebar, and dependency lines between projects."
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "A DEX built on offer files, published to a shared Celestia DA namespace instead of living in a contract.",
+      "ref": {
+        "section": "offer-files",
+        "row": "zswap-offerfiles-kernel"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "spec",
+      "text": "MIP-0005 generalizes offer files to full proven transactions. Implemented, needs revision.",
+      "ref": {
+        "section": "offer-files",
+        "row": "mip-0005"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "spec",
+      "text": "MIP-0006 defines the shared DA namespace swap offers get published to. Implemented, needs revision.",
+      "ref": {
+        "section": "offer-files",
+        "row": "mip-0006"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Serialize, deserialize and validate zswap offers according to the proposed MIP specs.",
+      "ref": {
+        "section": "offer-files",
+        "row": "mip-zswap-offer"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Proof of concept reading data straight from the node instead of going through the indexer. Not merged.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "read-from-node"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Ledger-v9 decoder, archive sync fixes, wallet monitor plus evm_rpc schema, and security-audit rounds.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "umbra-midnight-2"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "Defining what a replacement for the indexer actually has to do.",
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Event to log mapping, ingester, eth_getLogs and eth_subscribe, backfill.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "umbradb-evm-logs"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "evm-rpc JSON-RPC server and methods.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "umbradb-evm-rpc"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "An account abstraction experiment bridging Midnight and the EVM.",
+      "ref": {
+        "section": "midnight-evm",
+        "row": "account-abstraction"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "One batcher process serving many products.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "multi-batcher"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "A stagenet v2 contract template: support for Midnight 2.x and events.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "midnight-2-events"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Versioned offline template runtime image with system dependencies and binaries.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "effectstream-docker-image"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "What is the smallest project we can share? A one-file Bun example that watches a Midnight counter and serves basic HTML.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "single-page-template"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Speeding up Night-Bitcoin wallet launch with a prefunded genesis.",
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "faster-startup"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "progress",
+      "text": "Reads UnshieldedCreate from an unmodified UmbraDB archive, devnet only. Draft.",
+      "ref": {
+        "section": "umbra-effectstream",
+        "row": "unshielded-create-from-umbra"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "Compiling and deploying Midnight contracts in the browser through WASM.",
+      "ref": {
+        "section": "wasm",
+        "row": "zkir-wasm-experiment"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "published",
+      "text": "A game on Midnight that is actually fast to play, published and playable.",
+      "ref": {
+        "section": "games",
+        "row": "nix-nax"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "Pinning UTXOs so a wallet can spend without waiting on chain state it does not control.",
+      "ref": {
+        "section": "utxo-pinning",
+        "row": "dust-wallet-experiment"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "Attaching proved messages, or memos, to ZSwap offers. Ledger side and node side.",
+      "ref": {
+        "section": "proved-messages",
+        "row": "midnight-ledger-zswap-memo"
+      }
+    },
+    {
+      "date": "2026-08-11",
+      "kind": "started",
+      "text": "Coincidence-of-wants intent solving over offer files.",
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    }
+  ]
+}
+  </script>
+
+  <script type="application/json" id="data-presentations">
+{
+  "entries": [
+    {
+      "id": "pres-midnight-2-offers",
+      "date": "2026-08-31",
+      "title": "midnight-2-offers, component by component",
+      "text": "The demo stack as our testing module: each component explained, which repo and ref it comes from, the layered architecture map, the wallets, the console, and how to run two stacks on one machine.",
+      "href": "presentations/midnight-2-offers.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/midnight-2-offers.html"
+        }
+      ],
+      "ref": {
+        "section": "demo-infra",
+        "row": "midnight-2-offers"
+      }
+    },
+    {
+      "id": "pres-unbalanced-zswap-offers",
+      "date": "2026-08-21",
+      "title": "Publishable unbalanced ZSwap offers at custody scale",
+      "text": "The maker-to-taker UML flow, the two-phase escrow contract, tamper-evident offer files, measured alternatives, trade-offs, and the fail-closed evidence path.",
+      "href": "presentations/unbalanced-zswap-offers.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/unbalanced-zswap-offers.html"
+        }
+      ],
+      "ref": {
+        "section": "midnight-evm",
+        "row": "aa-v4-unbalanced-zswap-offers"
+      }
+    },
+    {
+      "id": "pres-zswap-attested-memos",
+      "date": "2026-08-21",
+      "title": "Authenticated Memos Without a Hard Fork",
+      "text": "How an off-chain proof binds one input's spending secret to exact memo and offer bytes, how generation and verification work, what stays private, and why stripping remains the explicit trade-off.",
+      "href": "presentations/zswap-attested-memos.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/zswap-attested-memos.html"
+        }
+      ],
+      "ref": {
+        "section": "proved-messages",
+        "row": "zswap-offchain-attested-memos"
+      }
+    },
+    {
+      "id": "pres-demos",
+      "date": "2026-08-19",
+      "title": "Demos",
+      "text": "A page rather than a deck: what we could demo and how the pieces connect. The Offer Files backend holding the COW Solver, the frontend the user touches, and what each one depends on to run end to end.",
+      "href": "presentations/demos.html",
+      "links": [
+        {
+          "label": "Page",
+          "href": "presentations/demos.html"
+        }
+      ],
+      "ref": {
+        "section": "offer-files"
+      }
+    },
+    {
+      "id": "pres-aa-contracts",
+      "date": "2026-08-19",
+      "title": "AA v1, v2, v3: the contracts",
+      "text": "What each version's contracts can and cannot do: v1's exact-operation account contract, v2's generic dispatch and the missing caller primitive that blocks it, and v3's three custody Managers ending in open-colour custody.",
+      "href": "presentations/aa-contracts.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/aa-contracts.html"
+        }
+      ],
+      "ref": {
+        "section": "midnight-evm"
+      }
+    },
+    {
+      "id": "pres-cow-solver",
+      "date": "2026-08-19",
+      "title": "How the COW Solver Works",
+      "text": "Offer files as proved half-swaps, the pipeline from Celestia to Midnight, discovery and validation through one backend door, answering intents from the Midnight Intents relay, and why a broken solver can only do nothing.",
+      "href": "presentations/cow-solver.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/cow-solver.html"
+        }
+      ],
+      "ref": {
+        "section": "intent-solver",
+        "row": "intent-solver"
+      }
+    },
+    {
+      "id": "pres-zswap-memos",
+      "date": "2026-08-19",
+      "title": "Authenticated Messages in ZSwap",
+      "text": "The one-slot mechanism behind proved memos, why a one-field change is still a hard fork, the coordinated activation height, and which repos carry the change.",
+      "href": "presentations/zswap-memos.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/zswap-memos.html"
+        }
+      ],
+      "ref": {
+        "section": "proved-messages",
+        "row": "zswap-memo-slides"
+      }
+    },
+    {
+      "id": "pres-umbra-indexer",
+      "date": "2026-08-19",
+      "title": "Umbra as a Midnight Indexer",
+      "text": "What the indexer actually is, why replay is the hard part rather than the API, the two ways wallets sync, why replace the indexer instead of running or forking it, the measured gap, and a small-core scope. Verdict: GO.",
+      "href": "presentations/umbra-indexer.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/umbra-indexer.html"
+        }
+      ],
+      "ref": {
+        "section": "umbra-indexer",
+        "row": "indexer-requirements"
+      }
+    },
+    {
+      "id": "pres-nixnax",
+      "date": "2026-08-16",
+      "title": "Nix-Nax",
+      "text": "Why the game is fast, the NixNaxArena Compact contract, what trust costs, and the tutorial that builds the contract step by step.",
+      "href": "presentations/nixnax.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/nixnax.html"
+        }
+      ],
+      "ref": {
+        "section": "games",
+        "row": "nix-nax"
+      }
+    },
+    {
+      "id": "pres-effectstream",
+      "date": "2026-08-16",
+      "title": "Effectstream",
+      "text": "The single-page template: the whole program on one slide, how to run it, when you outgrow it, and where it landed in the Midnight docs.",
+      "href": "presentations/effectstream.html",
+      "links": [
+        {
+          "label": "Slides",
+          "href": "presentations/effectstream.html"
+        }
+      ],
+      "ref": {
+        "section": "effectstream-improvements",
+        "row": "single-page-template"
+      }
+    }
+  ]
+}
+  </script>
+
+  <script>
+
+    const DATA = JSON.parse(document.getElementById('data-consolidated').textContent);
+    const TIME = JSON.parse(document.getElementById('data-timeline').textContent);
+    const PRES = JSON.parse(document.getElementById('data-presentations').textContent);
+
+    const secById = new Map(DATA.sections.map(s => [s.id, s]));
+    const rowById = new Map();
+    for (const s of DATA.sections)
+      for (const r of s.rows) rowById.set(s.id + '/' + r.id, r);
+
+    const linksHtml = (links) => !links || !links.length ? '' :
+      ' <span class="links">' +
+      links.map(l => '<a href="' + l.href + '">' + l.label + '</a>').join('<span class="sep"> · </span>') +
+      '</span>';
+
+    /* ---------- consolidated ---------- */
+    function depsHtml(s) {
+      const on = (s.deps?.dependsOn || []).filter(id => secById.has(id));
+      const by = (s.deps?.neededBy  || []).filter(id => secById.has(id));
+      if (!on.length && !by.length) return '';
+      const link = id => '<a href="#' + id + '" data-goto="' + id + '">' + secById.get(id).title + '</a>';
+      const parts = [];
+      if (on.length) parts.push('<span class="dep-label">Depends on</span> ' + on.map(link).join(', '));
+      if (by.length) parts.push('<span class="dep-label">Needed by</span> ' + by.map(link).join(', '));
+      return '<p class="deps">' + parts.join(' <span class="sep">·</span> ') + '</p>';
+    }
+
+    function renderConsolidated() {
+      return DATA.sections.map(s => {
+        const rows = s.rows.map(r => {
+          const title = r.href
+            ? '<a class="title" href="' + r.href + '">' + r.title + '</a>'
+            : '<span class="title">' + r.title + '</span>';
+          const note = r.note ? '<span class="note">, ' + r.note + '</span>' : '';
+          return '<li>' + title + note + linksHtml(r.links) + '</li>';
+        }).join('');
+        return '<section class="project" id="' + s.id + '">' +
+               '<h2>' + s.title + '</h2>' + depsHtml(s) +
+               s.prose.map(p => '<p>' + p + '</p>').join('') +
+               '<ul class="work">' + rows + '</ul></section>';
+      }).join('');
+    }
+
+    /* ---------- timeline ---------- */
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const parseDate = (s) => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+
+    /* a reporting period runs up to and including the weekly update meeting.
+       MEETING_DAY: 0 = Sunday ... 3 = Wednesday. */
+    const MEETING_DAY = 3;
+    function periodStartOf(d) {
+      const t = new Date(d);
+      const back = (t.getDay() - (MEETING_DAY + 1) + 7) % 7;
+      t.setDate(t.getDate() - back);
+      return t;
+    }
+    const ymd = (d) => d.getFullYear() + '-' +
+      String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+
+    /* kinds kept in the data but not shown in the timeline */
+    const HIDDEN_KINDS = new Set(['reorg']);
+
+    function renderTimeline() {
+      const entries = [...TIME.entries]
+        .filter(e => !HIDDEN_KINDS.has(e.kind))
+        .sort((a,b) => b.date.localeCompare(a.date));
+      const weeks = new Map();
+      for (const e of entries) {
+        const key = ymd(periodStartOf(parseDate(e.date)));
+        if (!weeks.has(key)) weeks.set(key, new Map());
+        const days = weeks.get(key);
+        if (!days.has(e.date)) days.set(e.date, []);
+        days.get(e.date).push(e);
+      }
+
+      return [...weeks.entries()].map(([wk, days]) => {
+        const mon = parseDate(wk); /* period start (Thursday) */
+        const total = [...days.values()].reduce((n, a) => n + a.length, 0);
+        const body = [...days.entries()].map(([date, list]) => {
+          const d = parseDate(date);
+          const head = DAYS[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
+          const items = list.map(e => {
+            const ref = e.ref;
+            const sec = ref && secById.get(ref.section);
+            const row = ref && ref.row ? rowById.get(ref.section + '/' + ref.row) : null;
+            let where;
+            if (sec && row) {
+              where = '<a href="#' + sec.id + '" data-goto="' + sec.id + '">' + sec.title + '</a>' +
+                      '<span class="sep"> · </span>' +
+                      (row.href ? '<a href="' + row.href + '">' + row.title + '</a>' : row.title);
+            } else if (sec) {
+              where = '<a href="#' + sec.id + '" data-goto="' + sec.id + '">' + sec.title + '</a>';
+            } else if (ref) {
+              where = ref.section + (ref.row ? ' / ' + ref.row : '');
+            } else {
+              where = 'The site';
+            }
+            return '<li>' +
+              '<span class="kind" data-kind="' + (e.kind || '') + '">' + (e.kind || '') + '</span>' +
+              '<span class="where">' + where + '</span>' +
+              '<div class="entry-text">' + e.text + ' ' + (row ? linksHtml(row.links) : '') + '</div>' +
+            '</li>';
+          }).join('');
+          return '<div class="day"><h3>' + head + '</h3><ul class="entries">' + items + '</ul></div>';
+        }).join('');
+
+        const id = 'week-' + wk;
+        const end = new Date(mon); end.setDate(end.getDate() + 6);
+        const fmt = d => MONTHS[d.getMonth()] + ' ' + d.getDate();
+        const label = fmt(mon) + ' - ' + fmt(end);
+        return '<section class="week" id="' + id + '"><h2>' + label + '</h2>' +
+               '<p class="count">' + total + (total === 1 ? ' entry' : ' entries') + '</p>' +
+               body + '</section>';
+      }).join('');
+    }
+
+    /* ---------- presentations ---------- */
+    function renderPresentations() {
+      const items = [...PRES.entries]
+        .sort((a,b) => b.date.localeCompare(a.date))
+        .map(e => {
+          const d = parseDate(e.date);
+          const when = MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+          const sec = e.ref && secById.get(e.ref.section);
+          const proj = sec
+            ? '<span class="sep"> · </span><a href="#' + sec.id + '" data-goto="' + sec.id + '">' + sec.title + '</a>'
+            : '';
+          const title = e.href ? '<a href="' + e.href + '">' + e.title + '</a>' : e.title;
+          return '<li id="' + e.id + '">' +
+            '<span class="kind">' + when + '</span>' +
+            '<span class="where">' + title + proj + '</span>' +
+            (e.text ? '<div class="entry-text">' + e.text + linksHtml(e.links) + '</div>' : '') +
+          '</li>';
+        }).join('');
+      return '<section class="project" id="presentations-list"><h2>Presentations</h2>' +
+             '<ul class="entries">' + items + '</ul></section>';
+    }
+
+    function tocFor(view) {
+      if (view === 'presentations') {
+        return [...PRES.entries]
+          .sort((a,b) => b.date.localeCompare(a.date))
+          .map(e => '<li><a href="#' + e.id + '">' + e.title + '</a></li>').join('');
+      }
+      if (view === 'timeline') {
+        return [...document.querySelectorAll('#view-timeline .week')].map(w =>
+          '<li><a href="#' + w.id + '">' + w.querySelector('h2').textContent + '</a></li>').join('');
+      }
+      return DATA.sections.map(s => '<li><a href="#' + s.id + '">' + s.title + '</a></li>').join('');
+    }
+
+    /* ---------- wiring ---------- */
+    document.getElementById('site-title').textContent = DATA.site.title;
+    document.getElementById('site-tagline').textContent = DATA.site.tagline;
+    document.getElementById('updated').textContent = DATA.site.updated;
+    document.getElementById('view-consolidated').innerHTML = renderConsolidated();
+    document.getElementById('view-timeline').innerHTML = renderTimeline();
+    document.getElementById('view-presentations').innerHTML = renderPresentations();
+
+    let observer = null;
+    function spy(view) {
+      observer?.disconnect();
+      const links = [...document.querySelectorAll('nav.toc a')];
+      const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+      const seen = new Map();
+      observer = new IntersectionObserver(entries => {
+        for (const e of entries) seen.set(e.target.id, e);
+        let best = null;
+        for (const e of seen.values()) {
+          if (!e.isIntersecting) continue;
+          if (!best || e.boundingClientRect.top < best.boundingClientRect.top) best = e;
+        }
+        if (!best) return;
+        links.forEach(a => a.classList.remove('active'));
+        byId.get(best.target.id)?.classList.add('active');
+      }, { rootMargin: '-10% 0px -70% 0px' });
+      const sel = view === 'timeline' ? '#view-timeline .week'
+        : view === 'presentations' ? '#view-presentations ul.entries li'
+        : '#view-consolidated section.project';
+      document.querySelectorAll(sel).forEach(s => observer.observe(s));
+    }
+
+    function setView(view, remember = true) {
+      document.getElementById('view-consolidated').hidden = view !== 'consolidated';
+      document.getElementById('view-timeline').hidden = view !== 'timeline';
+      document.getElementById('view-presentations').hidden = view !== 'presentations';
+      document.querySelectorAll('.viewbar button').forEach(b =>
+        b.classList.toggle('active', b.dataset.view === view));
+      document.getElementById('toc').innerHTML = tocFor(view);
+      if (remember) try { localStorage.setItem('blog-view', view); } catch (e) {}
+      spy(view);
+    }
+
+    document.querySelectorAll('.viewbar button').forEach(b =>
+      b.addEventListener('click', () => setView(b.dataset.view)));
+
+    /* a section link inside the timeline jumps to it in the consolidated view */
+    document.addEventListener('click', (ev) => {
+      const a = ev.target.closest('a[data-goto]');
+      if (!a) return;
+      ev.preventDefault();
+      setView('consolidated');
+      document.getElementById(a.dataset.goto)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    let initial = 'consolidated';
+    try { initial = localStorage.getItem('blog-view') || 'consolidated'; } catch (e) {}
+    if (location.hash.startsWith('#week-')) initial = 'timeline';
+    if (location.hash.startsWith('#pres-')) initial = 'presentations';
+    setView(initial, false);
+    if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+  </script>
+</body>
+</html>
