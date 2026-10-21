@@ -106,6 +106,20 @@
       font-weight: 700;
     }
 
+    .mip-link {
+      display: block;
+      margin-top: calc(56 * var(--u));
+      padding-left: calc(18 * var(--u));
+      border-left: calc(3 * var(--u)) solid var(--cyan);
+      color: var(--cyan);
+      font-family: ui-monospace, monospace;
+      font-size: calc(19 * var(--u));
+      line-height: 1.5;
+      text-decoration: none;
+    }
+    .mip-link span { display: block; }
+    .mip-link span + span { color: #d7dce2; }
+
     /* 2. problem */
     .panes { display: grid; grid-template-columns: 1fr calc(70 * var(--u)) 1fr; align-items: center; flex: 1; min-height: 0; }
     .pane { padding: calc(28 * var(--u)) calc(30 * var(--u)); border: calc(1 * var(--u)) solid #ffffff2e; border-radius: calc(16 * var(--u)); }
@@ -677,6 +691,10 @@
       <div class="title-body">
         <h1>Thanks!</h1>
         <p class="title-sub" style="font-size:calc(38 * var(--u));margin-top:calc(30 * var(--u))">Questions?</p>
+        <a class="mip-link" href="https://github.com/midnightntwrk/midnight-improvement-proposals/blob/main/mips/mip-0018-on-chain-token-metadata.md" target="_blank" rel="noopener">
+          <span>github.com/midnightntwrk/midnight-improvement-proposals</span>
+          <span>mips/mip-0018-on-chain-token-metadata.md</span>
+        </a>
       </div>
     </section>
 
