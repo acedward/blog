@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="MIP-0018: on-chain token metadata. A contract publishes metadata for its own tokens as MIP-0002 events, so wallets and explorers can name a token with network calls alone.">
+  <title>MIP-0018: on-chain token metadata</title>
+  <style>
+    :root {
+      --black: #090a0c;
+      --ink: #111418;
+      --muted: #59636e;
+      --white: #ffffff;
+      --paper: #f7f8fa;
+      --line: #c9ced5;
+      --blue: #0000fe;
+      --cyan: #74d5f7;
+      --green: #158765;
+      --green-bg: #e4f5ef;
+      --amber: #a86400;
+      --amber-bg: #fff1d5;
+      --red: #b73b3b;
+      --red-bg: #fbe8e8;
+      --u: min(0.078125vw, 0.138889vh);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: #101318;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { background: #101318; }
+    button { font: inherit; }
+
+    #deck { position: fixed; inset: 0; display: grid; place-items: center; }
+    .slide {
+      position: absolute;
+      display: none;
+      width: calc(1280 * var(--u));
+      height: calc(720 * var(--u));
+      overflow: hidden;
+      padding: calc(48 * var(--u)) calc(70 * var(--u)) calc(58 * var(--u));
+      background: var(--white);
+      box-shadow: 0 calc(24 * var(--u)) calc(80 * var(--u)) #0008;
+    }
+    .slide.active { display: flex; flex-direction: column; }
+    .slide.dark { color: var(--white); background: var(--black); }
+    .slide.light { background: var(--paper); }
+    .slide::after {
+      content: attr(data-page);
+      position: absolute;
+      right: calc(70 * var(--u));
+      bottom: calc(22 * var(--u));
+      color: var(--muted);
+      font-size: calc(12 * var(--u));
+      font-weight: 700;
+    }
+    .slide.dark::after { color: #9da4ad; }
+    .slide::before {
+      content: "MIP-0018 / ON-CHAIN TOKEN METADATA";
+      position: absolute;
+      left: calc(70 * var(--u));
+      bottom: calc(22 * var(--u));
+      color: var(--muted);
+      font-size: calc(10 * var(--u));
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .slide.dark::before { color: #9da4ad; }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: calc(74 * var(--u)); line-height: .96; letter-spacing: -.045em; }
+    h2 { font-size: calc(44 * var(--u)); line-height: 1.02; letter-spacing: -.03em; }
+    h3 { font-size: calc(24 * var(--u)); line-height: 1.12; letter-spacing: -.015em; }
+    code, .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+
+    .kicker {
+      margin-bottom: calc(16 * var(--u));
+      color: var(--blue);
+      font-size: calc(13 * var(--u));
+      font-weight: 850;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .dark .kicker { color: var(--cyan); }
+    .grow { flex: 1 1 auto; min-height: 0; }
+    .muted { color: var(--muted); }
+    .dark .muted { color: #9da4ad; }
+    .small { font-size: calc(15 * var(--u)); }
+    .tiny { font-size: calc(12 * var(--u)); letter-spacing: .02em; }
+
+    /* 1. title */
+    .title-body { display: flex; flex-direction: column; justify-content: center; flex: 1; }
+    .title-sub { margin-top: calc(26 * var(--u)); color: #c6ccd3; font-size: calc(26 * var(--u)); }
+    .meta-row { display: flex; gap: calc(10 * var(--u)); margin-top: calc(52 * var(--u)); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: calc(30 * var(--u));
+      padding: 0 calc(14 * var(--u));
+      border: calc(1 * var(--u)) solid #ffffff3d;
+      border-radius: calc(16 * var(--u));
+      color: #d7dce2;
+      font-family: ui-monospace, monospace;
+      font-size: calc(13 * var(--u));
+      font-weight: 700;
+    }
+
+    /* 2. problem */
+    .panes { display: grid; grid-template-columns: 1fr calc(70 * var(--u)) 1fr; align-items: center; flex: 1; min-height: 0; }
+    .pane { padding: calc(28 * var(--u)) calc(30 * var(--u)); border: calc(1 * var(--u)) solid #ffffff2e; border-radius: calc(16 * var(--u)); }
+    .pane.empty { border-style: dashed; display: grid; place-items: center; min-height: calc(260 * var(--u)); }
+    .pane-label { margin-bottom: calc(22 * var(--u)); color: var(--cyan); font-family: ui-monospace, monospace; font-size: calc(13 * var(--u)); font-weight: 750; }
+    .hex { color: #ffffff; font-family: ui-monospace, monospace; font-size: calc(34 * var(--u)); line-height: 1.22; word-break: break-all; }
+    .unknowns { display: flex; gap: calc(22 * var(--u)); margin-top: calc(26 * var(--u)); color: #7d868f; font-family: ui-monospace, monospace; font-size: calc(19 * var(--u)); }
+    .or { color: #6a737c; font-size: calc(30 * var(--u)); font-weight: 800; text-align: center; }
+    .nothing { color: #6a737c; font-size: calc(56 * var(--u)); font-weight: 800; letter-spacing: -.03em; }
+
+    /* 3. dual proposal */
+    .dual { display: grid; grid-template-columns: 1fr calc(92 * var(--u)) 1fr; align-items: center; flex: 1; min-height: 0; }
+    .dual-box { padding: calc(40 * var(--u)) calc(34 * var(--u)); border: calc(2 * var(--u)) solid var(--cyan); border-radius: calc(18 * var(--u)); background: #111a2b; }
+    .dual-box h3 { font-size: calc(32 * var(--u)); }
+    .dual-box p { margin-top: calc(16 * var(--u)); color: #aeb6bf; font-size: calc(17 * var(--u)); }
+    .plus { color: var(--cyan); font-size: calc(64 * var(--u)); font-weight: 300; text-align: center; }
+
+    /* diagrams */
+    .diagram-wrap { display: flex; flex: 1; min-height: 0; margin: calc(12 * var(--u)) 0; }
+    .diagram { width: 100%; height: 100%; display: block; }
+    .diagram text { font-family: "Helvetica Neue", Arial, sans-serif; }
+    .diagram .box { fill: var(--white); stroke: var(--line); }
+    .diagram .box.ours { fill: #eef4ff; stroke: var(--blue); }
+    .diagram .box-title { fill: var(--ink); font-size: 15px; font-weight: 750; }
+    .diagram .box-sub { font-size: 11px; fill: var(--muted); font-family: ui-monospace, monospace; }
+    .diagram .edge { stroke: var(--blue); stroke-width: 2; fill: none; }
+    .diagram .edge-label { font-size: 11px; fill: var(--muted); font-family: ui-monospace, monospace; }
+
+    .line-note { margin-top: calc(10 * var(--u)); color: var(--blue); font-size: calc(21 * var(--u)); font-weight: 800; }
+    .dark .line-note { color: var(--cyan); }
+
+    /* 5. goals */
+    .goals { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(40 * var(--u)); flex: 1; align-content: center; }
+    .goal { border-top: calc(3 * var(--u)) solid var(--blue); padding-top: calc(20 * var(--u)); }
+    .goal b { display: block; color: var(--blue); font-size: calc(40 * var(--u)); line-height: 1; }
+    .goal h3 { margin: calc(16 * var(--u)) 0 calc(18 * var(--u)); }
+    .goal p { color: var(--muted); font-family: ui-monospace, monospace; font-size: calc(16 * var(--u)); line-height: 1.6; }
+
+    /* 6. why events */
+    .cards-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(20 * var(--u)); flex: 1; align-content: center; }
+    .card-dark {
+      display: grid;
+      align-content: center;
+      min-height: calc(190 * var(--u));
+      padding: calc(26 * var(--u));
+      border: calc(1 * var(--u)) solid #ffffff33;
+      border-radius: calc(16 * var(--u));
+      background: #13171d;
+      font-size: calc(26 * var(--u));
+      font-weight: 750;
+      line-height: 1.12;
+      letter-spacing: -.02em;
+    }
+    .strip {
+      margin-top: calc(26 * var(--u));
+      padding-top: calc(16 * var(--u));
+      border-top: calc(1 * var(--u)) solid var(--line);
+      color: var(--muted);
+      font-size: calc(17 * var(--u));
+    }
+    .dark .strip { border-top-color: #ffffff2e; color: #9da4ad; }
+
+    /* tables */
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { padding: calc(13 * var(--u)) calc(14 * var(--u)); border-bottom: calc(1 * var(--u)) solid var(--line); text-align: left; vertical-align: middle; }
+    th { color: var(--white); background: var(--black); font-size: calc(14 * var(--u)); font-weight: 750; }
+    td { font-size: calc(19 * var(--u)); }
+    td.k { font-family: ui-monospace, monospace; font-weight: 750; color: var(--blue); }
+    td.yes { color: var(--green); font-weight: 750; }
+    td.no { color: var(--red); font-weight: 750; }
+
+    .ex-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(18 * var(--u)); margin-top: calc(18 * var(--u)); }
+    .ex {
+      display: flex;
+      gap: calc(12 * var(--u));
+      align-items: baseline;
+      padding: calc(14 * var(--u)) calc(16 * var(--u));
+      border-left: calc(3 * var(--u)) solid var(--blue);
+      background: var(--white);
+    }
+    .ex b { color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(15 * var(--u)); white-space: nowrap; }
+    .ex span { color: var(--muted); font-size: calc(15 * var(--u)); }
+
+    /* 9 + 11 */
+    .two-lines { margin-top: calc(14 * var(--u)); }
+    .two-lines .q { color: var(--muted); font-family: ui-monospace, monospace; font-size: calc(17 * var(--u)); }
+    .two-lines .a { margin-top: calc(8 * var(--u)); font-family: ui-monospace, monospace; font-size: calc(32 * var(--u)); font-weight: 800; letter-spacing: -.02em; }
+
+    .stack-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(22 * var(--u)); }
+    .stack-card { padding: calc(22 * var(--u)); border: calc(1 * var(--u)) solid var(--line); border-radius: calc(14 * var(--u)) calc(14 * var(--u)) 0 0; background: var(--white); }
+    .stack-card b { display: block; margin-bottom: calc(14 * var(--u)); font-size: calc(21 * var(--u)); letter-spacing: -.01em; }
+    .stack-card p { color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(16 * var(--u)); line-height: 1.7; }
+    .base-bar {
+      display: grid;
+      place-items: center;
+      height: calc(74 * var(--u));
+      border: calc(2 * var(--u)) solid var(--blue);
+      background: #eef4ff;
+      color: var(--blue);
+      font-family: ui-monospace, monospace;
+      font-size: calc(22 * var(--u));
+      font-weight: 750;
+    }
+
+    /* 12 */
+    .elsewhere { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(22 * var(--u)); flex: 1; align-content: center; }
+    .elsewhere article { border-top: calc(3 * var(--u)) solid var(--ink); padding-top: calc(18 * var(--u)); }
+    .elsewhere b { display: block; margin-bottom: calc(14 * var(--u)); font-size: calc(24 * var(--u)); letter-spacing: -.02em; }
+    .elsewhere p { color: var(--muted); font-family: ui-monospace, monospace; font-size: calc(16 * var(--u)); line-height: 1.6; }
+
+    /* 13 */
+    .code-block {
+      padding: calc(30 * var(--u));
+      border-radius: calc(14 * var(--u));
+      background: #13171d;
+      color: #edf1f5;
+      font-family: ui-monospace, monospace;
+      font-size: calc(22 * var(--u));
+      line-height: 1.7;
+      white-space: pre;
+    }
+    .code-blue { color: var(--cyan); }
+    .tag-row { display: flex; gap: calc(16 * var(--u)); margin-top: calc(26 * var(--u)); }
+    .rule-tag {
+      padding: calc(12 * var(--u)) calc(18 * var(--u));
+      border-radius: calc(12 * var(--u));
+      background: #251519;
+      color: #ffb4b4;
+      font-family: ui-monospace, monospace;
+      font-size: calc(17 * var(--u));
+      font-weight: 700;
+    }
+
+    /* 14 */
+    .shape {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      margin-top: calc(14 * var(--u));
+      border: calc(1 * var(--u)) solid var(--line);
+      background: var(--white);
+      font-family: ui-monospace, monospace;
+      font-size: calc(15 * var(--u));
+      text-align: center;
+    }
+    .shape span { padding: calc(10 * var(--u)) 0; border-right: calc(1 * var(--u)) solid var(--line); }
+    .shape span:last-child { border-right: 0; }
+    .types { margin-top: calc(14 * var(--u)); color: var(--muted); font-family: ui-monospace, monospace; font-size: calc(15 * var(--u)); }
+    .hex-example {
+      margin-top: calc(14 * var(--u));
+      padding: calc(16 * var(--u)) calc(18 * var(--u));
+      background: var(--black);
+      color: #d7dce2;
+      font-family: ui-monospace, monospace;
+      font-size: calc(13.5 * var(--u));
+      line-height: 1.75;
+      white-space: pre;
+      overflow: hidden;
+    }
+    .hex-example b { color: var(--cyan); font-weight: 700; }
+    .cost { display: flex; flex-wrap: wrap; gap: calc(10 * var(--u)); margin-top: calc(16 * var(--u)); }
+    .cost .lbl { color: var(--red); font-size: calc(12 * var(--u)); font-weight: 850; letter-spacing: .09em; align-self: center; }
+    .cost span.c {
+      padding: calc(9 * var(--u)) calc(14 * var(--u));
+      border-radius: calc(12 * var(--u));
+      background: var(--red-bg);
+      color: #7d2b2b;
+      font-family: ui-monospace, monospace;
+      font-size: calc(15 * var(--u));
+      font-weight: 700;
+    }
+
+    #controls {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateX(-50%);
+      opacity: .24;
+      transition: opacity .2s ease;
+    }
+    #controls:hover, #controls:focus-within { opacity: 1; }
+    #controls button, #counter {
+      min-width: 38px;
+      height: 32px;
+      border: 1px solid #ffffff42;
+      border-radius: 7px;
+      color: #fff;
+      background: #090a0ccc;
+      font-size: 13px;
+    }
+    #controls button { cursor: pointer; }
+    #counter { display: grid; place-items: center; min-width: 64px; padding: 0 10px; }
+
+    @page { size: 16in 9in; margin: 0; }
+    @media print {
+      html, body { width: auto; height: auto; overflow: visible; background: white; }
+      #deck { position: static; display: block; }
+      .slide, .slide.active { position: relative; display: flex; width: 16in; height: 9in; page-break-after: always; box-shadow: none; }
+      .slide:last-child { page-break-after: auto; }
+      #controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="deck" aria-live="polite">
+
+    <section class="slide dark active" data-page="01" aria-label="Title">
+      <div class="title-body">
+        <p class="kicker">MIP-0018</p>
+        <h1>On-chain token<br>metadata</h1>
+        <p class="title-sub">Events for token metadata</p>
+        <div class="meta-row">
+          <span class="tag">Proposed</span>
+          <span class="tag">Standards</span>
+          <span class="tag">Requires MIP-0002</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="02" aria-label="What a wallet sees today">
+      <p class="kicker">Today</p>
+      <h2>A wallet sees this</h2>
+      <div class="panes">
+        <div class="pane">
+          <p class="pane-label">contract-issued UTXO</p>
+          <p class="hex">0x9f3c7a1e<br>...b204e1</p>
+        </div>
+        <p class="or">or</p>
+        <div class="pane empty">
+          <p class="pane-label" style="position:absolute;transform:translateY(calc(-96 * var(--u)))">contract token</p>
+          <p class="nothing">nothing</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="03" aria-label="A dual proposal">
+      <p class="kicker">MIP-0018</p>
+      <h2>A dual proposal</h2>
+      <div class="dual">
+        <div class="dual-box">
+          <h3>Token metadata fields</h3>
+          <p>what a token says about itself</p>
+        </div>
+        <p class="plus">+</p>
+        <div class="dual-box">
+          <h3>Transport</h3>
+          <p>how it says it, on chain</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="04" aria-label="What it does">
+      <h2>The contract says what its token is</h2>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1140 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A contract emits an event, an indexer reads it, a wallet shows the token">
+          <rect class="box ours" x="8" y="140" width="190" height="96" rx="12"/>
+          <text class="box-title" x="103" y="183" text-anchor="middle">contract</text>
+          <text class="box-sub" x="103" y="205" text-anchor="middle">the issuer</text>
+
+          <path class="edge" d="M198 188 H316" marker-end="url(#ar)"/>
+          <text class="edge-label" x="257" y="176" text-anchor="middle">emit</text>
+
+          <rect class="box ours" x="318" y="128" width="246" height="120" rx="12"/>
+          <text class="box-title" x="441" y="176" text-anchor="middle">event</text>
+          <text class="box-sub" x="441" y="200" text-anchor="middle">256 bytes</text>
+          <text class="box-sub" x="441" y="220" text-anchor="middle">name, symbol, decimals</text>
+
+          <path class="edge" d="M564 188 H682" marker-end="url(#ar)"/>
+
+          <rect class="box" x="684" y="140" width="178" height="96" rx="12"/>
+          <text class="box-title" x="773" y="183" text-anchor="middle">indexer</text>
+          <text class="box-sub" x="773" y="205" text-anchor="middle">network calls</text>
+
+          <path class="edge" d="M862 188 H944" marker-end="url(#ar)"/>
+
+          <rect class="box" x="946" y="110" width="186" height="156" rx="14"/>
+          <text class="box-sub" x="1039" y="292" text-anchor="middle" font-size="14">wallet</text>
+          <circle cx="988" cy="152" r="22" fill="#eef4ff" stroke="#0000fe"/>
+          <text x="988" y="158" text-anchor="middle" font-size="15" font-weight="750" fill="#0000fe">A</text>
+          <text class="box-title" x="1022" y="150" font-size="26">ACME</text>
+          <text class="box-sub" x="1022" y="172" font-size="13">6 decimals</text>
+          <rect x="968" y="196" width="142" height="46" rx="8" fill="#f0f2f5" stroke="#c9ced5"/>
+          <text class="box-sub" x="1039" y="224" text-anchor="middle" font-size="14">1234.56</text>
+
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000fe"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <p class="line-note">No protocol change</p>
+    </section>
+
+    <section class="slide light" data-page="05" aria-label="Goals">
+      <p class="kicker">Goals</p>
+      <div class="goals">
+        <article class="goal">
+          <b>1</b>
+          <h3>Good UI,<br>for humans (and robots)</h3>
+          <p>name, ticker, decimals, logo<br>from an indexer alone</p>
+        </article>
+        <article class="goal">
+          <b>2</b>
+          <h3>Safe</h3>
+          <p>authoritative<br>on chain</p>
+        </article>
+        <article class="goal">
+          <b>3</b>
+          <h3>A base for<br>other MIPs</h3>
+          <p>new keys, same transport</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="06" aria-label="Why events">
+      <h2>Why events</h2>
+      <div class="cards-4">
+        <div class="card-dark">Bound to its emitter</div>
+        <div class="card-dark">Append-only</div>
+        <div class="card-dark">Not consensus state</div>
+        <div class="card-dark">Ships today <span class="muted">(soon)</span></div>
+      </div>
+      <p class="strip">Getters need execution. Registries need registration.</p>
+    </section>
+
+    <section class="slide light" data-page="07" aria-label="One asset, three forms">
+      <h2>One asset, three forms</h2>
+      <div class="grow" style="margin-top:calc(26 * var(--u))">
+        <table>
+          <thead>
+            <tr><th style="width:12%"><code>kind</code></th><th>representation</th><th style="width:18%">color</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="k">1</td><td>shielded UTXO</td><td class="yes">yes</td></tr>
+            <tr><td class="k">2</td><td>unshielded UTXO</td><td class="yes">yes</td></tr>
+            <tr><td class="k">3</td><td>contract token</td><td class="no">no</td></tr>
+          </tbody>
+        </table>
+        <p class="line-note">Each form is described on its own</p>
+        <p class="kicker" style="margin-top:calc(24 * var(--u));margin-bottom:0">Example</p>
+        <div class="ex-row">
+          <div class="ex"><b>1 &middot; MIP-0011</b><span>native shielded token</span></div>
+          <div class="ex"><b>2 &middot; MIP-0014</b><span>native unshielded token</span></div>
+          <div class="ex"><b>3 &middot; MIP-0004</b><span>fungible token, converts to UTXOs</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="08" aria-label="What metadata attaches to">
+      <h2>What metadata attaches to</h2>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1140 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Metadata is keyed by network, contract address, domainSep and kind">
+          <rect x="130" y="56" width="340" height="40" rx="10" fill="#1b2433" stroke="#74d5f7"/>
+          <text x="300" y="82" text-anchor="middle" font-size="15" font-weight="750" fill="#74d5f7" font-family="ui-monospace, monospace">from the event, never the payload</text>
+          <path d="M300 96 V140" stroke="#74d5f7" stroke-width="2"/>
+
+          <rect x="8" y="140" width="250" height="92" fill="#13171d" stroke="#5d666f"/>
+          <text x="133" y="194" text-anchor="middle" font-size="22" font-weight="750" fill="#ffffff" font-family="ui-monospace, monospace">network</text>
+
+          <rect x="258" y="140" width="330" height="92" fill="#13171d" stroke="#74d5f7"/>
+          <text x="423" y="194" text-anchor="middle" font-size="22" font-weight="750" fill="#74d5f7" font-family="ui-monospace, monospace">contractAddress</text>
+
+          <rect x="588" y="140" width="300" height="92" fill="#13171d" stroke="#5d666f"/>
+          <text x="738" y="194" text-anchor="middle" font-size="22" font-weight="750" fill="#ffffff" font-family="ui-monospace, monospace">domainSep</text>
+
+          <rect x="888" y="140" width="244" height="92" fill="#13171d" stroke="#5d666f"/>
+          <text x="1010" y="194" text-anchor="middle" font-size="22" font-weight="750" fill="#ffffff" font-family="ui-monospace, monospace">kind</text>
+
+          <path d="M738 232 V282" stroke="#5d666f" stroke-width="2"/>
+          <text x="738" y="310" text-anchor="middle" font-size="17" fill="#c6ccd3">one contract, many tokens</text>
+
+          <path d="M1010 232 V282" stroke="#5d666f" stroke-width="2"/>
+          <text x="1010" y="310" text-anchor="middle" font-size="17" fill="#c6ccd3">one token, many forms</text>
+        </svg>
+      </div>
+      <p class="small muted" style="text-align:right">people group them by symbol &rarr;</p>
+    </section>
+
+    <section class="slide light" data-page="09" aria-label="What a person sees">
+      <h2>What a person sees</h2>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1140 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Three identities of one contract shown as one wallet row">
+          <rect class="box" x="60" y="10" width="240" height="92" rx="12"/>
+          <text class="box-sub" x="80" y="40">kind 1</text>
+          <text class="box-title" x="80" y="74" font-size="26">ACME</text>
+
+          <rect class="box" x="450" y="10" width="240" height="92" rx="12"/>
+          <text class="box-sub" x="470" y="40">kind 2</text>
+          <text class="box-title" x="470" y="74" font-size="26">ACME</text>
+
+          <rect class="box" x="840" y="10" width="240" height="92" rx="12"/>
+          <text class="box-sub" x="860" y="40">kind 3</text>
+          <text class="box-title" x="860" y="74" font-size="26">ACME</text>
+
+          <path class="edge" d="M180 102 V160 H570"/>
+          <path class="edge" d="M570 102 V160"/>
+          <path class="edge" d="M960 102 V160 H570"/>
+          <path class="edge" d="M570 160 V190" marker-end="url(#ar2)"/>
+
+          <rect class="box ours" x="330" y="196" width="480" height="116" rx="14"/>
+          <circle cx="396" cy="254" r="28" fill="#ffffff" stroke="#0000fe"/>
+          <text x="396" y="262" text-anchor="middle" font-size="19" font-weight="750" fill="#0000fe">A</text>
+          <text class="box-title" x="446" y="248" font-size="32">ACME</text>
+          <text class="box-sub" x="448" y="276" font-size="14">one row in the wallet</text>
+
+          <defs>
+            <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000fe"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <div class="two-lines">
+        <p class="q">defined by domainSep + kind</p>
+        <p class="a">grouped by symbol + contract address</p>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="10" aria-label="Six fields">
+      <h2>Six fields</h2>
+      <div class="grow" style="margin-top:calc(24 * var(--u))">
+        <table>
+          <tbody>
+            <tr><td class="k">name</td><td>string, 64</td><td style="width:22%">SHOULD</td></tr>
+            <tr><td class="k">symbol</td><td>string, 12</td><td>SHOULD</td></tr>
+            <tr><td class="k">decimals</td><td>uint</td><td>SHOULD</td></tr>
+            <tr><td class="k">standards</td><td>string</td><td class="muted">MAY</td></tr>
+            <tr><td class="k">image</td><td>URI</td><td class="muted">MAY</td></tr>
+            <tr><td class="k">image_sha256</td><td>32 bytes</td><td class="muted">MAY</td></tr>
+          </tbody>
+        </table>
+        <p class="strip"><b class="tiny" style="letter-spacing:.09em">NOT SERVED</b>&nbsp;&nbsp;
+          <code>description</code> &middot; <code>url</code> &middot; <code>bridge</code> &middot;
+          <code>supply</code> &middot; <code>localization</code></p>
+        <p class="small muted" style="margin-top:calc(12 * var(--u))">valid to emit, ignored by default</p>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="11" aria-label="Future MIPs add keys">
+      <h2>Future MIPs add keys</h2>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1140 350" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A token declares standards, later MIPs define their keys, and indexers and wallets implement them, all on the same transport">
+          <rect class="box" x="8" y="4" width="332" height="180" rx="12"/>
+          <text class="box-sub" x="32" y="38" font-size="15" fill="#0000fe">1</text>
+          <text class="box-title" x="32" y="68" font-size="19">the token emits</text>
+          <text class="box-sub" x="32" y="106" font-size="15">standards =</text>
+          <text class="box-sub" x="32" y="132" font-size="15" fill="#0000fe">"mip-yyyy mip-zzzz"</text>
+
+          <path class="edge" d="M344 94 H396" marker-end="url(#ar3)"/>
+
+          <rect class="box" x="404" y="4" width="332" height="180" rx="12"/>
+          <text class="box-sub" x="428" y="38" font-size="15" fill="#0000fe">2</text>
+          <text class="box-title" x="428" y="68" font-size="19">the MIPs define keys</text>
+          <text class="box-sub" x="428" y="106" font-size="15" fill="#0000fe">mip-yyyy</text>
+          <text class="box-sub" x="520" y="106" font-size="15">issuer, jurisdiction</text>
+          <text class="box-sub" x="428" y="132" font-size="15" fill="#0000fe">mip-zzzz</text>
+          <text class="box-sub" x="520" y="132" font-size="15">animation, collection</text>
+
+          <path class="edge" d="M740 94 H792" marker-end="url(#ar3)"/>
+
+          <rect class="box" x="800" y="4" width="332" height="180" rx="12"/>
+          <text class="box-sub" x="824" y="38" font-size="15" fill="#0000fe">3</text>
+          <text class="box-title" x="824" y="68" font-size="19">indexers and wallets</text>
+          <text class="box-sub" x="824" y="106" font-size="15">implement the standards</text>
+          <text class="box-sub" x="824" y="132" font-size="15" fill="#0000fe">the keys are served</text>
+
+          <path d="M174 184 V236" stroke="#c9ced5" stroke-width="2"/>
+          <path d="M570 184 V236" stroke="#c9ced5" stroke-width="2"/>
+          <path d="M966 184 V236" stroke="#c9ced5" stroke-width="2"/>
+
+          <rect class="box ours" x="8" y="236" width="1124" height="86" rx="12"/>
+          <text class="box-sub" x="32" y="266" font-size="13">one transport, unchanged</text>
+          <text x="570" y="302" text-anchor="middle" font-size="26" font-weight="750" fill="#0000fe" font-family="ui-monospace, monospace">mip-0018:token-metadata[v1]</text>
+
+          <defs>
+            <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000fe"/>
+            </marker>
+          </defs>
+        </svg>
+      </div>
+      <p class="line-note">new keys, no new version</p>
+      <p class="small muted" style="margin-top:calc(10 * var(--u))">served while the token declares the standard</p>
+    </section>
+
+    <section class="slide light" data-page="12" aria-label="What goes elsewhere">
+      <h2>What goes elsewhere</h2>
+      <div class="elsewhere">
+        <article><b>Off chain</b><p>supply<br>prices<br>images</p></article>
+        <article><b>Registry</b><p>which ACME<br>is real</p></article>
+        <article><b>Protocol</b><p>NIGHT<br>DUST</p></article>
+        <article><b>Circuits<br>(future)</b><p>complex rules<br>execution</p></article>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="13" aria-label="The event">
+      <h2>The event</h2>
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="code-block">Misc {
+  <span class="code-blue">name</span>:    pad(32, "mip-0018:token-metadata[v1]")
+  <span class="code-blue">payload</span>: Bytes&lt;256&gt;
+}</div>
+        <div class="tag-row">
+          <span class="rule-tag">other name: ignore</span>
+          <span class="rule-tag">bad payload: reject all</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="14" aria-label="The payload">
+      <h2>256 bytes</h2>
+      <div class="grow" style="display:flex;flex-direction:column;justify-content:center;margin-top:calc(18 * var(--u))">
+        <svg viewBox="0 0 1140 230" preserveAspectRatio="xMidYMid meet" style="width:100%;display:block" role="img" aria-label="Payload layout: domainSep 32 bytes, kind 1 byte, records, zero padding; each record is keyLen, key, valType, valLen, value">
+          <rect x="2" y="12" width="300" height="56" fill="#eef4ff" stroke="#0000fe"/>
+          <text x="152" y="46" text-anchor="middle" font-size="19" font-weight="750" fill="#0000fe" font-family="ui-monospace, monospace">domainSep 32</text>
+          <rect x="302" y="12" width="150" height="56" fill="#eef4ff" stroke="#0000fe"/>
+          <text x="377" y="46" text-anchor="middle" font-size="19" font-weight="750" fill="#0000fe" font-family="ui-monospace, monospace">kind 1</text>
+          <rect x="452" y="12" width="430" height="56" fill="#ffffff" stroke="#111418" stroke-width="2"/>
+          <text x="667" y="46" text-anchor="middle" font-size="19" font-weight="750" fill="#111418" font-family="ui-monospace, monospace">records</text>
+          <rect x="882" y="12" width="256" height="56" fill="#f0f2f5" stroke="#c9ced5"/>
+          <text x="1010" y="46" text-anchor="middle" font-size="19" font-weight="750" fill="#59636e" font-family="ui-monospace, monospace">zeros</text>
+          <text x="2" y="88" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">0</text>
+          <text x="302" y="88" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">32</text>
+          <text x="452" y="88" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">33</text>
+          <text x="1138" y="88" font-size="13" fill="#59636e" text-anchor="end" font-family="ui-monospace, monospace">256</text>
+
+          <path d="M452 68 L70 140" stroke="#111418" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+          <path d="M882 68 L1070 140" stroke="#111418" stroke-width="1.5" stroke-dasharray="6 5" fill="none"/>
+          <text x="570" y="118" text-anchor="middle" font-size="14" fill="#59636e">one record, repeated with no gaps</text>
+
+          <rect x="70" y="140" width="200" height="56" fill="#ffffff" stroke="#111418"/>
+          <text x="170" y="174" text-anchor="middle" font-size="17" font-weight="750" fill="#111418" font-family="ui-monospace, monospace">keyLen</text>
+          <rect x="270" y="140" width="300" height="56" fill="#ffffff" stroke="#111418"/>
+          <text x="420" y="174" text-anchor="middle" font-size="17" font-weight="750" fill="#0000fe" font-family="ui-monospace, monospace">key</text>
+          <rect x="570" y="140" width="190" height="56" fill="#ffffff" stroke="#111418"/>
+          <text x="665" y="174" text-anchor="middle" font-size="17" font-weight="750" fill="#111418" font-family="ui-monospace, monospace">valType</text>
+          <rect x="760" y="140" width="170" height="56" fill="#ffffff" stroke="#111418"/>
+          <text x="845" y="174" text-anchor="middle" font-size="17" font-weight="750" fill="#111418" font-family="ui-monospace, monospace">valLen</text>
+          <rect x="930" y="140" width="140" height="56" fill="#ffffff" stroke="#111418"/>
+          <text x="1000" y="174" text-anchor="middle" font-size="17" font-weight="750" fill="#0000fe" font-family="ui-monospace, monospace">value</text>
+
+          <text x="70" y="216" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">1 byte</text>
+          <text x="420" y="216" text-anchor="middle" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">keyLen bytes</text>
+          <text x="665" y="216" text-anchor="middle" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">1 byte</text>
+          <text x="845" y="216" text-anchor="middle" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">1 byte</text>
+          <text x="1000" y="216" text-anchor="middle" font-size="13" fill="#59636e" font-family="ui-monospace, monospace">valLen bytes</text>
+        </svg>
+        <p class="types">0 bytes &middot; 1 string &middot; 2 uint &middot; 3 JSON &middot; 4 URI &middot; 5 null</p>
+        <div class="hex-example">33  04 6e616d65 01 0a 41636d6520546f6b656e        <b>name = "Acme Token"</b>
+50  06 73796d626f6c 01 04 41434d45                <b>symbol = "ACME"</b>
+63  08 646563696d616c73 02 01 06                  <b>decimals = 6</b>
+75  09 7374616e6461726473 01 08 6d69702d30303034  <b>standards = "mip-0004"</b></div>
+        <p class="line-note" style="font-size:calc(18 * var(--u))">All four fields: 95 of 256 bytes</p>
+        <div class="cost">
+          <span class="lbl">COST</span>
+          <span class="c">219-byte values</span>
+          <span class="c">one token per event</span>
+          <span class="c">no multipart</span>
+          <span class="c">big content off chain</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="15" aria-label="Thanks">
+      <div class="title-body">
+        <h1>Thanks!</h1>
+        <p class="title-sub" style="font-size:calc(38 * var(--u));margin-top:calc(30 * var(--u))">Questions?</p>
+      </div>
+    </section>
+
+  </main>
+
+  <nav id="controls" aria-label="Slide controls">
+    <button id="prev" type="button" aria-label="Previous slide">&larr;</button>
+    <span id="counter" aria-live="polite">1 / 15</span>
+    <button id="next" type="button" aria-label="Next slide">&rarr;</button>
+  </nav>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const counter = document.getElementById('counter');
+      let index = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1) || 1) - 1));
+
+      const show = (next) => {
+        index = (next + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        counter.textContent = `${index + 1} / ${slides.length}`;
+        history.replaceState(null, '', `#${index + 1}`);
+      };
+
+      document.getElementById('prev').addEventListener('click', () => show(index - 1));
+      document.getElementById('next').addEventListener('click', () => show(index + 1));
+      addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' ', 'Spacebar'].includes(event.key)) { event.preventDefault(); show(index + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(index - 1); }
+        if (event.key === 'Home') { event.preventDefault(); show(0); }
+        if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+      });
+      addEventListener('hashchange', () => {
+        const requested = Number(location.hash.slice(1));
+        if (Number.isInteger(requested) && requested >= 1 && requested <= slides.length) show(requested - 1);
+      });
+      show(index);
+    })();
+  </script>
+</body>
+</html>
