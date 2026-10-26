@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Passport wallet arms: EVM and Solana wallets as devices of a Midnight Passport account. A crypto core per curve, a signing format per chain, readable approvals rebuilt in the circuit, every circuit at k 18 or less.">
+  <title>Passport wallet arms: EVM and Solana</title>
+  <style>
+    :root {
+      --black: #090a0c;
+      --ink: #111418;
+      --muted: #59636e;
+      --white: #ffffff;
+      --paper: #f7f8fa;
+      --line: #c9ced5;
+      --blue: #0000fe;
+      --cyan: #74d5f7;
+      --green: #158765;
+      --green-bg: #e4f5ef;
+      --amber: #a86400;
+      --amber-bg: #fff1d5;
+      --red: #b73b3b;
+      --red-bg: #fbe8e8;
+      --u: min(0.078125vw, 0.138889vh);
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background: #101318;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { background: #101318; }
+    button { font: inherit; }
+
+    #deck { position: fixed; inset: 0; display: grid; place-items: center; }
+    .slide {
+      position: absolute;
+      display: none;
+      width: calc(1280 * var(--u));
+      height: calc(720 * var(--u));
+      overflow: hidden;
+      padding: calc(48 * var(--u)) calc(70 * var(--u)) calc(58 * var(--u));
+      background: var(--white);
+      box-shadow: 0 calc(24 * var(--u)) calc(80 * var(--u)) #0008;
+    }
+    .slide.active { display: flex; flex-direction: column; }
+    .slide.dark { color: var(--white); background: var(--black); }
+    .slide.light { background: var(--paper); }
+    .slide::after {
+      content: attr(data-page);
+      position: absolute;
+      right: calc(70 * var(--u));
+      bottom: calc(22 * var(--u));
+      color: var(--muted);
+      font-size: calc(12 * var(--u));
+      font-weight: 700;
+    }
+    .slide.dark::after { color: #9da4ad; }
+    .slide::before {
+      content: "PASSPORT / WALLET ARMS";
+      position: absolute;
+      left: calc(70 * var(--u));
+      bottom: calc(22 * var(--u));
+      color: var(--muted);
+      font-size: calc(10 * var(--u));
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    .slide.dark::before { color: #9da4ad; }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: calc(74 * var(--u)); line-height: .96; letter-spacing: -.045em; }
+    h2 { font-size: calc(44 * var(--u)); line-height: 1.02; letter-spacing: -.03em; }
+    h3 { font-size: calc(24 * var(--u)); line-height: 1.12; letter-spacing: -.015em; }
+    code, .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+
+    .kicker {
+      margin-bottom: calc(16 * var(--u));
+      color: var(--blue);
+      font-size: calc(13 * var(--u));
+      font-weight: 850;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .dark .kicker { color: var(--cyan); }
+    .muted { color: var(--muted); }
+    .dark .muted { color: #9da4ad; }
+
+    /* title */
+    .title-body { display: flex; flex-direction: column; justify-content: center; flex: 1; }
+    .title-sub { margin-top: calc(26 * var(--u)); color: #c6ccd3; font-size: calc(26 * var(--u)); }
+    .meta-row { display: flex; gap: calc(10 * var(--u)); margin-top: calc(52 * var(--u)); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: calc(30 * var(--u));
+      padding: 0 calc(14 * var(--u));
+      border: calc(1 * var(--u)) solid #ffffff3d;
+      border-radius: calc(16 * var(--u));
+      color: #d7dce2;
+      font-family: ui-monospace, monospace;
+      font-size: calc(13 * var(--u));
+      font-weight: 700;
+    }
+    .mip-link {
+      display: block;
+      margin-top: calc(22 * var(--u));
+      padding-left: calc(18 * var(--u));
+      border-left: calc(3 * var(--u)) solid var(--cyan);
+      color: var(--cyan);
+      font-family: ui-monospace, monospace;
+      font-size: calc(19 * var(--u));
+      line-height: 1.5;
+      text-decoration: none;
+    }
+    .mip-link span { display: block; }
+    .mip-link span + span { color: #d7dce2; }
+    .links { margin-top: calc(34 * var(--u)); }
+
+    /* diagrams */
+    .diagram-wrap { display: flex; flex: 1; min-height: 0; margin: calc(12 * var(--u)) 0; }
+    .diagram { width: 100%; height: 100%; display: block; }
+    .diagram text { font-family: "Helvetica Neue", Arial, sans-serif; }
+    .diagram .box { fill: var(--white); stroke: var(--line); }
+    .diagram .box.ours { fill: #eef4ff; stroke: var(--blue); }
+    .diagram .box.next { fill: var(--white); stroke: var(--muted); stroke-dasharray: 6 5; }
+    .diagram .box-title { fill: var(--ink); font-size: 15px; font-weight: 750; }
+    .diagram .box-sub { font-size: 11px; fill: var(--muted); font-family: ui-monospace, monospace; }
+    .diagram .edge { stroke: var(--blue); stroke-width: 2; fill: none; }
+    .diagram .edge.soft { stroke: var(--line); }
+    .diagram .edge-label { font-size: 11px; fill: var(--muted); font-family: ui-monospace, monospace; }
+
+    .line-note { margin-top: calc(10 * var(--u)); color: var(--blue); font-size: calc(21 * var(--u)); font-weight: 800; }
+    .dark .line-note { color: var(--cyan); }
+    .strip {
+      margin-top: calc(22 * var(--u));
+      padding-top: calc(14 * var(--u));
+      border-top: calc(1 * var(--u)) solid var(--line);
+      color: var(--muted);
+      font-size: calc(17 * var(--u));
+      line-height: 1.45;
+    }
+    .dark .strip { border-top-color: #ffffff2e; color: #9da4ad; }
+    .strip b { color: var(--ink); }
+    .dark .strip b { color: var(--white); }
+
+    /* 3. two curves */
+    .curves { display: grid; grid-template-columns: 1fr 1fr; gap: calc(28 * var(--u)); flex: 1; min-height: 0; margin-top: calc(22 * var(--u)); }
+    .curve { display: flex; flex-direction: column; padding: calc(26 * var(--u)) calc(28 * var(--u)); border: calc(1 * var(--u)) solid var(--line); border-top: calc(4 * var(--u)) solid var(--blue); background: var(--white); }
+    .curve .curve-name { color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(14 * var(--u)); font-weight: 800; letter-spacing: .04em; }
+    .curve h3 { margin-top: calc(8 * var(--u)); font-size: calc(30 * var(--u)); }
+    .curve .rule { margin-top: calc(14 * var(--u)); color: var(--ink); font-size: calc(18 * var(--u)); line-height: 1.4; }
+    .fmt { margin-top: calc(16 * var(--u)); padding-top: calc(14 * var(--u)); border-top: calc(1 * var(--u)) solid var(--line); }
+    .fmt + .fmt { margin-top: calc(12 * var(--u)); }
+    .fmt b { display: block; font-size: calc(16 * var(--u)); }
+    .fmt b span { color: var(--muted); font-weight: 500; }
+    .fmt code { display: block; margin-top: calc(6 * var(--u)); color: var(--blue); font-size: calc(14.5 * var(--u)); line-height: 1.45; }
+
+    /* 4. wallets */
+    .wallets { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: calc(30 * var(--u)); flex: 1; min-height: 0; margin-top: calc(22 * var(--u)); }
+    .win { display: flex; flex-direction: column; border: calc(1 * var(--u)) solid var(--line); border-radius: calc(14 * var(--u)); background: var(--white); overflow: hidden; box-shadow: 0 calc(8 * var(--u)) calc(26 * var(--u)) #0000000f; }
+    .win-bar { display: flex; justify-content: space-between; align-items: center; padding: calc(12 * var(--u)) calc(18 * var(--u)); background: var(--black); color: var(--white); font-size: calc(14 * var(--u)); font-weight: 750; }
+    .win-bar span { color: var(--cyan); font-family: ui-monospace, monospace; font-size: calc(12 * var(--u)); font-weight: 700; }
+    .win-body { flex: 1; padding: calc(16 * var(--u)) calc(20 * var(--u)); }
+    .kv { display: grid; grid-template-columns: calc(120 * var(--u)) 1fr; gap: calc(7 * var(--u)) calc(14 * var(--u)); font-size: calc(14.5 * var(--u)); }
+    .kv dt { color: var(--muted); font-family: ui-monospace, monospace; }
+    .kv dd { margin: 0; font-family: ui-monospace, monospace; word-break: break-all; }
+    .kv .head { grid-column: 1 / -1; margin-bottom: calc(4 * var(--u)); padding-bottom: calc(8 * var(--u)); border-bottom: calc(1 * var(--u)) solid var(--line); font-family: "Helvetica Neue", Arial, sans-serif; font-size: calc(15 * var(--u)); }
+    .kv .head b { color: var(--blue); }
+    .msg { margin: 0; font-family: ui-monospace, monospace; font-size: calc(13.2 * var(--u)); line-height: 1.62; white-space: pre; color: var(--ink); }
+    .msg .h { color: var(--blue); font-weight: 700; }
+
+    /* 5. layers */
+    .layers { display: grid; grid-template-columns: calc(250 * var(--u)) 1fr 1fr; gap: calc(10 * var(--u)) calc(14 * var(--u)); flex: 1; align-content: center; margin-top: calc(10 * var(--u)); }
+    .layers .col { padding-bottom: calc(6 * var(--u)); color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(14 * var(--u)); font-weight: 800; letter-spacing: .04em; }
+    .layers .lbl { display: flex; flex-direction: column; justify-content: center; padding: calc(14 * var(--u)) 0; border-top: calc(2 * var(--u)) solid var(--ink); }
+    .layers .lbl b { font-size: calc(20 * var(--u)); }
+    .layers .lbl span { margin-top: calc(4 * var(--u)); color: var(--muted); font-size: calc(13.5 * var(--u)); }
+    .cell { display: flex; flex-direction: column; justify-content: center; padding: calc(14 * var(--u)) calc(18 * var(--u)); border: calc(1 * var(--u)) solid var(--line); background: var(--white); font-size: calc(17 * var(--u)); }
+    .cell.ours { border-color: var(--blue); background: #eef4ff; }
+    .cell code { color: var(--blue); font-size: calc(17 * var(--u)); font-weight: 700; }
+    .cell small { margin-top: calc(4 * var(--u)); color: var(--muted); font-size: calc(13 * var(--u)); }
+
+    /* 6. EVM */
+    .arm { display: grid; grid-template-columns: 1fr 1fr; gap: calc(30 * var(--u)); flex: 1; min-height: 0; margin-top: calc(20 * var(--u)); }
+    .parts { display: grid; grid-auto-rows: 1fr; gap: calc(14 * var(--u)); }
+    .part { display: flex; flex-direction: column; justify-content: center; padding: calc(14 * var(--u)) calc(20 * var(--u)); border: calc(1 * var(--u)) solid var(--line); border-left: calc(4 * var(--u)) solid var(--blue); background: var(--white); }
+    .part b { font-size: calc(20 * var(--u)); }
+    .part b code { color: var(--blue); }
+    .part p { margin-top: calc(6 * var(--u)); color: var(--muted); font-size: calc(15.5 * var(--u)); line-height: 1.4; }
+    .code-block {
+      padding: calc(26 * var(--u)) calc(28 * var(--u));
+      border-radius: calc(14 * var(--u));
+      background: #13171d;
+      color: #edf1f5;
+      font-family: ui-monospace, monospace;
+      font-size: calc(17 * var(--u));
+      line-height: 1.7;
+      white-space: pre;
+    }
+    .code-blue { color: var(--cyan); }
+    .code-dim { color: #8b949e; }
+    .side { display: flex; flex-direction: column; gap: calc(16 * var(--u)); }
+    .side-note { font-size: calc(17 * var(--u)); line-height: 1.45; }
+    .side-note b { color: var(--blue); }
+    .chips { display: flex; flex-wrap: wrap; gap: calc(8 * var(--u)); align-items: center; }
+    .chips .lbl { margin-right: calc(4 * var(--u)); color: var(--muted); font-size: calc(12 * var(--u)); font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+    .chip { padding: calc(7 * var(--u)) calc(12 * var(--u)); border-radius: calc(12 * var(--u)); background: var(--green-bg); color: #0d5a43; font-size: calc(14.5 * var(--u)); font-weight: 700; }
+    .chip.warn { background: var(--amber-bg); color: #6b4000; }
+
+    /* 8. budget */
+    .budget { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(20 * var(--u)); margin-top: calc(6 * var(--u)); }
+    .stat { padding-top: calc(12 * var(--u)); border-top: calc(3 * var(--u)) solid var(--blue); }
+    .stat b { display: block; color: var(--blue); font-size: calc(34 * var(--u)); line-height: 1; letter-spacing: -.02em; }
+    .stat p { margin-top: calc(10 * var(--u)); color: var(--muted); font-size: calc(15.5 * var(--u)); line-height: 1.4; }
+    .bars .lbl { font-size: 13px; fill: var(--ink); font-family: ui-monospace, monospace; }
+    .bars .val { font-size: 12px; fill: var(--muted); font-family: ui-monospace, monospace; }
+    .bars .bar { fill: var(--blue); }
+    .bars .bar.native { fill: #9aa3ad; }
+    .bars .limit { stroke: var(--red); stroke-width: 2; }
+    .bars .k17 { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 5; }
+    .bars .limit-label { font-size: 12px; fill: var(--red); font-weight: 750; font-family: ui-monospace, monospace; }
+    .bars .k17-label { font-size: 12px; fill: var(--muted); font-family: ui-monospace, monospace; }
+
+    /* 9. hub */
+    .hub { display: grid; grid-template-columns: 1.25fr 1fr; gap: calc(30 * var(--u)); flex: 1; min-height: 0; align-items: center; }
+    .facts { display: flex; flex-direction: column; gap: calc(22 * var(--u)); }
+    .fact { padding-left: calc(18 * var(--u)); border-left: calc(3 * var(--u)) solid var(--blue); }
+    .fact b { display: block; font-size: calc(21 * var(--u)); letter-spacing: -.01em; }
+    .fact p { margin-top: calc(6 * var(--u)); color: var(--muted); font-size: calc(15.5 * var(--u)); line-height: 1.45; }
+
+    /* 10. cards */
+    .cards-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(20 * var(--u)); flex: 1; align-content: center; }
+    .card-dark {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(250 * var(--u));
+      padding: calc(26 * var(--u));
+      border: calc(1 * var(--u)) solid #ffffff33;
+      border-radius: calc(16 * var(--u));
+      background: #13171d;
+    }
+    .card-dark h3 { font-size: calc(26 * var(--u)); }
+    .card-dark p { margin-top: calc(14 * var(--u)); color: #aeb6bf; font-size: calc(16 * var(--u)); line-height: 1.5; }
+    .card-dark code { display: block; margin-top: calc(14 * var(--u)); color: var(--cyan); font-size: calc(13.5 * var(--u)); line-height: 1.5; }
+
+    /* 11. extension points */
+    .ext { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(18 * var(--u)) calc(22 * var(--u)); flex: 1; align-content: center; }
+    .ext article { padding-top: calc(14 * var(--u)); border-top: calc(3 * var(--u)) solid var(--ink); }
+    .ext article span { color: var(--blue); font-family: ui-monospace, monospace; font-size: calc(13 * var(--u)); font-weight: 800; }
+    .ext article b { display: block; margin-top: calc(6 * var(--u)); font-size: calc(22 * var(--u)); letter-spacing: -.01em; }
+    .ext article p { margin-top: calc(8 * var(--u)); color: var(--muted); font-size: calc(15.5 * var(--u)); line-height: 1.45; }
+
+    /* 12. next */
+    .next { display: grid; grid-template-columns: 1.15fr 1fr; gap: calc(30 * var(--u)); flex: 1; min-height: 0; }
+    .next-notes { display: flex; flex-direction: column; justify-content: center; gap: calc(20 * var(--u)); }
+    .next-notes .fact b code { color: var(--blue); font-weight: 750; }
+
+    /* wallet tables */
+    .wt-wrap { flex: 1; min-height: 0; margin-top: calc(12 * var(--u)); }
+    table.wt { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .wt th { padding: calc(6 * var(--u)) calc(8 * var(--u)); color: var(--white); background: var(--black); font-size: calc(12.5 * var(--u)); font-weight: 750; text-align: left; }
+    .wt th.c { text-align: center; }
+    .wt td { padding: calc(2.5 * var(--u)) calc(8 * var(--u)); border-bottom: calc(1 * var(--u)) solid #e3e6ea; font-size: calc(14 * var(--u)); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .wt td.c { text-align: center; font-size: calc(15 * var(--u)); line-height: 1; font-weight: 800; }
+    .wt tr.hw-first td { border-top: calc(2 * var(--u)) solid var(--ink); }
+    .wt .st { color: var(--muted); font-size: calc(12.5 * var(--u)); }
+    .wt .st.tested { color: var(--ink); font-weight: 700; }
+    .wt .ty { color: var(--muted); font-size: calc(12.5 * var(--u)); }
+    .s-ok { color: var(--green); }
+    .s-warn { color: var(--amber); }
+    .s-no { color: var(--red); }
+    .s-na { color: #b3bac2; }
+    .legend { margin-top: calc(8 * var(--u)); color: var(--muted); font-size: calc(12.5 * var(--u)); line-height: 1.45; }
+    .legend b { font-weight: 800; }
+    .title-note { margin-left: calc(12 * var(--u)); color: var(--muted); font-size: calc(20 * var(--u)); font-weight: 500; letter-spacing: 0; }
+    table.ht { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: calc(16 * var(--u)); }
+    .ht th { padding: calc(7 * var(--u)) calc(10 * var(--u)); color: var(--white); background: var(--black); font-size: calc(13 * var(--u)); font-weight: 750; text-align: left; }
+    .ht td { padding: calc(9 * var(--u)) calc(10 * var(--u)); border-bottom: calc(1 * var(--u)) solid #e3e6ea; font-size: calc(13.5 * var(--u)); line-height: 1.55; vertical-align: top; }
+    .ht td.dev { font-weight: 750; font-size: calc(15 * var(--u)); }
+    .ht .e { display: inline-block; margin-right: calc(12 * var(--u)); white-space: nowrap; }
+    .ht .e b { font-weight: 800; }
+    .ht .none { color: #b3bac2; }
+
+    .need { margin-top: calc(10 * var(--u)); padding: calc(10 * var(--u)) calc(16 * var(--u)); border: calc(1 * var(--u)) solid var(--blue); background: #eef4ff; }
+    .need > b { display: block; color: var(--blue); font-size: calc(17 * var(--u)); }
+    .need > b code { font-weight: 800; }
+    .need-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(18 * var(--u)); margin-top: calc(8 * var(--u)); }
+    .need-cols p { color: var(--ink); font-size: calc(13.5 * var(--u)); line-height: 1.45; }
+    .need-cols p b { display: block; margin-bottom: calc(2 * var(--u)); }
+
+    #controls {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateX(-50%);
+      opacity: .24;
+      transition: opacity .2s ease;
+    }
+    #controls:hover, #controls:focus-within { opacity: 1; }
+    #controls button, #counter {
+      min-width: 38px;
+      height: 32px;
+      border: 1px solid #ffffff42;
+      border-radius: 7px;
+      color: #fff;
+      background: #090a0ccc;
+      font-size: 13px;
+    }
+    #controls button { cursor: pointer; }
+    #counter { display: grid; place-items: center; min-width: 64px; padding: 0 10px; }
+
+    @page { size: 16in 9in; margin: 0; }
+    @media print {
+      html, body { width: auto; height: auto; overflow: visible; background: white; }
+      #deck { position: static; display: block; }
+      .slide, .slide.active { position: relative; display: flex; width: 16in; height: 9in; page-break-after: always; box-shadow: none; }
+      .slide:last-child { page-break-after: auto; }
+      #controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main id="deck" aria-live="polite">
+
+    <section class="slide dark active" data-page="01" aria-label="Title">
+      <div class="title-body">
+        <p class="kicker">Midnight Passport</p>
+        <h1>Wallet arms</h1>
+        <p class="title-sub">EVM and Solana wallets as Passport devices</p>
+        <div class="meta-row">
+          <span class="tag">evm_k256</span>
+          <span class="tag">sol_ed25519</span>
+          <span class="tag">next: NEAR, Cardano</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="02" aria-label="The idea">
+      <p class="kicker">The idea</p>
+      <h2>Your wallet is a device of the account</h2>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1140 340" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A wallet signs a readable approval, a proof carries it, the circuit verifies and runs the operation on the Passport account">
+          <defs>
+            <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000fe"/>
+            </marker>
+          </defs>
+          <rect class="box" x="8" y="110" width="200" height="120" rx="12"/>
+          <text class="box-title" x="108" y="146" text-anchor="middle">your wallet</text>
+          <text class="box-sub" x="108" y="170" text-anchor="middle">a secp256k1 key (EVM)</text>
+          <text class="box-sub" x="108" y="188" text-anchor="middle">or an Ed25519 key</text>
+          <text class="box-sub" x="108" y="204" text-anchor="middle">(Solana)</text>
+
+          <path class="edge" d="M208 170 H316" marker-end="url(#ar2)"/>
+          <text class="edge-label" x="262" y="158" text-anchor="middle">signs</text>
+
+          <rect class="box" x="318" y="118" width="240" height="104" rx="12"/>
+          <text class="box-title" x="438" y="160" text-anchor="middle">readable approval</text>
+          <text class="box-sub" x="438" y="182" text-anchor="middle">the operation, every</text>
+          <text class="box-sub" x="438" y="198" text-anchor="middle">operand in full</text>
+
+          <path class="edge" d="M558 170 H666" marker-end="url(#ar2)"/>
+          <text class="edge-label" x="612" y="158" text-anchor="middle">proof</text>
+
+          <rect class="box ours" x="668" y="104" width="250" height="132" rx="12"/>
+          <text class="box-title" x="793" y="146" text-anchor="middle">circuit</text>
+          <text class="box-sub" x="793" y="170" text-anchor="middle">rebuilds the signed bytes</text>
+          <text class="box-sub" x="793" y="188" text-anchor="middle">verifies the signature</text>
+          <text class="box-sub" x="793" y="206" text-anchor="middle">checks the device, runs it</text>
+
+          <path class="edge" d="M918 170 H984" marker-end="url(#ar2)"/>
+
+          <rect class="box" x="986" y="118" width="148" height="104" rx="12"/>
+          <text class="box-title" x="1060" y="160" text-anchor="middle">Passport</text>
+          <text class="box-title" x="1060" y="180" text-anchor="middle">account</text>
+          <text class="box-sub" x="1060" y="202" text-anchor="middle">on Midnight</text>
+        </svg>
+      </div>
+      <p class="line-note">Any wallet with a key on these curves that signs the format works. No address of it on chain.</p>
+    </section>
+
+    <section class="slide light" data-page="03" aria-label="Two curves, different wrappings">
+      <p class="kicker">The core idea</p>
+      <h2>Two curves, different wrappings</h2>
+      <div class="curves">
+        <article class="curve">
+          <p class="curve-name">ECDSA / SECP256K1</p>
+          <h3>EVM</h3>
+          <p class="rule">The wallet signs a 32-byte digest. The format computes it.</p>
+          <div class="fmt">
+            <b>EIP-712 typed data <span>(approvals)</span></b>
+            <code>keccak256(0x19 0x01 ‖ domain ‖ hashStruct(msg))</code>
+          </div>
+          <div class="fmt">
+            <b>personal_sign, EIP-191 <span>(blind requests)</span></b>
+            <code>keccak256("\x19Ethereum Signed Message:\n" ‖ len ‖ text)</code>
+          </div>
+        </article>
+        <article class="curve">
+          <p class="curve-name">ED25519</p>
+          <h3>Solana, NEAR, Cardano</h3>
+          <p class="rule">The wallet signs the message itself (SHA-512 runs inside the signature). The format decides the bytes.</p>
+          <div class="fmt">
+            <b>Solana signMessage, raw <span>(today)</span></b>
+            <code>raw header ‖ text, the bytes as given</code>
+          </div>
+          <div class="fmt">
+            <b>Solana off-chain message <span>(today)</span></b>
+            <code>0xff ‖ "solana offchain" ‖ v1 ‖ signer ‖ text</code>
+          </div>
+          <div class="fmt">
+            <b>NEAR, NEP-413 <span>(next)</span></b>
+            <code>SHA-256(Borsh(tag ‖ message ‖ nonce ‖ recipient))</code>
+          </div>
+          <div class="fmt">
+            <b>Cardano, CIP-8 <span>(next)</span></b>
+            <code>CBOR ["Signature1", header{address}, "", payload]</code>
+          </div>
+        </article>
+      </div>
+      <p class="line-note">The core verifies a curve. The format is the chain's wrapping.</p>
+    </section>
+
+    <section class="slide light" data-page="04" aria-label="What the wallet shows">
+      <p class="kicker">Readable, not blind</p>
+      <h2>What the wallet shows</h2>
+      <div class="wallets">
+        <div class="win">
+          <p class="win-bar">EVM wallet <span>eth_signTypedData_v4</span></p>
+          <div class="win-body">
+            <dl class="kv">
+              <dt class="head"><b>Midnight Passport</b> &middot; version 1</dt>
+              <dt>type</dt><dd>WithdrawUnshielded</dd>
+              <dt>account</dt><dd>0x1c6c41f5…8f07f26e</dd>
+              <dt>device</dt><dd>0x9f3c7a1e…53b204e1</dd>
+              <dt>authNonce</dt><dd>0</dd>
+              <dt>color</dt><dd>0xd0f631ca…a27dadd982</dd>
+              <dt>amount</dt><dd>1000000</dd>
+              <dt>amountLabel</dt><dd>This site labels it: 1.000000 tUSDC</dd>
+              <dt>recipient</dt><dd>0xc7d3ddc2…e554b78928</dd>
+            </dl>
+          </div>
+        </div>
+        <div class="win">
+          <p class="win-bar">Solana wallet <span>signMessage</span></p>
+          <div class="win-body">
+<pre class="msg"><span class="h">Midnight Passport, Solana signMessage format (v1)</span>
+Midnight Passport approval (sol v1)
+Operation: Withdraw unshielded tokens
+Site: example.app
+Role: device of this account
+Account: 1c6c41f5155b…a9622f020993b18f07f26e
+Signing key: C5vT1EQDRAQRriKUv1VtoBLj515Ak3wwz7CiijvsdPPZ
+Token: d0f631ca1ddb…e00e75a545147a27dadd982
+Amount (base units): 1000000
+This site labels it: 1.000000 tUSDC
+To unshielded address: c7d3ddc2d520…b7573c7e554b78928
+Device nonce: 0</pre>
+          </div>
+        </div>
+      </div>
+      <p class="line-note">The circuit rebuilds these exact bytes from the call. What you sign is what runs.</p>
+      <p class="muted" style="margin-top:calc(6 * var(--u));font-size:calc(12 * var(--u))">Long values are shortened on this slide; wallets show them in full.</p>
+    </section>
+
+    <section class="slide light" data-page="05" aria-label="Four layers">
+      <p class="kicker">Structure</p>
+      <h2>Built in four layers</h2>
+      <div class="layers">
+        <span></span>
+        <p class="col">K256 (EVM)</p>
+        <p class="col">ED25519 (SOLANA)</p>
+
+        <div class="lbl"><b>4. Account logic</b><span>one seam per arm</span></div>
+        <div class="cell">device membership, entry roll, nonce, grants</div>
+        <div class="cell">device membership, entry roll, nonce, grants</div>
+
+        <div class="lbl"><b>3. Approval text</b><span>what the wallet shows</span></div>
+        <div class="cell">the typed fields<small>the wallet renders them</small></div>
+        <div class="cell">the Solana text frame<small>shared renderers: numbers, hex, base58, labels</small></div>
+
+        <div class="lbl"><b>2. Signing format</b><span>the chain's wrapping</span></div>
+        <div class="cell ours"><code>Eip712V1</code><small>digest under one fixed domain</small></div>
+        <div class="cell ours"><code>SolanaFormats</code><small>raw or off-chain header</small></div>
+
+        <div class="lbl"><b>1. Crypto core</b><span>a curve, nothing else</span></div>
+        <div class="cell ours"><code>K256Core</code> + <code>EvmIdentity</code><small>ECDSA over a digest; the address</small></div>
+        <div class="cell ours"><code>Ed25519Core</code><small>RFC 8032 verification over a message</small></div>
+      </div>
+      <p class="strip"><b>A format never verifies. A core never knows a chain or a wallet.</b> Arms are named after chain and key type, never after a format.</p>
+    </section>
+
+    <section class="slide light" data-page="06" aria-label="The EVM arm">
+      <p class="kicker">evm_k256</p>
+      <h2>The EVM arm</h2>
+      <div class="arm">
+        <div class="parts">
+          <div class="part"><b><code>K256Core</code></b><p>ECDSA over a 32-byte digest. r and s non-zero, the point at infinity refused, both S forms accepted.</p></div>
+          <div class="part"><b><code>EvmIdentity</code></b><p>The address: the last 20 bytes of keccak256(x ‖ y), coordinates big-endian, no 0x04 prefix.</p></div>
+          <div class="part"><b><code>Eip712V1</code></b><p>keccak256(0x19 0x01 ‖ separator ‖ structHash). The separator is a circuit constant.</p></div>
+        </div>
+        <div class="side">
+<div class="code-block"><span class="code-dim">EIP712Domain(</span>
+<span class="code-dim">  string name, string version,</span>
+<span class="code-dim">  address verifyingContract)</span>
+
+name               <span class="code-blue">"Midnight Passport"</span>
+version            <span class="code-blue">"1"</span>
+verifyingContract  <span class="code-blue">0x596e…104F</span>
+<span class="code-dim">no chainId, no salt</span></div>
+          <p class="side-note"><b>No chainId:</b> the wallet signs on whatever network it has active. <b>Every struct names the account,</b> so an approval cannot move to another one.</p>
+        </div>
+      </div>
+      <div class="chips" style="margin-top:calc(20 * var(--u))">
+        <span class="lbl">Signs it</span>
+        <span class="chip">MetaMask</span><span class="chip">Rabby</span><span class="chip">Coinbase Wallet</span><span class="chip">Backpack</span><span class="chip">Trezor</span>
+        <span class="chip warn">Ledger: blind signing, until a clear-signing descriptor (ERC-7730)</span>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="07" aria-label="EVM wallets">
+      <p class="kicker">evm_k256</p>
+      <h2>EVM wallets</h2>
+      <div class="wt-wrap"><table class="wt" data-chain="evm"></table></div>
+      <p class="legend"><b class="s-ok">✓</b> check &nbsp; <b class="s-warn">⚠</b> warning &nbsp; <b class="s-no">✗</b> cross &nbsp; <b class="s-na">·</b> not yet measured &nbsp;|&nbsp; <b>Deterministic:</b> signs a request identically twice, so it can hold a blind &nbsp;|&nbsp; <b>On chain:</b> measured next</p>
+    </section>
+
+    <section class="slide light" data-page="08" aria-label="The Solana arm">
+      <p class="kicker">sol_ed25519</p>
+      <h2>The Solana arm</h2>
+      <p class="strip" style="margin-top:calc(14 * var(--u));border-top:0;padding-top:0"><b><code>Ed25519Core</code></b>: RFC 8032 with SHA-512 in the circuit, canonical encodings, A and R not the identity, S below the group order.</p>
+      <div class="diagram-wrap">
+        <svg class="diagram" viewBox="0 0 1140 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A private flag picks the raw header or the off-chain header in front of the same approval text">
+          <defs>
+            <marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" fill="#0000fe"/>
+            </marker>
+          </defs>
+          <rect class="box" x="8" y="20" width="430" height="92" rx="12"/>
+          <text class="box-title" x="28" y="52">raw header</text>
+          <text class="box-sub" x="28" y="74">"Midnight Passport, Solana signMessage</text>
+          <text class="box-sub" x="28" y="90">format (v1)"</text>
+          <text class="edge-label" x="418" y="52" text-anchor="end">Phantom</text>
+
+          <rect class="box" x="8" y="136" width="430" height="92" rx="12"/>
+          <text class="box-title" x="28" y="168">off-chain message header</text>
+          <text class="box-sub" x="28" y="190">ff "solana offchain" v1, one signer:</text>
+          <text class="box-sub" x="28" y="206">the signing key</text>
+          <text class="edge-label" x="418" y="168" text-anchor="end">Ledger, Trezor,</text>
+          <text class="edge-label" x="418" y="184" text-anchor="end">Backpack, Solflare</text>
+
+          <path class="edge" d="M438 66 C 520 66, 520 150, 600 150" marker-end="url(#ar7)"/>
+          <path class="edge" d="M438 182 C 520 182, 520 168, 600 168" marker-end="url(#ar7)"/>
+          <text class="edge-label" x="520" y="214" text-anchor="middle">private flag</text>
+          <text class="edge-label" x="520" y="228" text-anchor="middle">picks one</text>
+
+          <rect class="box ours" x="602" y="112" width="170" height="92" rx="12"/>
+          <text class="box-title" x="687" y="154" text-anchor="middle">header</text>
+          <text class="box-sub" x="687" y="176" text-anchor="middle">never disclosed</text>
+          <rect class="box" x="772" y="112" width="360" height="92" rx="12"/>
+          <text class="box-title" x="952" y="154" text-anchor="middle">approval text</text>
+          <text class="box-sub" x="952" y="176" text-anchor="middle">the same in both forms</text>
+
+          <path class="edge soft" d="M867 204 V 262"/>
+          <text class="edge-label" x="867" y="286" text-anchor="middle">one SHA-512 over R ‖ A ‖ header ‖ text, one verification</text>
+        </svg>
+      </div>
+      <p class="line-note">The same 16 circuits take both. The chain never learns which wallet signed.</p>
+      <p class="strip">A signature in one form fails in the other. The client never asks a wallet for a form it cannot sign: an unknown wallet is tried raw first, then off-chain.</p>
+    </section>
+
+    <section class="slide light" data-page="09" aria-label="Solana wallets">
+      <p class="kicker">sol_ed25519</p>
+      <h2>Solana wallets</h2>
+      <div class="wt-wrap"><table class="wt" data-chain="sol"></table></div>
+      <p class="legend"><b class="s-ok">✓</b> check &nbsp; <b class="s-warn">⚠</b> warning &nbsp; <b class="s-no">✗</b> cross &nbsp; <b class="s-na">·</b> not yet measured &nbsp;|&nbsp; <b>Deterministic:</b> signs a request identically twice, so it can hold a blind &nbsp;|&nbsp; <b>On chain:</b> measured next</p>
+    </section>
+
+    <section class="slide light" data-page="10" aria-label="k 18 or less">
+      <p class="kicker">The budget</p>
+      <h2>Every circuit at k ≤ 18</h2>
+      <div class="diagram-wrap" style="margin:calc(6 * var(--u)) 0">
+        <svg class="diagram bars" viewBox="0 0 1140 250" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Rows per circuit against the k 18 limit of 262,144 rows">
+          <!-- x: 340 + rows * 760 / 262144 -->
+          <line class="k17" x1="720" y1="6" x2="720" y2="214"/>
+          <text class="k17-label" x="724" y="232">k 17 | 131,072</text>
+          <line class="limit" x1="1100" y1="6" x2="1100" y2="214"/>
+          <text class="limit-label" x="1096" y="232" text-anchor="end">k 18 limit | 262,144 rows</text>
+
+          <text class="lbl" x="330" y="30" text-anchor="end">add_device, JubJub (native)</text>
+          <rect class="bar native" x="340" y="16" width="77.8" height="22" rx="3"/>
+          <text class="val" x="424" y="32">26,819</text>
+
+          <text class="lbl" x="330" y="70" text-anchor="end">add_device, EVM</text>
+          <rect class="bar" x="340" y="56" width="366.6" height="22" rx="3"/>
+          <text class="val" x="698" y="72" text-anchor="end" style="fill:#fff">126,449</text>
+
+          <text class="lbl" x="330" y="110" text-anchor="end">add_device, Solana</text>
+          <rect class="bar" x="340" y="96" width="447.0" height="22" rx="3"/>
+          <text class="val" x="794" y="112">154,192</text>
+
+          <text class="lbl" x="330" y="150" text-anchor="end">issue_grant, EVM (largest)</text>
+          <rect class="bar" x="340" y="136" width="525.3" height="22" rx="3"/>
+          <text class="val" x="872" y="152">181,201</text>
+
+          <text class="lbl" x="330" y="190" text-anchor="end">issue_grant, Solana (largest)</text>
+          <rect class="bar" x="340" y="176" width="672.7" height="22" rx="3"/>
+          <text class="val" x="1020" y="192">232,048</text>
+        </svg>
+      </div>
+      <div class="budget">
+        <div class="stat"><b>k 19</b><p>EIP-712 and personal_sign in one circuit. So EVM approvals are EIP-712 only.</p></div>
+        <div class="stat"><b>16 per arm</b><p>A full account with every arm, 84 circuits, deploys in 18 waves.</p></div>
+        <div class="stat"><b>237,636</b><p>Rows of the worst NEAR or Cardano case measured: the next arms fit too.</p></div>
+      </div>
+    </section>
+
+    <section class="slide light" data-page="11" aria-label="One account, any mix of devices">
+      <p class="kicker">One account</p>
+      <h2>Any mix of devices</h2>
+      <div class="hub">
+        <svg class="diagram" viewBox="0 0 620 420" preserveAspectRatio="xMidYMid meet" role="img" aria-label="One Passport account with EVM, Solana, passkey, k256 and JubJub devices">
+          <path class="edge soft" d="M310 210 L120 80"/>
+          <path class="edge soft" d="M310 210 L500 80"/>
+          <path class="edge soft" d="M310 210 L80 290"/>
+          <path class="edge soft" d="M310 210 L540 290"/>
+          <path class="edge soft" d="M310 210 L310 370"/>
+
+          <rect class="box ours" x="200" y="164" width="220" height="92" rx="14"/>
+          <text class="box-title" x="310" y="204" text-anchor="middle">Passport account</text>
+          <text class="box-sub" x="310" y="226" text-anchor="middle">one auth nonce</text>
+
+          <rect class="box ours" x="30" y="46" width="180" height="64" rx="12"/>
+          <text class="box-title" x="120" y="74" text-anchor="middle">EVM wallet</text>
+          <text class="box-sub" x="120" y="94" text-anchor="middle">evm_k256</text>
+
+          <rect class="box ours" x="410" y="46" width="180" height="64" rx="12"/>
+          <text class="box-title" x="500" y="74" text-anchor="middle">Solana wallet</text>
+          <text class="box-sub" x="500" y="94" text-anchor="middle">sol_ed25519</text>
+
+          <rect class="box" x="4" y="262" width="152" height="60" rx="12"/>
+          <text class="box-title" x="80" y="288" text-anchor="middle">passkey</text>
+          <text class="box-sub" x="80" y="306" text-anchor="middle">p256</text>
+
+          <rect class="box" x="464" y="262" width="152" height="60" rx="12"/>
+          <text class="box-title" x="540" y="288" text-anchor="middle">k256 key</text>
+          <text class="box-sub" x="540" y="306" text-anchor="middle">k256</text>
+
+          <rect class="box" x="234" y="344" width="152" height="60" rx="12"/>
+          <text class="box-title" x="310" y="370" text-anchor="middle">JubJub key</text>
+          <text class="box-sub" x="310" y="388" text-anchor="middle">jubjub</text>
+        </svg>
+        <div class="facts">
+          <div class="fact"><b>Any device adds any other</b><p>An EVM device adds a Solana device by its readable descriptor, and the reverse. The approval shows the new key in full.</p></div>
+          <div class="fact"><b>Grants cross arms</b><p>An EVM device grants a scoped spend to a Solana wallet, which signs its own spends.</p></div>
+          <div class="fact"><b>One nonce for all</b><p>Every device-gated call advances the same counter, so an approval prepared before another device's call is stale.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-page="12" aria-label="Private by design">
+      <p class="kicker">Privacy</p>
+      <h2>Private by design</h2>
+      <div class="cards-3">
+        <article class="card-dark">
+          <h3>No address on chain</h3>
+          <p>A device is stored as a hash. Only someone who knows the key and the blind can find it.</p>
+          <code>SHA-256(tag ‖ account ‖ key ‖ blind ‖ epoch ‖ counter)</code>
+        </article>
+        <article class="card-dark">
+          <h3>The blind comes from the wallet</h3>
+          <p>A hash of a deterministic signature over a blind request. Signed twice at enrolment, cached, and derived again on restore.</p>
+          <code>SHA-256(tag ‖ canonical signature)</code>
+        </article>
+        <article class="card-dark">
+          <h3>One use, then it rolls</h3>
+          <p>Each call replaces the device's entry with its successor and advances the nonce. An approval works once.</p>
+          <code>counter → counter + 1</code>
+        </article>
+      </div>
+      <p class="strip"><b>The client checks the signer before proving.</b> Two installed extensions can answer for each other, so a signature that does not verify under the expected key is refused before anything is sent.</p>
+    </section>
+
+    <section class="slide light" data-page="13" aria-label="Adding an arm">
+      <p class="kicker">Extension points</p>
+      <h2>Adding an arm</h2>
+      <div class="ext">
+        <article><span>E1</span><b>Tag registry</b><p>A new arm is five tags (device, boot, grant id, blind, salt) and one registry entry naming its key class.</p></article>
+        <article><span>E2</span><b>Key classes</b><p>Two today: a k256 key known by its 20-byte address (EVM) and an Ed25519 key (Solana). Their derivations take the tag, so nothing hard-codes a chain; a new key shape adds a class.</p></article>
+        <article><span>E3</span><b>Enrolment kinds</b><p>One entry per kind of device an arm can add: a typed-data type (EVM) or a key text (Solana).</p></article>
+        <article><span>E4</span><b>Text pieces</b><p>Shared renderers for numbers, hex, base58 and labels. Each arm writes its own frame.</p></article>
+        <article><span>E5</span><b>Format seam</b><p>Each arm's seam reaches its format and its core (<code>K256Core</code> or <code>Ed25519Core</code>) through fixed interfaces only.</p></article>
+        <article><span>E6</span><b>Client lists</b><p>Signer registry, blind schemes and the deploy list: one entry each.</p></article>
+      </div>
+      <p class="line-note">A new arm on either curve is new files plus registry entries, not a redesign.</p>
+    </section>
+
+    <section class="slide light" data-page="14" aria-label="Next: NEAR, Cardano, and beyond">
+      <p class="kicker">Next</p>
+      <h2>NEAR, Cardano, and beyond</h2>
+      <div class="next">
+        <svg class="diagram" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Ed25519Core in the centre with four formats: Solana raw and off-chain today, NEAR NEP-413 and Cardano CIP-8 next">
+          <path class="edge" d="M320 190 L130 80"/>
+          <path class="edge" d="M320 190 L130 300"/>
+          <path class="edge soft" d="M320 190 L510 80" stroke-dasharray="6 5"/>
+          <path class="edge soft" d="M320 190 L510 300" stroke-dasharray="6 5"/>
+
+          <rect class="box ours" x="220" y="146" width="200" height="88" rx="14"/>
+          <text class="box-title" x="320" y="186" text-anchor="middle">Ed25519Core</text>
+          <text class="box-sub" x="320" y="208" text-anchor="middle">unchanged</text>
+
+          <rect class="box ours" x="20" y="46" width="220" height="68" rx="12"/>
+          <text class="box-title" x="130" y="76" text-anchor="middle">Solana raw</text>
+          <text class="box-sub" x="130" y="96" text-anchor="middle">today</text>
+
+          <rect class="box ours" x="20" y="266" width="220" height="68" rx="12"/>
+          <text class="box-title" x="130" y="296" text-anchor="middle">Solana off-chain</text>
+          <text class="box-sub" x="130" y="316" text-anchor="middle">today</text>
+
+          <rect class="box next" x="400" y="46" width="220" height="68" rx="12"/>
+          <text class="box-title" x="510" y="76" text-anchor="middle">NEAR NEP-413</text>
+          <text class="box-sub" x="510" y="96" text-anchor="middle">next</text>
+
+          <rect class="box next" x="400" y="266" width="220" height="68" rx="12"/>
+          <text class="box-title" x="510" y="296" text-anchor="middle">Cardano CIP-8</text>
+          <text class="box-sub" x="510" y="316" text-anchor="middle">next</text>
+        </svg>
+        <div class="next-notes">
+          <div class="fact"><b>NEAR <code>nea_ed25519</code></b><p>The wallet signs SHA-256 of a Borsh payload holding the text, so the core verifies over 32 bytes. The device is the key: binding a name such as batata.near needs NEAR state on Midnight, a cross-chain proof. Ledger NEAR shows the first 400 bytes.</p></div>
+          <div class="fact"><b>Cardano <code>cdo_ed25519</code></b><p>CIP-30 signData through the reward address; the circuit rebuilds the CBOR Sig_structure. Binding the address to the key needs BLAKE2b-224, which Compact does not have yet: until then the arm is test only.</p></div>
+        </div>
+      </div>
+      <p class="strip"><b>Beyond:</b> recovery straight to a wallet (one recovery gate per device scheme, as MIP-0022 plans); Ledger clear signing for the fixed EIP-712 domain (ERC-7730); BLAKE2b in Compact.</p>
+    </section>
+
+    <section class="slide light" data-page="15" aria-label="NEAR wallets">
+      <p class="kicker">next: NEAR</p>
+      <h2>NEAR wallets<span class="title-note">arm planned</span></h2>
+      <div class="wt-wrap" style="flex:0 0 auto"><table class="wt" data-chain="near"></table></div>
+      <div class="need">
+        <b>To bind a NEAR name such as <code>batata.near</code>, Midnight needs NEAR state</b>
+        <div class="need-cols">
+          <p><b>The key is verified today</b>NEP-413 is Ed25519 over SHA-256 of a Borsh payload, so the core already checks the signature. The device is the key.</p>
+          <p><b>Named accounts need a cross-chain proof</b>A name is a NEAR account that holds access keys, and those keys can change. Proving that a key belongs to the name needs NEAR's state on Midnight: a light client, a bridge or an oracle.</p>
+          <p><b>Implicit accounts need nothing more</b>An implicit account's id is the hex of its Ed25519 key, so it follows from the key alone.</p>
+        </div>
+      </div>
+      <p class="legend"><b class="s-ok">✓</b> check &nbsp; <b class="s-warn">⚠</b> warning &nbsp; <b class="s-no">✗</b> cross &nbsp; <b class="s-na">·</b> not yet measured &nbsp;|&nbsp; <b>Deterministic:</b> signs a request identically twice, so it can hold a blind &nbsp;|&nbsp; <b>On chain:</b> measured next</p>
+    </section>
+
+    <section class="slide light" data-page="16" aria-label="Cardano wallets">
+      <p class="kicker">next: Cardano</p>
+      <h2>Cardano wallets<span class="title-note">arm planned; test only, address not bound</span></h2>
+      <div class="wt-wrap" style="flex:0 0 auto"><table class="wt" data-chain="ada"></table></div>
+      <div class="need">
+        <b>To make it real, Compact needs one primitive: <code>BLAKE2b-224</code>. Ed25519 and the CBOR are already there.</b>
+        <div class="need-cols">
+          <p><b>Bind the address to the key</b>A reward address is a header byte and BLAKE2b-224 of the stake key, so the circuit can check the CIP-8 header names the signer. Today: a stub, test only.</p>
+          <p><b>Tell stake from payment keys</b>The address type then proves which key signed, in the circuit, instead of a client rule.</p>
+          <p><b>Accept hashed payloads</b>CIP-8 with <code>hashed: true</code> signs BLAKE2b-224 of the payload (Lace with a Ledger, older Ledger apps). Its cost must still fit k ≤ 18.</p>
+        </div>
+      </div>
+      <p class="legend"><b class="s-ok">✓</b> check &nbsp; <b class="s-warn">⚠</b> warning &nbsp; <b class="s-no">✗</b> cross &nbsp; <b class="s-na">·</b> not yet measured &nbsp;|&nbsp; <b>Deterministic:</b> signs a request identically twice, so it can hold a blind &nbsp;|&nbsp; <b>On chain:</b> measured next</p>
+    </section>
+
+    <section class="slide light" data-page="17" aria-label="Hardware through a software wallet">
+      <p class="kicker">Hardware</p>
+      <h2>Hardware through a software wallet</h2>
+      <p class="legend" style="margin-top:calc(10 * var(--u))">Each entry: the host wallet, then <b>Connects</b> and <b>Signs format</b> for the device behind it.</p>
+      <table class="ht" id="host-table"></table>
+      <p class="strip"><b>37 products, 124 rows</b> (64 direct, 60 through a host wallet), 620 cells: <b class="s-ok">✓ 67</b>, <b class="s-warn">⚠ 97</b>, <b class="s-no">✗ 12</b>, <b class="s-na">·</b> 444 not yet measured.</p>
+    </section>
+
+    <section class="slide dark" data-page="18" aria-label="Thanks">
+      <div class="title-body">
+        <h1>Thanks!</h1>
+        <p class="title-sub" style="font-size:calc(38 * var(--u));margin-top:calc(30 * var(--u))">Questions?</p>
+        <div class="links">
+          <a class="mip-link" href="https://github.com/midnightntwrk/passport/pull/188" target="_blank" rel="noopener">
+            <span>github.com/midnightntwrk/passport/pull/188</span>
+            <span>the EVM arm</span>
+          </a>
+          <a class="mip-link" href="https://github.com/midnightntwrk/passport/pull/189" target="_blank" rel="noopener">
+            <span>github.com/midnightntwrk/passport/pull/189</span>
+            <span>the Solana arm</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav id="controls" aria-label="Slide controls">
+    <button id="prev" type="button" aria-label="Previous slide">&larr;</button>
+    <span id="counter" aria-live="polite">1 / 18</span>
+    <button id="next" type="button" aria-label="Next slide">&rarr;</button>
+  </nav>
+
+  <script>
+    // The wallet baseline: name|type|state|Connects Signs-format Readable Deterministic On-chain
+    const WALLETS = {
+      evm: `Backpack|software|tested|✓✓⚠··
+Coinbase Wallet / Base app|software|tested|✓✓···
+MetaMask|software|tested|✓✓⚠✓·
+Phantom|software|tested|✓⚠·✓·
+Rabby|software|tested|✓✓⚠✓·
+OneKey App|software|documented|✓⚠···
+OKX Wallet|software|unconfirmed|·⚠···
+Rainbow|software|unconfirmed|·····
+Trust Wallet|software|unconfirmed|✓⚠···
+Ledger|hardware|tested|⚠⚠⚠✓·
+Trezor|hardware|tested|✓✓✓✓·
+Trezor Model One|hardware|documented|✓✓✗··
+BitBox02 Multi|hardware|unconfirmed|·⚠···
+ELLIPAL|hardware|unconfirmed|·····
+GridPlus Lattice1|hardware|unconfirmed|·⚠···
+Keystone 3 Pro|hardware|unconfirmed|·⚠···
+OneKey devices|hardware|unconfirmed|·⚠···
+Tangem|hardware|unconfirmed|··✗··
+Ledger Nano S (original)|hardware|legacy|·····`,
+      sol: `Backpack|software|tested|✓✓⚠✓·
+Phantom|software|tested|✓✓✓✓·
+Solflare|software|tested|✓✓✓✓·
+Jupiter Wallet|software|unconfirmed|·····
+OKX Wallet|software|unconfirmed|⚠⚠···
+OneKey App|software|unconfirmed|·⚠···
+Trust Wallet|software|unconfirmed|⚠⚠···
+Nightly|software|limited|⚠⚠···
+NUFI|software|limited|⚠····
+Ledger|hardware|tested|⚠✓✓✓·
+Trezor|hardware|tested|✓✓⚠✓·
+ELLIPAL|hardware|unconfirmed|·····
+GridPlus Lattice1|hardware|unconfirmed|·····
+Keystone 3 Pro|hardware|unconfirmed|·····
+OneKey devices|hardware|unconfirmed|·⚠···
+Solflare Shield|hardware|unconfirmed|··✗··
+Tangem|hardware|unconfirmed|··✗··
+Trezor Model One|hardware|limited|✗✗✗✗·`,
+      near: `Meteor|software|tested|✓✓⚠✓·
+HOT Wallet|software|documented|✓✓···
+Intear Wallet|software|documented|✓✓···
+NEAR Mobile|software|documented|⚠✓···
+Nightly|software|documented|✓✓···
+OKX Wallet|software|documented|✓✓···
+Sender|software|documented|✓✓···
+HERE Wallet|software|legacy|✓✓···
+MyNearWallet|software|legacy|✓⚠···
+Ledger|hardware|tested|⚠✓⚠✓·
+OneKey devices|hardware|unconfirmed|·····
+Tangem|hardware|unconfirmed|··✗··
+Trezor|hardware|unconfirmed|·····`,
+      ada: `Eternl|software|tested|✓✓⚠✓·
+Lace|software|tested|✓✓···
+Begin|software|unconfirmed|·····
+NUFI|software|unconfirmed|⚠····
+Typhon|software|unconfirmed|·····
+VESPR|software|unconfirmed|·····
+SecondFi (formerly Yoroi)|software|legacy|·····
+Ledger|hardware|tested|⚠✓⚠✓·
+Trezor|hardware|tested|✓✓⚠✓·
+BitBox02 Multi|hardware|unconfirmed|·····
+ELLIPAL|hardware|unconfirmed|·····
+Keystone 3 Pro|hardware|unconfirmed|·⚠···
+OneKey devices|hardware|unconfirmed|·⚠···
+Tangem|hardware|unconfirmed|··✗··`,
+    };
+    // Hardware through a host wallet: device -> [EVM, Solana, NEAR, Cardano]; each entry "host CS"
+    const HOSTS = [
+      ['Ledger', ['Backpack ⚠·, Coinbase ⚠·, MetaMask ⚠·, Phantom ⚠·, Rabby ⚠·, Rainbow ⚠·', 'Backpack ⚠·, Jupiter ⚠·, NUFI ⚠·, Nightly ⚠·, Phantom ⚠·, Solflare ⚠·', 'HERE ⚠·, Meteor ⚠·, MyNearWallet ⚠·, Nightly ⚠·', 'Begin ⚠·, Eternl ⚠⚠, Lace ⚠✗, NUFI ⚠·, SecondFi ··, Typhon ⚠·']],
+      ['Trezor', ['Backpack ⚠·, MetaMask ⚠·, OneKey App ⚠·, Rabby ⚠·, Rainbow ⚠·', 'Backpack ⚠·, Jupiter ⚠·, NUFI ⚠✗, OneKey App ⚠·', '', 'Eternl ⚠·, Lace ⚠·, NUFI ⚠·, SecondFi ··, Typhon ⚠·']],
+      ['Keystone 3 Pro', ['Backpack ⚠·, MetaMask ⚠·, OKX ⚠·, Rabby ⚠·', 'Backpack ⚠·, Jupiter ⚠·, NUFI ⚠·, Solflare ⚠·', '', 'Begin ⚠·, Eternl ⚠·, Lace ⚠·, NUFI ⚠·, Typhon ⚠·']],
+      ['OneKey devices', ['OneKey App ⚠·, Rabby ⚠·', 'NUFI ⚠·, OneKey App ⚠·', '', 'Eternl ⚠·, NUFI ⚠·']],
+      ['GridPlus Lattice1', ['MetaMask ⚠·, Rabby ⚠·', '', '', '']],
+      ['BitBox02 Multi', ['Rabby ⚠·', '', '', 'NUFI ⚠·']],
+      ['Solflare Shield', ['', 'Solflare ⚠·', '', '']],
+    ];
+    (() => {
+      const CLS = { '✓': 's-ok', '⚠': 's-warn', '✗': 's-no', '·': 's-na' };
+      const sym = (ch) => `<span class="${CLS[ch]}">${ch}</span>`;
+      const COLS = ['Connects', 'Signs format', 'Readable', 'Deterministic', 'On chain'];
+      document.querySelectorAll('table.wt').forEach((table) => {
+        const rows = WALLETS[table.dataset.chain].split('\n').map((line) => line.split('|'));
+        let html = '<colgroup><col style="width:27%"><col style="width:10%"><col style="width:12%">' + '<col style="width:10.2%">'.repeat(5) + '</colgroup>';
+        html += '<thead><tr><th>Wallet</th><th>Type</th><th>State</th>' + COLS.map((c) => `<th class="c">${c}</th>`).join('') + '</tr></thead><tbody>';
+        let prevType = 'software';
+        for (const [name, type, state, cells] of rows) {
+          const first = type === 'hardware' && prevType !== 'hardware';
+          prevType = type;
+          html += `<tr${first ? ' class="hw-first"' : ''}><td>${name}</td><td class="ty">${type}</td><td class="st ${state}">${state}</td>` + [...cells].map((ch) => `<td class="c">${sym(ch)}</td>`).join('') + '</tr>';
+        }
+        table.innerHTML = html + '</tbody>';
+      });
+      const host = document.getElementById('host-table');
+      if (host) {
+        let html = '<colgroup><col style="width:16%"><col style="width:21%"><col style="width:21%"><col style="width:21%"><col style="width:21%"></colgroup>';
+        html += '<thead><tr><th>Device</th><th>EVM</th><th>Solana</th><th>NEAR</th><th>Cardano</th></tr></thead><tbody>';
+        for (const [device, cols] of HOSTS) {
+          html += `<tr><td class="dev">${device}</td>` + cols.map((col) => {
+            if (!col) return '<td><span class="none">none</span></td>';
+            return '<td>' + col.split(', ').map((entry) => {
+              const cut = entry.lastIndexOf(' ');
+              return `<span class="e">${entry.slice(0, cut)} <b>${[...entry.slice(cut + 1)].map(sym).join('')}</b></span>`;
+            }).join('') + '</td>';
+          }).join('') + '</tr>';
+        }
+        host.innerHTML = html + '</tbody>';
+      }
+    })();
+  </script>
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const counter = document.getElementById('counter');
+      let index = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1) || 1) - 1));
+
+      const show = (next) => {
+        index = (next + slides.length) % slides.length;
+        slides.forEach((slide, i) => slide.classList.toggle('active', i === index));
+        counter.textContent = `${index + 1} / ${slides.length}`;
+        history.replaceState(null, '', `#${index + 1}`);
+      };
+
+      document.getElementById('prev').addEventListener('click', () => show(index - 1));
+      document.getElementById('next').addEventListener('click', () => show(index + 1));
+      addEventListener('keydown', (event) => {
+        if (['ArrowRight', 'PageDown', ' ', 'Spacebar'].includes(event.key)) { event.preventDefault(); show(index + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(index - 1); }
+        if (event.key === 'Home') { event.preventDefault(); show(0); }
+        if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+      });
+      addEventListener('hashchange', () => {
+        const requested = Number(location.hash.slice(1));
+        if (Number.isInteger(requested) && requested >= 1 && requested <= slides.length) show(requested - 1);
+      });
+      show(index);
+    })();
+  </script>
+</body>
+</html>
