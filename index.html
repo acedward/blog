@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: three bands (Published POC, Projects, Other). Each entry = diagram + video or image + one line + a folded list of repos. */
+/* Featured work leads the Published POC, Projects and Other bands. */
 :root {
   --paper: #eef0f5;
   --plate: #ffffff;
@@ -102,6 +102,11 @@ h3 { font: 700 24px/1.2 var(--f-display); font-stretch: 108%; margin: 0; text-wr
 .pane.gap { cursor: default; background-image: repeating-linear-gradient(135deg, var(--mute-soft) 0 10px, var(--plate) 10px 20px); display: grid; place-items: center; text-align: center; padding: 18px; }
 .gap-in { display: grid; gap: 6px; max-width: 32ch; }
 .gap-in b { font: 600 13px/1.3 var(--f-body); color: var(--ink-2); }
+.pane.wallet-support { cursor: default; aspect-ratio: auto; display: flex; flex-direction: column; justify-content: center; gap: 24px; padding: clamp(20px, 4vw, 38px); }
+.wallet-support h4 { margin: 0 0 10px; color: var(--ink-2); font: 500 12px/1.3 var(--f-mono); text-transform: uppercase; letter-spacing: .06em; }
+.wallet-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.wallet-list li { padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 6px; font-weight: 600; }
+.wallet-support .hardware li { background: var(--accent-soft); color: var(--accent-ink); border-color: var(--accent); }
 
 
 /* Slides */
@@ -183,7 +188,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; color: var
 
 <main class="wrap" id="main"></main>
 
-<footer class="wrap">Last updated 21 October 2026 · <a href="updates.html">Weekly updates and slide decks</a></footer>
+<footer class="wrap">Last updated 26 October 2026 · <a href="updates.html">Weekly updates and slide decks</a></footer>
 
 <div class="lb" id="lb" hidden></div>
 
@@ -203,6 +208,35 @@ const PASS = 'acedward/passport';
 const NM = 'acedward/solana-night-market';
 const MNB = 'acedward/passport-evm-dapp';
 const INJ = 'acedward/solana-token-injector';
+const PASSPORT = 'midnightntwrk/passport';
+const UMBRADB = 'midnightntwrk/umbradb';
+
+const FEATURED = [
+  { id: 'mip-0018-presentation', title: 'MIP-0018: on-chain token metadata', sub: 'Presentation',
+    line: 'How Midnight contracts publish token names, symbols and decimals as events, and how wallets and explorers read them. The presentation walks through the metadata format, publication and discovery.',
+    primary: ['Open presentation ↗', 'presentations/mip-0018.html'],
+    media: { kind: 'deck', src: 'media/mip-0018-presentation.png', href: 'presentations/mip-0018.html', cap: 'Open the presentation' },
+    flow: ['Token contract', 'publishes events', 'MIP-0018 metadata', 'read by', 'Wallets + explorers'], hl: 1,
+    links: [['Presentation', 'presentations/mip-0018.html'], ['MIP-0018 specification', GH + MIPS + '/blob/main/mips/mip-0018-on-chain-token-metadata.md'], repo('midnight-experiments/mip-0018', 'Reference implementation')] },
+  { id: 'passport-ecdsa', title: 'Passport: ECDSA wallet support', sub: 'Account abstraction · PR #188',
+    line: 'Control a Midnight Passport account with readable EIP-712 approvals from software and hardware wallets, including MetaMask, Rabby, Coinbase Wallet, Backpack and Trezor. Ledger signing currently requires blind signing to be enabled.',
+    primary: ['View PR #188 ↗', GH + PASSPORT + '/pull/188'],
+    media: { kind: 'wallets', software: ['MetaMask', 'Rabby', 'Coinbase Wallet', 'Backpack'], hardware: ['Trezor', 'Ledger (blind signing)'] },
+    flow: ['Software or hardware wallet', 'signs EIP-712', 'ECDSA verification', 'authorises', 'Passport account'], hl: 1,
+    links: [pr(PASSPORT, 188, 'ECDSA / EIP-712'), repo(PASSPORT, 'Passport'), repo('midnight-experiments/passport-wallet-matrix', 'Wallet integration')] },
+  { id: 'passport-ed25519', title: 'Passport: Ed25519 wallet support', sub: 'Account abstraction · PR #189',
+    line: 'Control a Midnight Passport account with readable Ed25519 approvals across software and hardware wallets. Raw messages and Solana off-chain envelopes cover wallets such as Phantom and Backpack, plus Ledger and Trezor.',
+    primary: ['View PR #189 ↗', GH + PASSPORT + '/pull/189'],
+    media: { kind: 'wallets', software: ['Phantom', 'Backpack'], hardware: ['Ledger', 'Trezor'] },
+    flow: ['Software or hardware wallet', 'signs readable approval', 'Ed25519 verification', 'authorises', 'Passport account'], hl: 1,
+    links: [pr(PASSPORT, 189, 'Ed25519'), repo(PASSPORT, 'Passport'), repo('midnight-experiments/passport-wallet-matrix', 'Wallet integration')] },
+  { id: 'umbradb', title: 'UmbraDB', sub: 'Midnight · modular indexer and persistent storage',
+    line: 'A modular Midnight indexer and persistent data layer for wallets and applications. It brings chain history, replay and application-specific indexing together, with PostgreSQL and an in-browser PGlite backend.',
+    primary: ['View repository ↗', GH + UMBRADB],
+    media: { kind: 'img', src: 'media/umbradb-penumbra.png', cap: 'UmbraDB', alt: 'UmbraDB eclipse artwork' },
+    flow: ['Midnight node', 'chain data', 'UmbraDB', 'indexes and serves', 'Wallets + applications'], hl: 1,
+    links: [repo(UMBRADB), ['Architecture and design', GH + UMBRADB + '/tree/main/design'], ['Browser experiment', 'https://stagenet.umbradb.pages.dev/?tab=jsonrpc']] }
+];
 
 const PUBLISHED = [
   { id: 'offer-files-cow', num: 'P1', title: 'Offer Files & COW', app: 'https://stagenet.zswap.zkdojo.com/',
@@ -469,6 +503,27 @@ function mediaPane(e) {
     g.appendChild(inner);
     return g;
   }
+  if (m.kind === 'wallets') {
+    const panel = h('div', 'pane wallet-support');
+    for (const [key, label] of [['software', 'Software wallets'], ['hardware', 'Hardware wallets']]) {
+      const group = h('div', key);
+      const list = h('ul', 'wallet-list');
+      m[key].forEach(name => list.appendChild(h('li', null, name)));
+      group.append(h('h4', null, label), list);
+      panel.appendChild(group);
+    }
+    return panel;
+  }
+  if (m.kind === 'deck') {
+    const a = h('a', 'pane fit');
+    a.href = m.href; a.target = '_blank'; a.rel = 'noopener';
+    a.setAttribute('aria-label', 'Open presentation: ' + e.title);
+    a.appendChild(backdrop(m.src));
+    const img = document.createElement('img');
+    img.src = m.src; img.alt = e.title + ', title slide';
+    a.append(img, h('span', 'tag', m.cap || 'Presentation'));
+    return a;
+  }
   if (m.kind === 'video') {
     const d = h('div', 'pane vid');
     d.appendChild(backdrop(m.poster));
@@ -506,10 +561,10 @@ function mediaPane(e) {
   }
   const b = h('button', 'pane fit');
   b.type = 'button';
-  b.setAttribute('aria-label', 'Enlarge screenshot of ' + e.title);
+  b.setAttribute('aria-label', 'Enlarge image of ' + e.title);
   b.appendChild(backdrop(m.src));
   const img = document.createElement('img');
-  img.src = m.src; img.alt = e.title + ' screenshot'; img.loading = 'lazy';
+  img.src = m.src; img.alt = m.alt || e.title + ' screenshot'; img.loading = 'lazy';
   b.appendChild(img);
   b.appendChild(h('span', 'tag', m.cap || 'Screenshot'));
   b.addEventListener('click', () => {
@@ -549,6 +604,10 @@ function head(e, kind) {
   if (kind === 'feature') {
     const a = h('a', 'open-app', 'Open app ↗');
     a.href = e.app; a.target = '_blank'; a.rel = 'noopener';
+    meta.appendChild(a);
+  } else if (e.primary) {
+    const a = h('a', 'open-app', e.primary[0]);
+    a.href = e.primary[1]; a.target = '_blank'; a.rel = 'noopener';
     meta.appendChild(a);
   } else {
     const lv = e.links.find(l => Array.isArray(l) && l[0].startsWith('Live'));
@@ -598,6 +657,7 @@ function band(id, title, note, entries, kind, layout) {
 }
 
 const SECTIONS = [
+  ['featured', 'Featured', null, FEATURED, 'row', 'rows'],
   ['published', 'Published POC', 'Live on Midnight stagenet.', PUBLISHED, 'feature', 'rows'],
   ['projects', 'Projects', null, PROJECTS, 'row', 'rows'],
   ['other', 'Other projects and support', null, OTHER, 'compact', 'rows tight']

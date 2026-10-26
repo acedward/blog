@@ -8,7 +8,7 @@ code behind it.
 - **Published from:** the `main` branch of this repo, via GitHub Pages (custom domain set in `CNAME`).
 - **Source:**
   - `index.html`: the product index (plain HTML + inline CSS and JS, no build step).
-    All entries live in the `PUBLISHED`, `PROJECTS` and `OTHER` arrays in its script.
+    All entries live in the `FEATURED`, `PUBLISHED`, `PROJECTS` and `OTHER` arrays in its script.
   - `media/`: the screenshots, video posters, videos and PDFs the entries show.
   - `presentations/`: standalone slide decks (one self-contained HTML file each).
   - `updates.html`: the previous blog (weekly updates, timeline and presentations
@@ -38,12 +38,14 @@ code behind it.
 
 ## Structure
 
-The page has three sections, in this order:
+The page has four sections, in this order:
 
-1. **Published POC**: apps that are live on stagenet. Each has an `app` URL
+1. **Featured**: the requested presentation and highlighted projects, driven by
+   `FEATURED`. An optional `primary: [label, url]` gives each entry a direct action.
+2. **Published POC**: apps that are live on stagenet. Each has an `app` URL
    (the "Open app" button). The video or image comes first, then the diagram.
-2. **Projects**: one full-width row per product: diagram, then video or image.
-3. **Other projects and support**: smaller products and supporting work, in
+3. **Projects**: one full-width row per product: diagram, then video or image.
+4. **Other projects and support**: smaller products and supporting work, in
    compact rows about a third of the height of a project row (text on the left,
    a small diagram and a small video or image on the right).
 
@@ -58,6 +60,9 @@ Each entry is an object with:
 - `media`: `{ kind: 'video', src, poster, cap }`, `{ kind: 'img', src, cap }` or
   `{ kind: 'slides', pages, pdf, cap }`; leave it out when nothing exists yet and
   the entry shows a placeholder
+  - `{ kind: 'deck', src, href, cap }` links a title-slide preview to its presentation.
+  - `{ kind: 'wallets', software, hardware }` lists wallet coverage as text in place
+    of a screenshot. Keep relevant compatibility limits visible.
 - `links`: `[label, url]` pairs, with `grp('Heading')` to start a group.
   Helpers: `repo()`, `branch()`, `pr()`, `live()`. A link whose label starts with
   "Live" also shows a "Live" tag on the entry. Link a slide deck as
