@@ -342,9 +342,9 @@
           <rect class="frame dash" x="182" y="336" width="566" height="120" rx="16"/>
           <text class="lbl gold" x="202" y="362">PRIVATE PROCESSES</text>
           <rect class="chip" x="202" y="376" width="170" height="32" rx="8"/><text class="m" x="287" y="397" text-anchor="middle">core-private-source</text>
-          <rect class="chip" x="381" y="376" width="160" height="32" rx="8"/><text class="m" x="461" y="397" text-anchor="middle">core-key-registry</text>
+          <rect class="chip yours" x="381" y="376" width="160" height="32" rx="8"/><text class="m gold" x="461" y="397" text-anchor="middle">user secrets</text>
           <rect class="chip yours" x="550" y="376" width="186" height="32" rx="8"/><text class="m gold" x="643" y="397" text-anchor="middle">private modules</text>
-          <text class="m s" x="202" y="438">own databases; lockstep and TEE optional</text>
+          <text class="m s" x="202" y="438">own databases; lockstep with the public side optional</text>
 
           <path class="db priv" d="M830 358 V434 A70 12 0 0 0 970 434 V358 Z"/>
           <ellipse class="db priv" cx="900" cy="358" rx="70" ry="12"/>
@@ -371,11 +371,11 @@
       <h2>One block, one atomic write</h2>
       <p class="sub">A crash never leaves partial data, and anyone can prove their copy matches another.</p>
       <p class="caption">One transaction per block, in this order</p>
-      <svg class="d strip" viewBox="0 0 1140 64" preserveAspectRatio="xMidYMid meet" role="img" aria-label="BEGIN, core-chain, core-block-commit, your modules, core-digest, COMMIT">
+      <svg class="d strip" viewBox="0 0 1140 64" preserveAspectRatio="xMidYMid meet" role="img" aria-label="BEGIN, core-chain, core-block-commit, core modules and your modules, core-digest, COMMIT">
         <rect class="chip dim" x="0" y="8" width="120" height="48" rx="10"/><text class="m" x="60" y="37" text-anchor="middle">BEGIN</text>
         <rect class="chip" x="130" y="8" width="170" height="48" rx="10"/><text class="m" x="215" y="37" text-anchor="middle">core-chain</text>
         <rect class="chip" x="310" y="8" width="210" height="48" rx="10"/><text class="m" x="415" y="37" text-anchor="middle">core-block-commit</text>
-        <rect class="chip yours" x="530" y="8" width="260" height="48" rx="10"/><text class="m gold" x="660" y="37" text-anchor="middle">your modules</text>
+        <rect class="chip yours" x="530" y="8" width="260" height="48" rx="10"/><text class="m gold" x="660" y="37" text-anchor="middle">core + your modules</text>
         <rect class="chip" x="800" y="8" width="180" height="48" rx="10"/><text class="m" x="890" y="37" text-anchor="middle">core-digest</text>
         <rect class="chip dim" x="990" y="8" width="150" height="48" rx="10"/><text class="m" x="1065" y="37" text-anchor="middle">COMMIT</text>
       </svg>
@@ -441,7 +441,7 @@
         <text class="m s" x="625" y="96" text-anchor="middle">compute</text>
         <text class="m s" x="815" y="96" text-anchor="middle">write rows</text>
         <text class="m s" x="1040" y="96" text-anchor="middle">notify</text>
-        <text class="m s" x="300" y="124">also on-finalized for each new head, and on-key when a viewing key arrives (private)</text>
+        <text class="m s" x="0" y="124">also: on-best-block and on-rollback before finality; on-finalized for each new head; on-start-height and on-stop-height where an entry starts or stops</text>
       </svg>
       <div class="cards-3">
         <div class="col">
@@ -463,7 +463,7 @@
           <h3><span>03</span>Configure</h3>
           <ul>
             <li>One typed TypeScript file.</li>
-            <li>A change applies from a future height.</li>
+            <li>A data setting changes only from a future height.</li>
             <li>One version of each module per build.</li>
           </ul>
         </div>
@@ -476,7 +476,7 @@
       <h2>Privacy by design</h2>
       <p class="sub">A service can index shielded data for its users while the public index stays shareable.</p>
       <div class="diagram-wrap">
-        <svg class="d" viewBox="0 0 1140 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The public side writes a shareable public database; finalized blocks go one way to the private side, whose process holds the keys and writes a private database; keys never cross back">
+        <svg class="d" viewBox="0 0 1140 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The public side writes a shareable public database; finalized blocks go one way to the private side, whose private modules take the keys and write a private database; keys never cross back">
           <defs>
             <marker id="a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#a8c2df"/></marker>
             <marker id="a6r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#e38787"/></marker>
@@ -502,7 +502,7 @@
           <rect class="chip" x="664" y="80" width="220" height="96" rx="12" style="stroke:#f0c27b99"/>
           <text class="t" x="774" y="118" text-anchor="middle">private process</text>
           <text class="m s" x="774" y="140" text-anchor="middle">core-private-source,</text>
-          <text class="m s" x="774" y="157" text-anchor="middle">core-key-registry</text>
+          <text class="m s" x="774" y="157" text-anchor="middle">private modules</text>
           <path class="edge" d="M884 128 H930" marker-end="url(#a6)"/>
           <path class="db priv" d="M932 90 V166 A90 12 0 0 0 1112 166 V90 Z"/>
           <ellipse class="db priv" cx="1022" cy="90" rx="90" ry="12"/>
@@ -519,13 +519,13 @@
           <rect class="chip yours" x="699" y="226" width="150" height="40" rx="10"/>
           <text class="m gold" x="774" y="251" text-anchor="middle">viewing key</text>
           <path class="edge" d="M774 226 V180" marker-end="url(#a6)"/>
-          <text class="m s" x="787" y="206">arrives here only</text>
+          <text class="m s" x="787" y="206">only a private module takes it</text>
         </svg>
       </div>
       <div class="tag-row">
         <span class="tag">lockstep with the public side: optional</span>
-        <span class="tag">TEE: optional</span>
-        <span class="tag gold">feeds private wallet data, fast sync, Passport</span>
+        <span class="tag">private link: a port, or channels you provide</span>
+        <span class="tag gold">feeds private wallet data, fast sync, Passport (in a TEE)</span>
       </div>
     </section>
 
@@ -537,7 +537,7 @@
         <div class="side-card">
           <span class="lbl">SERVER</span>
           <h3>Node.js + PostgreSQL 18</h3>
-          <p>A cloud deployment or a laptop.</p>
+          <p>A cloud deployment or a laptop: the <code>umbradb</code> command, or <code>startUmbraDB</code> inside your own program.</p>
         </div>
         <div class="same">
           <span class="eq">=</span>
@@ -554,7 +554,7 @@
       <div class="ops">
         <p><b>Admin worker</b>Health, status and config endpoints, apart from the indexing work.</p>
         <p><b>Only what is configured</b>The modules in the configuration run, and nothing else.</p>
-        <p><b>Backup and restore</b><code>umbradb backup</code> and <code>umbradb restore</code>, one command each.</p>
+        <p><b>Backup and restore</b><code>umbradb backup</code> and <code>umbradb restore</code>, one command each. A running process also backs up on a signal, or at its stop height.</p>
       </div>
     </section>
 
@@ -567,7 +567,7 @@
         <thead><tr><th>MODULE</th><th>WHAT IT STORES</th></tr></thead>
         <tbody>
           <tr><td class="k">core-chain-events</td><td>Chain events per block: pallet, name and fields</td></tr>
-          <tr><td class="k">core-block-parsed</td><td>Transactions per block: hash, kind and size</td></tr>
+          <tr><td class="k">core-block-parsed</td><td>Transactions per block: hash, kind, size and segments</td></tr>
           <tr><td class="k">core-tx-results</td><td>The outcome of each transaction: success, partial or failure</td></tr>
           <tr><td class="k">core-ledger-state</td><td>Ledger state per height; the state root is checked every block</td></tr>
           <tr><td class="k">core-contract-states</td><td>Contract state keys per height</td></tr>
@@ -614,6 +614,7 @@
           <dl>
             <dt>Private wallet data</dt><dd>What a viewing key finds, kept in a private database.</dd>
             <dt>JSON-RPC for Passport</dt><dd>Token balances for a viewing key, served from a TEE.</dd>
+            <dt>User secrets</dt><dd>Viewing keys and other private values, kept only in the private database.</dd>
           </dl>
         </article>
       </div>
@@ -648,12 +649,14 @@
 });</div>
         <div class="code-side">
           <div class="code-block"><span class="c">// umbradb.config.ts</span>
+<span class="k">export const</span> modules = [specVersions];
 <span class="k">export default</span> defineConfig({
   entries: [
     coreEntry({ start: <span class="k">0</span>, config: {
       network: <span class="s">"preprod"</span>,
-      database: <span class="s">"pglite:memory"</span>,
-      node: <span class="s">"ws://127.0.0.1:9944"</span> } }),
+      node: <span class="s">"ws://127.0.0.1:9944"</span>,
+      database: { kind: <span class="s">"pglite"</span>, memory: <span class="k">true</span> },
+      developmentOptIn: <span class="k">true</span> } }),
     specVersions.entry({
       start: <span class="k">1_000_000</span>, config: {} }),
   ],
