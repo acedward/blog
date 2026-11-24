@@ -144,6 +144,16 @@
     "masks": 29732,
     "memory": 83977216
    },
+   "firstCoins": {
+    "shape": "2048 × 2048",
+    "pieces": 1,
+    "up": 40228,
+    "down": 5700,
+    "callUp": 1287336,
+    "callDown": 182440,
+    "masks": 14884,
+    "memory": 41988608
+   },
    "commitmentRoots": 116704,
    "generationRoots": 1312
   },
@@ -180,6 +190,16 @@
     "callDown": 723112,
     "masks": 59428,
     "memory": 167954432
+   },
+   "firstCoins": {
+    "shape": "4096 × 8192",
+    "pieces": 1,
+    "up": 52772,
+    "down": 22596,
+    "callUp": 1688744,
+    "callDown": 723112,
+    "masks": 59428,
+    "memory": 201508864
    },
    "commitmentRoots": 1250016,
    "generationRoots": 125024

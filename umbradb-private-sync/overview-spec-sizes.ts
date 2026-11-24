@@ -53,6 +53,8 @@ const dust = [
   check: table(commitments, 32),
   groups: table(Math.ceil(commitments / 256), 8192),
   generationGroups: table(Math.ceil(generation / 256), 8192),
+  // First coins by PIR (decided 2026-11-24): one 64-byte record per first coin, one first coin per Night record.
+  firstCoins: table(generation, 64),
   commitmentRoots: Math.ceil(commitments / 256) * 32,
   generationRoots: Math.ceil(generation / 256) * 32,
 }));
