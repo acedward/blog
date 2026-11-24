@@ -220,7 +220,7 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
           <div class="xfer-foot"><p class="xfer-note">Where each date starts in the files below: a position and the day. A phone that knows when it was created starts at the last mark before that date; it cannot have coins from earlier. Without a date it starts from the beginning.</p><span class="val" id="v-marks"></span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Scan file</span><span class="xfer-size">36 B per output</span></div>
+          <div class="xfer-top"><span class="xfer-name">Commitments file</span><span class="xfer-size">36 B per output</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
           <div class="xfer-foot"><p class="xfer-note">In chunks of 65,536 outputs. The phone tests each entry with its key: mine or not. Sizes are for the whole file, from the start.</p><span class="val" id="v-file"></span></div>
         </div>
@@ -241,7 +241,7 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Read its coins</span><span class="xfer-size">98 B per coin</span></div>
           <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">One per scan match: the coin's nonce, token type and value, and 16 bytes of its commitment, which the phone recomputes to drop a false match or a forged ciphertext.</p><span class="val" id="v-read"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">One per match in the commitments file: the coin's nonce, token type and value, and 16 bytes of its commitment, which the phone recomputes to drop a false match or a forged ciphertext.</p><span class="val" id="v-read"></span></div>
         </div>
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Check a nullifier<span class="pill info">only on a match</span></span><span class="xfer-size">40 B per record</span></div>
@@ -267,7 +267,7 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
       <div class="box">
         <div class="box-head"><span class="tag">Every block</span><span class="sub">every 6 seconds, the same WebSocket message to every phone</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">New scan entries</span><span class="xfer-size">36 B each</span></div>
+          <div class="xfer-top"><span class="xfer-name">New commitment entries</span><span class="xfer-size">36 B each</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
         </div>
         <div class="xfer">
@@ -421,7 +421,7 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
     </table>
   </div>
 
-  <p class="tbl-note foot">From a date: at 10M outputs, a phone created when the chain held 9M downloads 33 MB of scan file instead of 331 MB, and scans it in 11 s instead of 1 min 51 s.</p>
+  <p class="tbl-note foot">From a date: at 10M outputs, a phone created when the chain held 9M downloads 33 MB of commitments file instead of 331 MB, and scans it in 11 s instead of 1 min 51 s.</p>
 
   <h2 class="tbl-title">Dust</h2>
   <p class="tbl-note">The current ledger era only. Mainnet's began at block 3,346,139 on 6 November 2026; it adds about 54,000 Dust commitments a day.</p>
@@ -450,7 +450,7 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
       <ol>
         <li>Each table takes the block's new records. New records fill one block of 2,048 columns before the next, so a block of the chain usually changes one block of columns per table, and <code>compile</code> redoes it in 0.32 s (below).</li>
         <li>Once every table has the new height, the module publishes it at once, with its manifest: roots, the open part of the group roots, and the digests of every file chunk and block of columns.</li>
-        <li>The same WebSocket message goes to every connected phone: the new scan entries, nullifier prefixes, Dust spends and first-coins map entries.</li>
+        <li>The same WebSocket message goes to every connected phone: the new commitment entries, nullifier prefixes, Dust spends and first-coins map entries.</li>
       </ol>
     </div>
     <div class="box">
@@ -593,7 +593,7 @@ addEventListener("keydown", (e) => {
 // plus 68 B, the setup data (masks) 14,848 B per block of 2,048 columns. S: shielded at Mainnet's outputs, 1M and 10M.
 // D: Dust at Mainnet's commitments (its ledger-9 era) and 10M. Bytes as sent.
 const DATA = {"S":[{"n":38053,"scan":1369908,"prefixes":152212,"roots":4768,"read":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"nullifier":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"groups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216}},{"n":1000000,"scan":36000000,"prefixes":4000000,"roots":125024,"read":{"shape":"4096 \u00d7 12288","up":52772,"down":33860,"callUp":1688744,"callDown":1083560,"masks":89124,"memory":302263296},"nullifier":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432}},{"n":10000000,"scan":360000000,"prefixes":40000000,"roots":1250016,"read":{"shape":"14336 \u00d7 34816","up":115492,"down":95812,"callUp":3695784,"callDown":3066024,"masks":252452,"memory":1569444352},"nullifier":{"shape":"16384 \u00d7 18432","up":128036,"down":50756,"callUp":4097192,"callDown":1624232,"masks":133668,"memory":906379776},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320}}],"D":[{"n":933567,"gen":10410,"spends":923157,"check":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"ggroups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216},"roots":116704,"groots":1312,"first":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608}},{"n":10000000,"gen":1000000,"spends":9000000,"check":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"ggroups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"roots":1250016,"groots":125024,"first":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864}}]};
-// bzip2 -9 output ÷ input, measured on real bytes (overview-bzip.ts and the Dust proof of concept): the scan file
+// bzip2 -9 output ÷ input, measured on real bytes (overview-bzip.ts and the Dust proof of concept): the commitments file
 // 0.9207; the Dust spend file 7.48 B per spend with bzip2 against 9.16 B sent. Random bytes (nullifier prefixes, group
 // roots) and private fetches do not shrink.
 const BZ_SCAN = 0.9207;
@@ -717,12 +717,12 @@ function render() {
     row("Total", first.map(nb), "cmp"),
     group("Once", "from the start; a phone that knows its date downloads only from its date mark", 4),
     same("Date marks<small>10 B per mark, one at least every 5 days</small>", "about 730 B a year, at any size", 3),
-    row("Scan file<small>36 B per output</small>", shielded.map((x) => nb(one(x.scan)))),
+    row("Commitments file<small>36 B per output</small>", shielded.map((x) => nb(one(x.scan)))),
     row("the phone scans it<small>iPhone 13, on its GPU: 11.1 µs per entry</small>", shielded.map((x) => nb(seconds(x.scanSeconds))), "sub"),
     row("Nullifier prefixes<small>4 B per spent coin</small>", shielded.map((x) => nb(one(x.prefixes)))),
     row("Setup data<small>to read coins and check nullifiers</small>", shielded.map((x) => nb(one(x.setup)))),
     group("Every sync", "one fetch: bytes the phone sends up, bytes it gets back down; under it the call of 32 that carries it", 4),
-    row("Read its coins<small>one per scan match</small>", fetchCells(shielded.map((x) => x.read))),
+    row("Read its coins<small>one per match in the commitments file</small>", fetchCells(shielded.map((x) => x.read))),
     row('Check a nullifier<span class="pill info">only on a match</span>', fetchCells(shielded.map((x) => x.nullifier))),
     group("To spend", "", 4),
     row("Group roots<small>32 B per 256 outputs</small>", shielded.map((x) => nb(one(x.roots)))),
