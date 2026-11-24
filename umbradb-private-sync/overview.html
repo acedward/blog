@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Private shielded sync</title>
+<title>Private &amp; fast sync</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -157,17 +157,31 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
   .page[hidden] { display: block; }
   .page { break-after: page; }
 }
+
+/* additions for the design pages */
+.controls { margin-bottom: 18px; }
+.aside { border: 1px dashed var(--ink-2); border-radius: 10px; padding: 12px 18px; margin: 22px 0 0; font-size: 14.5px; color: var(--ink-2); max-width: 820px; }
+.aside b { color: var(--ink); font-weight: 600; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 8px; }
+.steps ol { margin: 6px 0 12px; padding-left: 20px; font-size: 14.5px; color: var(--ink-2); }
+.steps li + li { margin-top: 8px; }
+.tbl-note.foot { margin-top: 18px; }
+.table-wrap + .table-wrap { margin-top: 6px; }
+.colophon { margin: 0; padding-bottom: 28px; font-size: 13px; color: var(--muted); }
+.pager .wrap.colophon { display: block; padding-top: 0; }
+@media (max-width: 760px) { .steps { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 
 <header class="top">
   <div class="wrap">
-    <div class="brand"><span class="eyebrow">UmbraDB · proof of concept</span><b>Private shielded sync</b></div>
+    <div class="brand"><span class="eyebrow">UmbraDB · design</span><b>Private &amp; fast sync</b></div>
     <nav class="tabs" role="tablist" aria-label="Pages">
       <button role="tab" data-page="shielded" aria-controls="shielded"><span class="n">1</span>Shielded Tokens</button>
       <button role="tab" data-page="dust" aria-controls="dust"><span class="n">2</span>Dust Sync</button>
       <button role="tab" data-page="sizes" aria-controls="sizes"><span class="n">3</span>Sizes</button>
+      <button role="tab" data-page="server" aria-controls="server"><span class="n">4</span>Server</button>
     </nav>
   </div>
 </header>
@@ -177,74 +191,92 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
 <!-- ======================= 1. Shielded Tokens ======================= -->
 <section class="page" id="shielded" role="tabpanel">
   <h1>A phone syncs its shielded coins without showing which are its own</h1>
-  <p class="lead">Every phone downloads the same small file and finds its coins in it. It then fetches their details with requests the server cannot read.</p>
+  <p class="lead">Every phone downloads the same public files and finds its coins in them. It then reads what it needs with requests the server cannot read, at a block height it names. A phone that knows its date downloads only from that date on, and each new block reaches it over a WebSocket within seconds.</p>
 
   <div class="controls">
-    <label for="scheme-concept">Scheme</label>
-    <select id="scheme-concept" class="scheme-select">
-      <option value="simple">Simple PIR</option>
-      <option value="ipir">IPIR+SP</option>
-    </select>
-    <label for="size-concept">Commitments</label>
+    <label for="size-concept">Shielded outputs</label>
     <select id="size-concept">
-      <option value="0">Preprod today</option>
-      <option value="1">1M commitments</option>
-      <option value="2">10M commitments</option>
+      <option value="0">Mainnet today</option>
+      <option value="1">1M outputs</option>
+      <option value="2">10M outputs</option>
     </select>
-    <span class="controls-note">Sizes are with bzip2 on. <span id="size-note"></span> <a href="#sizes">Sizes</a> shows all three side by side.</span>
+    <span class="controls-note"><span id="size-note"></span> <a href="#sizes">Sizes</a> shows all three side by side.</span>
   </div>
-  <p class="scheme-note"></p>
 
   <div class="scene">
     <div class="end server"><div class="end-in">
       <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="7" width="32" height="10" rx="2.5"/><rect x="8" y="19" width="32" height="10" rx="2.5"/><rect x="8" y="31" width="32" height="10" rx="2.5"/><path d="M13.5 12h.01M13.5 24h.01M13.5 36h.01M20 12h8M20 24h8M20 36h8"/></svg>
       <h2>Server</h2>
-      <p>Indexes every commitment and nullifier on the chain.</p>
+      <p>Follows the chain block by block and serves every table at each new height.</p>
     </div></div>
 
     <div class="lanes">
       <div class="box">
-        <div class="box-head"><span class="tag">Once</span><span class="sub">on the first sync</span></div>
+        <div class="box-head"><span class="tag">Once</span><span class="sub">on the first sync, from the phone's date; later only what was added</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Commitment file</span><span class="xfer-size">36 B per commitment</span></div>
+          <div class="xfer-top"><span class="xfer-name">Date marks</span><span class="xfer-size">one at least every 5 days</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The phone reads the whole file and tests each entry with its key: mine or not.</p><span class="val" id="v-file"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">Where each date starts in the files below: a position and the day. A phone that knows when it was created starts at the last mark before that date; it cannot have coins from earlier. Without a date it starts from the beginning.</p><span class="val" id="v-marks"></span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Setup data</span><span class="xfer-size" id="c-setup-kind"></span></div>
+          <div class="xfer-top"><span class="xfer-name">Scan file</span><span class="xfer-size">36 B per output</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answers of its private fetches.</p><span class="val" id="v-setup"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">In chunks of 65,536 outputs. The phone tests each entry with its key: mine or not. Sizes are for the whole file, from the start.</p><span class="val" id="v-file"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Nullifier prefixes</span><span class="xfer-size">4 B per spent coin</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The first 4 bytes of every spent coin's nullifier. The phone compares them with its own coins' nullifiers.</p><span class="val" id="v-prefixes"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Setup data</span><span class="xfer-size">about 14.9 KB per 2,048 columns</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answers of its private fetches, for the two tables it reads at every sync.</p><span class="val" id="v-setup"></span></div>
         </div>
       </div>
 
       <div class="box">
-        <div class="box-head"><span class="tag">Multiple times</span><span class="sub">on every sync; sizes are per fetch</span></div>
+        <div class="box-head"><span class="tag">Every sync</span><span class="sub">sizes are per fetch</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Fetch commitments</span><span class="xfer-size">98 B per coin</span></div>
+          <div class="xfer-top"><span class="xfer-name">Read its coins</span><span class="xfer-size">98 B per coin</span></div>
           <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The data of the coins the phone found: token type and value.</p><span class="val" id="v-commitments"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">One per scan match: the coin's nonce, token type and value, and 16 bytes of its commitment, which the phone recomputes to drop a false match or a forged ciphertext.</p><span class="val" id="v-read"></span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Fetch nullifiers</span><span class="xfer-size">40 B per record</span></div>
+          <div class="xfer-top"><span class="xfer-name">Check a nullifier<span class="pill info">only on a match</span></span><span class="xfer-size">40 B per record</span></div>
           <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">Whether each of its coins has been spent.</p><span class="val" id="v-nullifiers"></span></div>
-        </div>
-        <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Fetch Merkle tree<span class="pill info">only to spend</span></span><span class="xfer-size">512 B per coin</span></div>
-          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The path that proves a coin is in the tree.</p><span class="val" id="v-merkle"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">When a prefix matches one of its coins: spent, or a false match about once in 2<sup>32</sup>. The record names the height of the spend.</p><span class="val" id="v-nullifier"></span></div>
         </div>
       </div>
 
       <div class="box">
-        <div class="box-head"><span class="tag">Incremental</span><span class="sub">as new blocks arrive, in a file or over a WebSocket</span></div>
+        <div class="box-head"><span class="tag">To spend</span><span class="sub">the coin's Merkle path, in two parts</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">New commitments</span><span class="xfer-size">36 B each</span></div>
+          <div class="xfer-top"><span class="xfer-name">Group roots</span><span class="xfer-size">32 B per 256 outputs</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The upper 24 levels of every path, the same for every phone: closed chunks once, the open part with each height.</p><span class="val" id="v-roots"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Read its group</span><span class="xfer-size">256 commitments, 8 KB</span></div>
+          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The phone hashes the lower 8 levels from its group, then checks that the path reaches the root of that height. The spend must reach the chain within the root's lifetime, an hour today.</p><span class="val" id="v-group"></span></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-head"><span class="tag">Every block</span><span class="sub">every 6 seconds, the same WebSocket message to every phone</span></div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">New scan entries</span><span class="xfer-size">36 B each</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">New nullifiers</span><span class="xfer-size">8 B each</span></div>
+          <div class="xfer-top"><span class="xfer-name">New nullifier prefixes</span><span class="xfer-size">4 B each</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Changed setup data</span><span class="xfer-size">14.9 KB per changed block of columns</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">Only before a private fetch, from the manifest of that height: usually one block of columns per table.</p></div>
         </div>
       </div>
     </div>
@@ -258,77 +290,90 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
 
   <ul class="legend">
     <li><span class="wire"></span>Download: the same bytes for every phone.</li>
-    <li><span class="wire prv both"><i></i></span>Private fetch: an encrypted request, always the same size. The server answers without learning which entry was read.</li>
+    <li><span class="wire prv both"><i></i></span>Private fetch: a call of 32 requests, real or padding, at a height the phone names. The server answers without learning which entries were read.</li>
   </ul>
 </section>
 
 <!-- ======================= 2. Dust Sync ======================= -->
 <section class="page" id="dust" role="tabpanel" hidden>
-  <h1>A phone follows its Dust without showing which spends are its own</h1>
-  <p class="lead">A phone derives its own Dust coins: each public coin at its address starts a chain, and every payment spends the chain's current coin and creates the next. It follows each chain through a file every phone downloads, then checks the last coin with a request the server cannot read.</p>
+  <h1>A phone follows its Dust without showing which coins are its own</h1>
+  <p class="lead">Each Night output a phone holds starts a chain of Dust coins: every fee it pays spends the chain's current coin and creates the next. The phone follows its chains through a public file of spends, checks each chain's last coin with a private fetch, and reads two paths the same way to pay a fee.</p>
 
   <div class="controls">
-    <label for="scheme-dust">Scheme</label>
-    <select id="scheme-dust" class="scheme-select">
-      <option value="simple">Simple PIR</option>
-      <option value="ipir">IPIR+SP</option>
-    </select>
-    <label for="size-dust">Dust spends</label>
+    <label for="size-dust">Dust commitments</label>
     <select id="size-dust">
-      <option value="0">Preprod today</option>
-      <option value="1">1M Dust spends</option>
-      <option value="2">10M Dust spends</option>
+      <option value="0">Mainnet today</option>
+      <option value="1">10M commitments</option>
     </select>
-    <span class="controls-note"><span class="star">*</span> Calculated from the file's layout and the scheme's size rules. <a href="#sizes">Sizes</a> shows both side by side.</span>
+    <span class="controls-note"><span id="dust-note"></span> <a href="#sizes">Sizes</a> shows both side by side.</span>
   </div>
-  <p class="scheme-note"></p>
 
   <div class="scene">
     <div class="end server"><div class="end-in">
       <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="7" width="32" height="10" rx="2.5"/><rect x="8" y="19" width="32" height="10" rx="2.5"/><rect x="8" y="31" width="32" height="10" rx="2.5"/><path d="M13.5 12h.01M13.5 24h.01M13.5 36h.01M20 12h8M20 24h8M20 36h8"/></svg>
       <h2>Server</h2>
-      <p>Lists every Dust spend on the chain.</p>
+      <p>Lists every Dust spend of the current ledger era.</p>
     </div></div>
 
     <div class="lanes">
       <div class="box">
-        <div class="box-head"><span class="tag">Once</span><span class="sub">on the first sync</span></div>
+        <div class="box-head"><span class="tag">Once</span><span class="sub">on the first sync; later only what was added</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Fetch public coins</span><span class="xfer-size">for the phone's address</span></div>
-          <div class="wire seen both"><i></i><span class="chip">by address</span><span class="sr">phone to server and back; the server sees the address</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The phone fetches the public coins for its address. From them it derives the first coins of its chains.</p></div>
+          <div class="xfer-top"><span class="xfer-name">First coins<span class="pill warn">proposed</span></span><span class="xfer-size">about 100 B each</span></div>
+          <div class="wire seen both"><i></i><span class="chip">by key prefix</span><span class="sr">phone to server and back; the server sees the prefix</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The first coin of each chain, and each change to the Night record behind it, for every Dust key that starts with the byte the phone sends. The server learns that 1/256 slice of keys, nothing more.</p><span class="val" id="d-first"></span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Nullifier file</span><span class="xfer-size">about 7.5 B per Dust spend</span></div>
+          <div class="xfer-top"><span class="xfer-name">Spend file</span><span class="xfer-size">about 9 B per Dust spend</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">Each entry holds 4 bytes of a spent coin's nullifier, the spend's time and fee, and the new coin's position. The phone searches it for its current coin, derives the next from the match, and searches on.</p><span class="val" id="d-file"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">Each entry holds 4 bytes of a spent coin's nullifier, the spend's time and fee, and the new coin's position. The phone searches it for its current coin, derives the next from the match, and searches on. Like the shielded files it carries date marks: the phone's date is also the earliest its Dust can start, so it begins there.</p><span class="val" id="d-file"></span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Setup data</span><span class="xfer-size" id="d-setup-kind"></span></div>
+          <div class="xfer-top"><span class="xfer-name">Setup data</span><span class="xfer-size">about 14.9 KB per 2,048 columns</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answer of its private fetch.</p><span class="val" id="d-setup"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answer of its check.</p><span class="val" id="d-setup"></span></div>
         </div>
       </div>
 
       <div class="box">
-        <div class="box-head"><span class="tag">Multiple times</span><span class="sub">on every sync; sizes are per fetch</span></div>
+        <div class="box-head"><span class="tag">Every sync</span><span class="sub">sizes are per fetch</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Fetch commitment existence</span><span class="xfer-size">32 B per coin</span></div>
+          <div class="xfer-top"><span class="xfer-name">Check the last coin</span><span class="xfer-size">32 B per coin</span></div>
           <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">One per chain: is the last coin the phone derived in the tree? If not, the match was another phone's spend and the search resumes after it.</p><span class="val" id="d-exists"></span></div>
-        </div>
-        <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Fetch Merkle tree<span class="pill info">only to spend</span></span><span class="xfer-size">512 B per coin</span></div>
-          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The path that proves the current coin is in the Dust tree. Its leaf is the commitment, so it can stand in for the fetch above.</p><span class="val" id="d-merkle"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">One per chain: is the coin the phone derived at that position? If not, the match was another phone's spend and the search resumes after it.</p><span class="val" id="d-check"></span></div>
         </div>
       </div>
 
       <div class="box">
-        <div class="box-head"><span class="tag">Incremental</span><span class="sub">as new blocks arrive: only the chunks of the file added since the last sync</span></div>
+        <div class="box-head"><span class="tag">To pay a fee</span><span class="sub">two paths, one in each Dust tree, at one height</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">New Dust spends</span><span class="xfer-size">about 7.5 B each</span></div>
+          <div class="xfer-top"><span class="xfer-name">Group roots of both trees</span><span class="xfer-size">32 B per 256 leaves</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The upper levels of every path, as for shielded tokens. The Night records change in place when a Night is spent, so a chunk of their roots is downloaded again when one of its roots changes.</p><span class="val" id="d-roots"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Read its coin's group</span><span class="xfer-size">256 commitments, 8 KB</span></div>
+          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The lower levels of the coin's path in the Dust commitment tree.</p><span class="val" id="d-group"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Read its Night record's group</span><span class="xfer-size">256 record hashes, 8 KB</span></div>
+          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The lower levels of the path of the Night output that generates the coin's Dust. Both requests travel in one call.</p><span class="val" id="d-ggroup"></span></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-head"><span class="tag">Every block</span><span class="sub">every 6 seconds, over a WebSocket</span></div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">New Dust spends</span><span class="xfer-size">about 9 B each</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The same message to every phone.</p></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">New first coins<span class="pill warn">proposed</span></span><span class="xfer-size">about 100 B each</span></div>
+          <div class="wire seen"><span class="sr">server to phone, for the phone's key prefix</span></div>
+          <div class="xfer-foot"><p class="xfer-note">Those of the phone's key prefix only.</p></div>
         </div>
       </div>
     </div>
@@ -342,56 +387,110 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
 
   <ul class="legend">
     <li><span class="wire"></span>Download: the same bytes for every phone.</li>
-    <li><span class="wire seen both"><i></i></span>Request by address: the server sees which address is asked about.</li>
-    <li><span class="wire prv both"><i></i></span>Private fetch: an encrypted request, always the same size. The server answers without learning which entry was read.</li>
+    <li><span class="wire seen both"><i></i></span>By key prefix: the server sees the first byte of the phone's Dust keys.</li>
+    <li><span class="wire prv both"><i></i></span>Private fetch: a call of 32 requests, real or padding, at a height the phone names. The server answers without learning which entries were read.</li>
   </ul>
+
+  <div class="aside"><b>Under discussion: first coins by private fetch.</b> Every phone would download 4 bytes per first coin (a hash of its owner's key), read the records that match its keys with a private fetch, and confirm each coin with the check above. The server would learn nothing of which keys a phone holds, for one more table and a file of <span id="d-map"></span>.</div>
 </section>
 
 <!-- ======================= 3. Sizes ======================= -->
 <section class="page" id="sizes" role="tabpanel" hidden>
   <h1>What a phone transfers</h1>
-  <p class="lead">Bytes moved between phone and server with bzip2 on, at three chain sizes, for each private-fetch scheme.</p>
-
-  <div class="controls">
-    <label for="scheme">Scheme</label>
-    <select id="scheme" class="scheme-select">
-      <option value="simple">Simple PIR</option>
-      <option value="ipir">IPIR+SP</option>
-    </select>
-  </div>
-  <p class="scheme-note"></p>
+  <p class="lead">Bytes moved between phone and server, with bzip2 on where it helps (the public files). Private fetches do not shrink.</p>
 
   <h2 class="tbl-title">Shielded tokens</h2>
+  <p class="tbl-note">One nullifier per output assumed.</p>
   <div class="table-wrap">
     <table class="sizes">
       <thead>
         <tr>
           <th scope="col"><span class="sr">Transfer</span></th>
-          <th scope="col">Preprod today<small>69,329 commitments</small></th>
-          <th scope="col">1M commitments<small>measured, padded copy</small></th>
-          <th scope="col">10M commitments<small>calculated</small></th>
+          <th scope="col">Mainnet today<small id="h-mainnet"></small></th>
+          <th scope="col">1M outputs<small>calculated</small></th>
+          <th scope="col">10M outputs<small>calculated, the design's target</small></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
 
+  <p class="tbl-note foot">From a date: at 10M outputs, a phone created when the chain held 9M downloads 33 MB of scan file instead of 331 MB, and scans it in 11 s instead of 1 min 51 s.</p>
+
   <h2 class="tbl-title">Dust</h2>
-  <p class="tbl-note">The columns count Dust spends. Preprod's are those of its current ledger era, from height 3,348,434.</p>
+  <p class="tbl-note">The current ledger era only. Mainnet's began at block 3,346,139 on 6 November 2026; it adds about 54,000 Dust commitments a day.</p>
   <div class="table-wrap">
-    <table class="sizes">
+    <table class="sizes two">
       <thead>
         <tr>
           <th scope="col"><span class="sr">Transfer</span></th>
-          <th scope="col">Preprod today<small>73,743 Dust spends</small></th>
-          <th scope="col">1M Dust spends<small>calculated</small></th>
-          <th scope="col">10M Dust spends<small>calculated</small></th>
+          <th scope="col">Mainnet today<small id="h-dust"></small></th>
+          <th scope="col">10M commitments<small>calculated, with 1M Night records</small></th>
         </tr>
       </thead>
       <tbody id="dust-rows"></tbody>
     </table>
   </div>
+</section>
 
+<!-- ======================= 4. Server ======================= -->
+<section class="page" id="server" role="tabpanel" hidden>
+  <h1>What the server holds, and does at every block</h1>
+  <p class="lead">Two sync modules of UmbraDB, one for shielded tokens and one for Dust, each with its own tables and its own height. Either runs without the other.</p>
+
+  <div class="steps">
+    <div class="box">
+      <div class="box-head"><span class="tag">At every block</span><span class="sub">every 6 seconds</span></div>
+      <ol>
+        <li>Each table takes the block's new records. New records fill one block of 2,048 columns before the next, so a block of the chain usually changes one block of columns per table, repacked in about 0.4 s.</li>
+        <li>Once every table has the new height, the module publishes it at once, with its manifest: roots, the open part of the group roots, and the digests of every file chunk and block of columns.</li>
+        <li>The same WebSocket message goes to every connected phone: the new scan entries, nullifier prefixes and Dust spends.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <div class="box-head"><span class="tag">The last 20 heights</span><span class="sub">two minutes</span></div>
+      <ol>
+        <li>A private fetch names its height. The current tables are in memory; each of the 19 before is a record count and the files of its changed blocks of columns, on disk.</li>
+        <li>An older height is answered from the current tables with the newer records taken back. A height outside the window is refused with a standard HTTP error that says where the latest setup data is.</li>
+      </ol>
+    </div>
+    <div class="box">
+      <div class="box-head"><span class="tag">Growing</span><span class="sub">past one table's limit</span></div>
+      <ol>
+        <li>A table holds at most 2<sup>30</sup> cells. When one would pass it, a second table takes half of its records, chosen by a hash of their positions; then a third takes a third of each, and so on.</li>
+        <li>Every table always holds an even mix of old and new records, and a call sends the same number of requests to each, so which table is asked says nothing of a coin's age. The first split comes near 22 million outputs.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h2 class="tbl-title">Memory</h2>
+  <p class="tbl-note">The current tables: their cells and their packing, 33.6 MB per block of 2,048 columns. Calculated with the rule of the measured builds: at 10M outputs the read and nullifier tables took 1.57 GB and 0.91 GB and built in 7.5 s and 4.1 s on one Apple M4 Max. The group tables are not built yet.</p>
+  <div class="table-wrap">
+    <table class="sizes">
+      <thead>
+        <tr>
+          <th scope="col"><span class="sr">Table</span></th>
+          <th scope="col">Mainnet today</th>
+          <th scope="col">1M outputs</th>
+          <th scope="col">10M outputs</th>
+        </tr>
+      </thead>
+      <tbody id="mem-rows"></tbody>
+    </table>
+  </div>
+  <div class="table-wrap">
+    <table class="sizes two">
+      <thead>
+        <tr>
+          <th scope="col"><span class="sr">Table</span></th>
+          <th scope="col">Mainnet today</th>
+          <th scope="col">10M commitments</th>
+        </tr>
+      </thead>
+      <tbody id="mem-dust-rows"></tbody>
+    </table>
+  </div>
+  <p class="tbl-note foot">Not measured yet, and measured before anything ships: the answer time of a call, and a block's work on the server, proposed to stay under 3 s at the 99th percentile.</p>
 </section>
 
 </main>
@@ -399,14 +498,15 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
 <footer class="pager">
   <div class="wrap">
     <button id="prev" type="button">← Previous</button>
-    <span id="where">1 / 3</span>
+    <span id="where">1 / 4</span>
     <button id="next" type="button">Next →</button>
   </div>
+  <p class="wrap colophon">A design, not built yet. Sizes are calculated with the proof of concept's table rules and size formulas; the phone's scan was measured on an iPhone 13; Mainnet counts were read on 23 November 2026.</p>
 </footer>
 
 <script>
 // ---------- pages ----------
-const PAGES = ["shielded", "dust", "sizes"];
+const PAGES = ["shielded", "dust", "sizes", "server"];
 const tabs = [...document.querySelectorAll(".tabs button")];
 function show(id, push) {
   if (!PAGES.includes(id)) id = PAGES[0];
@@ -432,68 +532,23 @@ addEventListener("keydown", (e) => {
 });
 
 // ---------- the figures ----------
-// Bytes. A cell is [value] or [up, down]; a trailing true marks a calculated figure.
-const C = true;
-const FILE = [[2495844], [36000000], [360000000, C]];
-// The cells below are the sizes as sent. The page shows them with bzip2 on (`withBzip2`): bzip2 -9 output ÷ input was
-// measured on each transfer's real bytes (overview-bzip.ts). Only three transfers shrink: the commitment file
-// (measured on today's real entries; that ratio is applied to the larger sizes, which makes them calculated), and
-// under SimplePIR the nullifier table's setup data and answers. Every other transfer would grow by 0.1% to 3%, so it
-// is sent as it is.
-const BZ_FILE = 0.9207;
-// The phone's own work on a transfer, shown where it takes more than 500 ms: only the scan of the commitment file
-// does. An iPhone 13 scans 11.1 µs per entry on its GPU (measured at 100,000 and 1,000,000 entries); the other sizes
-// are that rate times the entries. Building a call and decoding its answer took 8 to 211 ms on the same phone.
-const SCAN_SECONDS = [[0.77, C], [11.1], [111, C]];
-const SCHEMES = {
-  simple: {
-    note: "<b>Simple PIR.</b> One pass over the table answers a call. The phone first downloads setup data for each table, and that download grows with the table.",
-    setupKind: "grows with the table",
-    setup: [[16875520], [63045632], [225869824, C]],
-    // the nullifier table's share of the setup data, and the ratios of its setup data, of a call's 32 answers and of
-    // one answer alone (today, 1M, 1M). One answer shrinks less: bzip2's fixed cost weighs more on a few KB.
-    setupNullifier: [6782976, 24477696, 104398848],
-    bz: { setupNullifier: [0.9104, 0.9107, 0.9107], nullifiersDown: [0.9276, 0.9226, 0.9226], nullifiersOneDown: [0.9894, 0.9281, 0.9281] },
-    commitments: [[317096, 315432], [1196328, 1205288], [3798312, 3796008, C]],
-    nullifiers: [[262184, 212008], [1048616, 764968], [2097192, 3262504, C]],
-    merkle: [[8874152, 58408], [12800040, 583720], [13061288, 5720104, C]],
-    merkleSetup: [[1867776], [18677760], [183042048, C]],
-  },
-  ipir: {
-    note: "<b>IPIR+SP.</b> Simple PIR's pass over the table, then a packing step. The setup data becomes two small masks per table; in exchange every request carries its own 27.6 KB key.",
-    setupKind: "two small masks per table",
-    setup: [[29768], [178248], [460360, C]],
-    bz: {},
-    commitments: [[1287336, 182440], [1688744, 1083560], [3695784, 3066024, C]],
-    nullifiers: [[1287336, 182440], [1287336, 1083560], [2491560, 2525352, C]],
-    // At 10M the Merkle table is past the scheme's limit of 2^30 cells (512 B records fit up to 4.19M). Its sizes are
-    // an estimate: the shape the scheme's own rule would pick if a table could hold it, 30,720 × 83,968
-    // (overview-ipir-path-estimate.ts).
-    merkle: [[1287336, 903336], [2892968, 2345128], [6907048, 7391400, C]],
-    merkleSetup: [[74276], [193060], [608804, C]],
-    merkleOver: [null, null, "estimate: 2.4× the table limit"],
-  },
-};
-// The fetch cells above are a call's bytes. A call is a 40-byte header and exactly 32 requests, real or padding, so
-// the server cannot count the phone's fetches; its answer is the header and 32 answers. One fetch is one request and
-// one answer: (call − 40) ÷ 32.
-const CALL_HEADER = 40;
+// Computed by overview-spec-sizes.ts with the proof of concept's shape rule (positionalIpirShape, and the bucket rule
+// for nullifiers) and size formulas: a request is 27,684 B of key plus 49 bits per row, an answer 22 bits per column
+// plus 68 B, the setup data (masks) 14,848 B per block of 2,048 columns. S: shielded at Mainnet's outputs, 1M and 10M.
+// D: Dust at Mainnet's commitments (its ledger-9 era) and 10M. Bytes as sent.
+const DATA = {"S":[{"n":38053,"scan":1369908,"prefixes":152212,"roots":4768,"read":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"nullifier":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"groups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216}},{"n":1000000,"scan":36000000,"prefixes":4000000,"roots":125024,"read":{"shape":"4096 \u00d7 12288","up":52772,"down":33860,"callUp":1688744,"callDown":1083560,"masks":89124,"memory":302263296},"nullifier":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432}},{"n":10000000,"scan":360000000,"prefixes":40000000,"roots":1250016,"read":{"shape":"14336 \u00d7 34816","up":115492,"down":95812,"callUp":3695784,"callDown":3066024,"masks":252452,"memory":1569444352},"nullifier":{"shape":"16384 \u00d7 18432","up":128036,"down":50756,"callUp":4097192,"callDown":1624232,"masks":133668,"memory":906379776},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320}}],"D":[{"n":933567,"gen":10410,"spends":923157,"check":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"ggroups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216},"roots":116704,"groots":1312},{"n":10000000,"gen":1000000,"spends":9000000,"check":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"ggroups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"roots":1250016,"groots":125024}]};
+// bzip2 -9 output ÷ input, measured on real bytes (overview-bzip.ts and the Dust proof of concept): the scan file
+// 0.9207; the Dust spend file 7.48 B per spend with bzip2 against 9.16 B sent. Random bytes (nullifier prefixes, group
+// roots) and private fetches do not shrink.
+const BZ_SCAN = 0.9207;
+const SPEND_SENT = 9.16, SPEND_BZ = 7.48;
+// The phone's scan: an iPhone 13 tests 11.1 µs per entry on its GPU (measured at 100,000 and 1,000,000 entries).
+const SCAN_US = 11.1;
+// A first coin's record: the Night record (88 B) with the coin's creation time and position, about 100 B. A 1-byte
+// prefix brings about 1/256 of them.
+const FIRST_COIN = 100, PREFIX_SHARE = 1 / 256;
 const PER_CALL = 32;
-const oneFetch = (c) => [...c.slice(0, 2).map((b) => (b - CALL_HEADER) / PER_CALL), ...(isCalc(c) ? [C] : [])];
-// Dust: a cell per number of Dust spends (Preprod today, 1M, 10M). Preprod is measured on the proof of concept
-// (branch poc-dust-sync, 2026-11-17): the nullifier file of the current ledger era at height 3,459,069, 73,743 spends,
-// 675,531 bytes as sent and 551,761 with bzip2 on each chunk (7.48 per spend); the commitment-existence fetch with a
-// real wallet under both schemes, on a table of 74,293 commitments. 1M and 10M are calculated: the file at 7.48 bytes
-// per spend, and the fetch from the table's shape, which follows the rules of the commitments table: IPIR+SP
-// 2,048 × 8,192 and 8,192 × 20,480, Simple PIR 5,394 × 5,377 and 17,023 × 17,036. `exists` is a call of 32, as the
-// cells above. Neither the setup data nor the fetch shrinks under bzip2.
-const DUST_FILE = [[551761], [7480000, C], [74800000, C]];
-const DUST = {
-  simple: { setup: [[6057984], [22093824, C], [69726208, C]], exists: [[186536, 189352], [688296, 690472, C], [2180648, 2178984, C]] },
-  ipir: { setup: [[14884], [59428, C], [148516, C]], exists: [[1287336, 182440], [1287336, 723112, C], [2491560, 1804456, C]] },
-};
-// The Dust tree's Merkle fetch is the shielded one at as many commitments: the cell index of today, 1M and 10M.
-const DUST_COLUMN = [0, 1, 2];
+
 const UNITS = [["B", 1], ["KB", 1e3], ["MB", 1e6], ["GB", 1e9]];
 function unitOf(bytes) {
   let u = UNITS[0];
@@ -503,31 +558,47 @@ function unitOf(bytes) {
 const digits = (v) => (v >= 99.95 ? v.toFixed(0) : v >= 9.995 ? v.toFixed(1) : v.toFixed(2));
 function one(bytes) {
   const [name, size] = unitOf(bytes);
-  return size === 1 ? `${bytes} B` : `${digits(bytes / size)} ${name}`;
+  return size === 1 ? `${Math.round(bytes)} B` : `${digits(bytes / size)} ${name}`;
 }
-const pair = (up, down) => `<span class="nb">${digits(up / 1e6)} MB up</span> · <span class="nb">${digits(down / 1e6)} MB down</span>`;
-const star = (calc) => (calc ? '<span class="star">*</span>' : "");
-const figure = (v) => (v.length === 2 ? pair(v[0], v[1]) : `<span class="nb">${one(v[0])}</span>`);
-function cell(c) {
-  const calc = c[c.length - 1] === true;
-  return `<td class="num">${figure(calc ? c.slice(0, -1) : c)}${star(calc)}</td>`;
-}
-const row = (label, cells, cls = "") => `<tr class="${cls}"><td>${label}</td>${cells.map(cell).join("")}</tr>`;
-// A fetch row: one fetch's size, and under it, smaller, the call of 32 that carries it.
-const natural = (c) => `<span class="nb">${one(c[0])} up</span> · <span class="nb">${one(c[1])} down</span>`;
-// `over`: a line for a table past the scheme's limit, whose sizes are an estimate.
-const fetchCell = (o, c, over) =>
-  `<td class="num">${natural(o)}${star(isCalc(c))}<span class="call">${pair(c[0], c[1])}</span>${over ? `<small>${over}</small>` : ""}</td>`;
-const fetchRow = (label, ones, calls, overs = []) =>
-  `<tr><td>${label}<small>up to ${PER_CALL} per call</small></td>${calls.map((c, i) => fetchCell(ones[i], c, overs[i])).join("")}</tr>`;
+const fmt = (n) => n.toLocaleString("en-US");
 const seconds = (t) => (t < 60 ? `${digits(t)} s` : `${Math.floor(t / 60)} min ${Math.round(t % 60)} s`);
-const timeRow = (label, cells) =>
-  `<tr class="sub"><td>${label}</td>${cells.map((c) => `<td class="num"><span class="nb">${seconds(c[0])}</span>${star(c[1] === true)}</td>`).join("")}</tr>`;
-// `span`: the table's columns, for a group's heading; its value columns, for a row with one value for all of them.
-const group = (name, hint = "", span = 4) => `<tr class="grp"><th scope="rowgroup" colspan="${span}">${name}${hint ? `<span>${hint}</span>` : ""}</th></tr>`;
-const same = (label, text, span = 3) => `<tr><td>${label}</td><td class="same" colspan="${span}">${text}</td></tr>`;
+const nb = (t) => `<span class="nb">${t}</span>`;
+const upDown = (t) => `${nb(one(t.up) + " up")} · ${nb(one(t.down) + " down")}`;
+const callOf = (t, n = 1) => `${nb(one(t.callUp) + " up")} · ${nb(one(t.callDown) + " down")}`;
 
-// What the drop-downs open on: IPIR+SP, 1M commitments, 1M Dust spends. A choice made on the page is kept.
+// Per column of S and D: every transfer.
+const shielded = DATA.S.map((s) => ({
+  n: s.n,
+  scan: Math.round(s.scan * BZ_SCAN),
+  scanSeconds: (s.n * SCAN_US) / 1e6,
+  prefixes: s.prefixes,
+  setup: s.read.masks + s.nullifier.masks,
+  read: s.read, nullifier: s.nullifier, group: s.groups,
+  roots: s.roots,
+}));
+const dust = DATA.D.map((d) => ({
+  n: d.n, gen: d.gen, spends: d.spends,
+  first: Math.round(d.gen * PREFIX_SHARE) * FIRST_COIN,
+  file: d.spends * SPEND_BZ,
+  fileSent: d.spends * SPEND_SENT,
+  setup: d.check.masks,
+  check: d.check, group: d.groups, ggroup: d.ggroups,
+  roots: d.roots + d.groots,
+  map: 4 * d.gen,
+}));
+
+function val(id, main, call, extra) {
+  document.getElementById(id).innerHTML =
+    main + (call ? `<span class="call">up to ${PER_CALL} per call: ${call}</span>` : "") + (extra ? `<span class="call">${extra}</span>` : "");
+}
+
+// ---------- tables ----------
+const td = (html) => `<td class="num">${html}</td>`;
+const row = (label, cells, cls = "") => `<tr class="${cls}"><td>${label}</td>${cells.map(td).join("")}</tr>`;
+const group = (name, hint = "", span) => `<tr class="grp"><th scope="rowgroup" colspan="${span}">${name}${hint ? `<span>${hint}</span>` : ""}</th></tr>`;
+const same = (label, text, span) => `<tr><td>${label}</td><td class="same" colspan="${span}">${text}</td></tr>`;
+const fetchCells = (ts) => ts.map((t) => `${upDown(t)}<span class="call">call: ${callOf(t)}</span>`);
+
 const stored = (key, valid) => {
   try {
     const v = localStorage.getItem(key);
@@ -537,142 +608,116 @@ const stored = (key, valid) => {
   }
 };
 const keep = (key, value) => { try { localStorage.setItem(key, String(value)); } catch {} };
-let scheme = stored("pss.scheme", (v) => v in SCHEMES) ?? "ipir";
-const selects = [...document.querySelectorAll(".scheme-select")];
-const upDown = (c) => [`${digits(c[0] / 1e6)} MB up`, `${digits(c[1] / 1e6)} MB down`];
-const upDownOne = (c) => [`${one(c[0])} up`, `${one(c[1])} down`];
-// Concept shows each transfer's size at the number of commitments chosen there (an index into the cells above).
-const SIZE_NOTES = [
-  "Measured on Preprod: 69,329 commitments and 57,812 nullifiers.",
-  "Measured on Preprod's data, padded with random entries to 1,000,000 commitments and nullifiers; <span class=\"star\">*</span> calculated.",
-  '<span class="star">*</span> Calculated from the scheme\'s size rules.',
-];
-let size = Number(stored("pss.size", (v) => ["0", "1", "2"].includes(v)) ?? 1);
+let size = Number(stored("pss2.size", (v) => ["0", "1", "2"].includes(v)) ?? 0);
+let dsize = Number(stored("pss2.dust", (v) => ["0", "1"].includes(v)) ?? 0);
 const sizeSelect = document.getElementById("size-concept");
-let dust = Number(stored("pss.dustSize", (v) => ["0", "1", "2"].includes(v)) ?? 1);
 const dustSelect = document.getElementById("size-dust");
-const isCalc = (c) => c[c.length - 1] === true;
-// `cells` are the cells the value is made of.
-// `call`, for a fetch: the sizes of the call that carries it, shown smaller under the fetch's own.
-// `calc`: whether the value is marked calculated; by default, when one of its cells is.
-// `over`: a line for a table past the scheme's limit, whose sizes are an estimate.
-function val(id, cells, parts, call, calc = cells.some(isCalc), over = null) {
-  const spans = (texts) => texts.map((t) => `<span>${t}</span>`).join(" · ");
-  document.getElementById(id).innerHTML =
-    spans(parts()) +
-    star(calc) +
-    (call ? `<span class="call"><span>up to ${PER_CALL} per call:</span> ${spans(call())}</span>` : "") +
-    (over ? `<span class="call"><span>${over}</span></span>` : "");
-}
-
-/** A scheme's transfers with bzip2 on: the cells of FILE and of the scheme, each the smaller of sent and compressed. */
-function withBzip2(s) {
-  const mark = (values, calc) => (calc ? [...values, C] : values);
-  return {
-    file: FILE.map((c, i) => mark([Math.round(c[0] * BZ_FILE)], i > 0)),
-    setup: s.setup.map((c, i) => (s.bz.setupNullifier ? mark([Math.round(c[0] - s.setupNullifier[i] * (1 - s.bz.setupNullifier[i]))], isCalc(c)) : c)),
-    commitments: s.commitments,
-    nullifiers: s.nullifiers.map((c, i) => (s.bz.nullifiersDown ? mark([c[0], Math.round(c[1] * s.bz.nullifiersDown[i])], isCalc(c)) : c)),
-    merkle: s.merkle,
-    merkleSetup: s.merkleSetup,
-    // one fetch of each kind; a single answer has its own measured ratio
-    one: {
-      commitments: s.commitments.map(oneFetch),
-      nullifiers: s.nullifiers.map((c, i) => {
-        const o = oneFetch(c);
-        return s.bz.nullifiersOneDown ? mark([o[0], Math.round(o[1] * s.bz.nullifiersOneDown[i])], isCalc(c)) : o;
-      }),
-      merkle: s.merkle.map(oneFetch),
-    },
-  };
-}
+const NOTES = [
+  `Mainnet today: ${fmt(DATA.S[0].n)} shielded outputs, read on 23 November 2026; sizes calculated, bzip2 on for the files.`,
+  "Calculated with the proof of concept's table rules; bzip2 on for the files.",
+  "Calculated: the design's target. Every table is still one piece.",
+];
+const DUST_NOTES = [
+  `Mainnet today: ${fmt(DATA.D[0].n)} Dust commitments and ${fmt(DATA.D[0].gen)} Night records since its ledger-9 era began on 6 November 2026.`,
+  "Calculated, with 1M Night records: about six months away at today's rate.",
+];
 
 function render() {
-  const s = SCHEMES[scheme];
-  const t = withBzip2(s);
-  const over = s.merkleOver ?? [];
-  for (const el of selects) el.value = scheme;
-  for (const el of document.querySelectorAll(".scheme-note")) el.innerHTML = s.note;
-  // Concept: each transfer's size at the chosen number of commitments
-  document.getElementById("c-setup-kind").textContent = s.setupKind;
+  // 1. Shielded Tokens
+  const s = shielded[size];
   sizeSelect.value = String(size);
-  document.getElementById("size-note").innerHTML = SIZE_NOTES[size];
-  val("v-file", [t.file[size]], () => [one(t.file[size][0])]);
-  val("v-setup", [t.setup[size]], () => [one(t.setup[size][0])]);
-  val("v-commitments", [t.commitments[size]], () => upDownOne(t.one.commitments[size]), () => upDown(t.commitments[size]));
-  val("v-nullifiers", [t.nullifiers[size]], () => upDownOne(t.one.nullifiers[size]), () => upDown(t.nullifiers[size]));
-  val(
-    "v-merkle",
-    [t.merkle[size], t.merkleSetup[size]],
-    () => [...upDownOne(t.one.merkle[size]), `setup once ${one(t.merkleSetup[size][0])}`],
-    () => upDown(t.merkle[size]),
-    undefined,
-    over[size],
-  );
-  // Dust Sync: each transfer's size at the chosen number of Dust spends
-  const d = DUST[scheme];
-  const col = DUST_COLUMN[dust];
-  dustSelect.value = String(dust);
-  document.getElementById("d-setup-kind").textContent = s.setupKind;
-  val("d-file", [DUST_FILE[dust]], () => [one(DUST_FILE[dust][0])]);
-  val("d-setup", [d.setup[dust]], () => [one(d.setup[dust][0])]);
-  val("d-exists", [d.exists[dust]], () => upDownOne(oneFetch(d.exists[dust])), () => upDown(d.exists[dust]));
-  val(
-    "d-merkle",
-    [t.merkle[col], t.merkleSetup[col]],
-    () => [...upDownOne(t.one.merkle[col]), `setup once ${one(t.merkleSetup[col][0])}`],
-    () => upDown(t.merkle[col]),
-    true,
-    over[col],
-  );
-  // Sizes: every transfer, and the first sync's total
-  const sum = (c) => (isCalc(c) ? c.slice(0, -1) : c).reduce((a, b) => a + b, 0);
-  const totals = t.file.map((f, i) => {
-    const parts = [f, t.setup[i], t.commitments[i], t.nullifiers[i]];
-    return [parts.reduce((a, c) => a + sum(c), 0), ...(parts.some(isCalc) ? [C] : [])];
-  });
+  document.getElementById("size-note").textContent = NOTES[size];
+  val("v-marks", nb("about 730 B a year"), null, "10 B per mark, at any size");
+  val("v-file", nb(one(s.scan)), null, `the phone scans it in ${seconds(s.scanSeconds)}`);
+  val("v-prefixes", nb(one(s.prefixes)));
+  val("v-setup", nb(one(s.setup)));
+  val("v-read", upDown(s.read), callOf(s.read));
+  val("v-nullifier", upDown(s.nullifier), callOf(s.nullifier));
+  val("v-roots", nb(one(s.roots)));
+  val("v-group", upDown(s.group), callOf(s.group), `setup once ${one(s.group.masks)}`);
+  // 2. Dust Sync
+  const d = dust[dsize];
+  dustSelect.value = String(dsize);
+  document.getElementById("dust-note").textContent = DUST_NOTES[dsize];
+  val("d-first", nb("about " + one(d.first)), null, `1/256 of ${fmt(d.gen)} first coins`);
+  val("d-file", nb(one(d.file)), null, `${fmt(d.spends)} spends; ${one(d.fileSent)} without bzip2`);
+  val("d-setup", nb(one(d.setup)));
+  val("d-check", upDown(d.check), callOf(d.check));
+  val("d-roots", nb(one(d.roots)));
+  val("d-group", upDown(d.group), null, `setup once ${one(d.group.masks)}`);
+  val("d-ggroup", upDown(d.ggroup), null, `setup once ${one(d.ggroup.masks)}`);
+  document.getElementById("d-map").textContent = `${one(dust[0].map)} on Mainnet today`;
+
+  // 3. Sizes
+  document.getElementById("h-mainnet").textContent = `${fmt(DATA.S[0].n)} outputs, read 23 Nov`;
+  document.getElementById("h-dust").textContent = `${fmt(DATA.D[0].n)} commitments, read 23 Nov`;
+  const first = shielded.map((x) => one(x.scan + x.prefixes + x.setup + x.read.callUp + x.read.callDown));
   document.getElementById("rows").innerHTML = [
-    group("First sync", "everything a phone moves to sync once"),
-    row("Total<small>file, setup data and one call each</small>", totals, "cmp"),
-    group("Once"),
-    row("Commitment file<small>36 B per commitment</small>", t.file),
-    timeRow("the phone scans it<small>iPhone 13, on its GPU: 11.1 µs per entry</small>", SCAN_SECONDS),
-    row("Setup data<small>to fetch commitments and nullifiers</small>", t.setup),
-    group("Multiple times", "one fetch: bytes the phone sends up, bytes it gets back down. A call always carries 32 requests, real or padding"),
-    fetchRow("Fetch commitments", t.one.commitments, t.commitments),
-    fetchRow("Fetch nullifiers", t.one.nullifiers, t.nullifiers),
-    fetchRow('Fetch Merkle tree<span class="pill info">only to spend</span>', t.one.merkle, t.merkle, over),
-    row("its setup data, once", t.merkleSetup, "sub"),
-    group("Incremental", "the design; the proof of concept sends 257 B and 40 B"),
-    same("New commitment", "36 B each, at any size"),
-    same("New nullifier", "8 B each, at any size"),
+    group("First sync", "everything a phone moves to sync once: the files, the setup data and one call to read its coins", 4),
+    row("Total", first.map(nb), "cmp"),
+    group("Once", "from the start; a phone that knows its date downloads only from its date mark", 4),
+    same("Date marks<small>10 B per mark, one at least every 5 days</small>", "about 730 B a year, at any size", 3),
+    row("Scan file<small>36 B per output</small>", shielded.map((x) => nb(one(x.scan)))),
+    row("the phone scans it<small>iPhone 13, on its GPU: 11.1 µs per entry</small>", shielded.map((x) => nb(seconds(x.scanSeconds))), "sub"),
+    row("Nullifier prefixes<small>4 B per spent coin</small>", shielded.map((x) => nb(one(x.prefixes)))),
+    row("Setup data<small>to read coins and check nullifiers</small>", shielded.map((x) => nb(one(x.setup)))),
+    group("Every sync", "one fetch: bytes the phone sends up, bytes it gets back down; under it the call of 32 that carries it", 4),
+    row("Read its coins<small>one per scan match</small>", fetchCells(shielded.map((x) => x.read))),
+    row('Check a nullifier<span class="pill info">only on a match</span>', fetchCells(shielded.map((x) => x.nullifier))),
+    group("To spend", "", 4),
+    row("Group roots<small>32 B per 256 outputs</small>", shielded.map((x) => nb(one(x.roots)))),
+    row("Read its group<small>256 commitments</small>", fetchCells(shielded.map((x) => x.group))),
+    row("its setup data, once", shielded.map((x) => nb(one(x.group.masks))), "sub"),
+    group("Every block", "the same WebSocket message to every phone", 4),
+    same("New output", "36 B each, at any size", 3),
+    same("New nullifier", "4 B each, at any size", 3),
+    same("Changed setup data", "14.9 KB per changed block of columns, before a private fetch", 3),
   ].join("");
-  // Sizes, Dust: the nullifier file and the commitment-existence fetch at each number of Dust spends
   document.getElementById("dust-rows").innerHTML = [
-    group("Once"),
-    row("Nullifier file<small>about 7.5 B per Dust spend</small>", DUST_FILE),
-    row("Setup data<small>to fetch commitment existence</small>", d.setup),
-    group("Multiple times", "one fetch: bytes the phone sends up, bytes it gets back down. A phone makes one per chain of Dust coins"),
-    fetchRow("Fetch commitment existence", d.exists.map(oneFetch), d.exists),
-    same('Fetch Merkle tree<span class="pill info">only to spend</span>', "as for shielded tokens, at as many commitments"),
-    group("Incremental"),
-    same("New Dust spend", "about 7.5 B each, at any size"),
+    group("Once", "", 3),
+    row('First coins<span class="pill warn">proposed</span><small>1/256 of them, by key prefix; about 100 B each</small>', dust.map((x) => nb("about " + one(x.first)))),
+    same("Date marks<small>6 B per mark</small>", "about 438 B a year, at any size", 2),
+    row("Spend file<small>about 9 B per spend, 7.5 B with bzip2; from the phone's date mark</small>", dust.map((x) => nb(one(x.file)))),
+    row("Setup data<small>to check a chain's last coin</small>", dust.map((x) => nb(one(x.setup)))),
+    group("Every sync", "one per chain of Dust coins", 3),
+    row("Check the last coin", fetchCells(dust.map((x) => x.check))),
+    group("To pay a fee", "two requests, one per tree, in one call", 3),
+    row("Group roots of both trees<small>32 B per 256 leaves</small>", dust.map((x) => nb(one(x.roots)))),
+    row("Read its coin's group", dust.map((x) => upDown(x.group))),
+    row("Read its Night record's group", dust.map((x) => upDown(x.ggroup))),
+    row("their setup data, once", dust.map((x) => nb(one(x.group.masks + x.ggroup.masks))), "sub"),
+    group("Every block", "", 3),
+    same("New Dust spend", "about 9 B each, at any size", 2),
+  ].join("");
+
+  // 4. Server
+  const gb = (b) => nb(one(b));
+  const shape = (t) => `<small>${t.shape.split(" × ").map((v) => fmt(Number(v))).join(" × ")} cells</small>`;
+  const memRow = (label, ts) => `<tr><td>${label}</td>${ts.map((t) => `<td class="num">${gb(t.memory)}${shape(t)}</td>`).join("")}</tr>`;
+  const total = (xs) => xs.map((x) => nb(one(x)));
+  document.getElementById("mem-rows").innerHTML = [
+    group("Shielded tokens", "", 4),
+    memRow("Read<small>98 B per output</small>", shielded.map((x) => x.read)),
+    memRow("Nullifiers<small>40 B per spent coin</small>", shielded.map((x) => x.nullifier)),
+    memRow("Groups<small>8 KB per 256 outputs</small>", shielded.map((x) => x.group)),
+    row("Total", total(shielded.map((x) => x.read.memory + x.nullifier.memory + x.group.memory)), "cmp"),
+  ].join("");
+  document.getElementById("mem-dust-rows").innerHTML = [
+    group("Dust", "", 3),
+    memRow("Check<small>32 B per commitment</small>", dust.map((x) => x.check)),
+    memRow("Commitment groups<small>8 KB per 256 commitments</small>", dust.map((x) => x.group)),
+    memRow("Night record groups<small>8 KB per 256 records</small>", dust.map((x) => x.ggroup)),
+    row("Total", total(dust.map((x) => x.check.memory + x.group.memory + x.ggroup.memory)), "cmp"),
   ].join("");
 }
-for (const el of selects)
-  el.addEventListener("change", () => {
-    scheme = el.value;
-    keep("pss.scheme", scheme);
-    render();
-  });
 sizeSelect.addEventListener("change", () => {
   size = Number(sizeSelect.value);
-  keep("pss.size", size);
+  keep("pss2.size", size);
   render();
 });
 dustSelect.addEventListener("change", () => {
-  dust = Number(dustSelect.value);
-  keep("pss.dustSize", dust);
+  dsize = Number(dustSelect.value);
+  keep("pss2.dust", dsize);
   render();
 });
 render();

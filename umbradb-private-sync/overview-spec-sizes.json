@@ -1,0 +1,188 @@
+{
+ "shielded": [
+  {
+   "outputs": 38053,
+   "scanFile": 1369908,
+   "nullifierPrefixes": 152212,
+   "upperRoots": 4768,
+   "read": {
+    "shape": "2048 × 2048",
+    "pieces": 1,
+    "up": 40228,
+    "down": 5700,
+    "callUp": 1287336,
+    "callDown": 182440,
+    "masks": 14884,
+    "memory": 41988608
+   },
+   "nullifier": {
+    "shape": "2048 × 2048",
+    "pieces": 1,
+    "up": 40228,
+    "down": 5700,
+    "callUp": 1287336,
+    "callDown": 182440,
+    "masks": 14884,
+    "memory": 41988608
+   },
+   "groups": {
+    "shape": "2048 × 4096",
+    "pieces": 1,
+    "up": 40228,
+    "down": 11332,
+    "callUp": 1287336,
+    "callDown": 362664,
+    "masks": 29732,
+    "memory": 83977216
+   }
+  },
+  {
+   "outputs": 1000000,
+   "scanFile": 36000000,
+   "nullifierPrefixes": 4000000,
+   "upperRoots": 125024,
+   "read": {
+    "shape": "4096 × 12288",
+    "pieces": 1,
+    "up": 52772,
+    "down": 33860,
+    "callUp": 1688744,
+    "callDown": 1083560,
+    "masks": 89124,
+    "memory": 302263296
+   },
+   "nullifier": {
+    "shape": "4096 × 8192",
+    "pieces": 1,
+    "up": 52772,
+    "down": 22596,
+    "callUp": 1688744,
+    "callDown": 723112,
+    "masks": 59428,
+    "memory": 201508864
+   },
+   "groups": {
+    "shape": "2048 × 8192",
+    "pieces": 1,
+    "up": 40228,
+    "down": 22596,
+    "callUp": 1287336,
+    "callDown": 723112,
+    "masks": 59428,
+    "memory": 167954432
+   }
+  },
+  {
+   "outputs": 10000000,
+   "scanFile": 360000000,
+   "nullifierPrefixes": 40000000,
+   "upperRoots": 1250016,
+   "read": {
+    "shape": "14336 × 34816",
+    "pieces": 1,
+    "up": 115492,
+    "down": 95812,
+    "callUp": 3695784,
+    "callDown": 3066024,
+    "masks": 252452,
+    "memory": 1569444352
+   },
+   "nullifier": {
+    "shape": "16384 × 18432",
+    "pieces": 1,
+    "up": 128036,
+    "down": 50756,
+    "callUp": 4097192,
+    "callDown": 1624232,
+    "masks": 133668,
+    "memory": 906379776
+   },
+   "groups": {
+    "shape": "8192 × 20480",
+    "pieces": 1,
+    "up": 77860,
+    "down": 56388,
+    "callUp": 2491560,
+    "callDown": 1804456,
+    "masks": 148516,
+    "memory": 671544320
+   }
+  }
+ ],
+ "dust": [
+  {
+   "commitments": 933567,
+   "generation": 10410,
+   "spends": 923157,
+   "check": {
+    "shape": "2048 × 8192",
+    "pieces": 1,
+    "up": 40228,
+    "down": 22596,
+    "callUp": 1287336,
+    "callDown": 723112,
+    "masks": 59428,
+    "memory": 167954432
+   },
+   "groups": {
+    "shape": "2048 × 8192",
+    "pieces": 1,
+    "up": 40228,
+    "down": 22596,
+    "callUp": 1287336,
+    "callDown": 723112,
+    "masks": 59428,
+    "memory": 167954432
+   },
+   "generationGroups": {
+    "shape": "2048 × 4096",
+    "pieces": 1,
+    "up": 40228,
+    "down": 11332,
+    "callUp": 1287336,
+    "callDown": 362664,
+    "masks": 29732,
+    "memory": 83977216
+   },
+   "commitmentRoots": 116704,
+   "generationRoots": 1312
+  },
+  {
+   "commitments": 10000000,
+   "generation": 1000000,
+   "spends": 9000000,
+   "check": {
+    "shape": "8192 × 20480",
+    "pieces": 1,
+    "up": 77860,
+    "down": 56388,
+    "callUp": 2491560,
+    "callDown": 1804456,
+    "masks": 148516,
+    "memory": 671544320
+   },
+   "groups": {
+    "shape": "8192 × 20480",
+    "pieces": 1,
+    "up": 77860,
+    "down": 56388,
+    "callUp": 2491560,
+    "callDown": 1804456,
+    "masks": 148516,
+    "memory": 671544320
+   },
+   "generationGroups": {
+    "shape": "2048 × 8192",
+    "pieces": 1,
+    "up": 40228,
+    "down": 22596,
+    "callUp": 1287336,
+    "callDown": 723112,
+    "masks": 59428,
+    "memory": 167954432
+   },
+   "commitmentRoots": 1250016,
+   "generationRoots": 125024
+  }
+ ]
+}
