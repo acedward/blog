@@ -6,7 +6,7 @@
    "nullifierPrefixes": 152212,
    "upperRoots": 4768,
    "read": {
-    "shape": "2048 × 2048",
+    "shape": "2048 \u00d7 2048",
     "pieces": 1,
     "up": 40228,
     "down": 5700,
@@ -16,7 +16,7 @@
     "memory": 41988608
    },
    "nullifier": {
-    "shape": "2048 × 2048",
+    "shape": "2048 \u00d7 2048",
     "pieces": 1,
     "up": 40228,
     "down": 5700,
@@ -26,7 +26,7 @@
     "memory": 41988608
    },
    "groups": {
-    "shape": "2048 × 4096",
+    "shape": "2048 \u00d7 4096",
     "pieces": 1,
     "up": 40228,
     "down": 11332,
@@ -42,7 +42,7 @@
    "nullifierPrefixes": 4000000,
    "upperRoots": 125024,
    "read": {
-    "shape": "4096 × 12288",
+    "shape": "4096 \u00d7 12288",
     "pieces": 1,
     "up": 52772,
     "down": 33860,
@@ -52,7 +52,7 @@
     "memory": 302263296
    },
    "nullifier": {
-    "shape": "4096 × 8192",
+    "shape": "4096 \u00d7 8192",
     "pieces": 1,
     "up": 52772,
     "down": 22596,
@@ -62,7 +62,7 @@
     "memory": 201508864
    },
    "groups": {
-    "shape": "2048 × 8192",
+    "shape": "2048 \u00d7 8192",
     "pieces": 1,
     "up": 40228,
     "down": 22596,
@@ -78,7 +78,7 @@
    "nullifierPrefixes": 40000000,
    "upperRoots": 1250016,
    "read": {
-    "shape": "14336 × 34816",
+    "shape": "14336 \u00d7 34816",
     "pieces": 1,
     "up": 115492,
     "down": 95812,
@@ -88,7 +88,7 @@
     "memory": 1569444352
    },
    "nullifier": {
-    "shape": "16384 × 18432",
+    "shape": "16384 \u00d7 18432",
     "pieces": 1,
     "up": 128036,
     "down": 50756,
@@ -98,7 +98,7 @@
     "memory": 906379776
    },
    "groups": {
-    "shape": "8192 × 20480",
+    "shape": "8192 \u00d7 20480",
     "pieces": 1,
     "up": 77860,
     "down": 56388,
@@ -114,18 +114,8 @@
    "commitments": 933567,
    "generation": 10410,
    "spends": 923157,
-   "check": {
-    "shape": "2048 × 8192",
-    "pieces": 1,
-    "up": 40228,
-    "down": 22596,
-    "callUp": 1287336,
-    "callDown": 723112,
-    "masks": 59428,
-    "memory": 167954432
-   },
    "groups": {
-    "shape": "2048 × 8192",
+    "shape": "2048 \u00d7 8192",
     "pieces": 1,
     "up": 40228,
     "down": 22596,
@@ -135,7 +125,7 @@
     "memory": 167954432
    },
    "generationGroups": {
-    "shape": "2048 × 4096",
+    "shape": "2048 \u00d7 4096",
     "pieces": 1,
     "up": 40228,
     "down": 11332,
@@ -145,7 +135,7 @@
     "memory": 83977216
    },
    "firstCoins": {
-    "shape": "2048 × 2048",
+    "shape": "2048 \u00d7 2048",
     "pieces": 1,
     "up": 40228,
     "down": 5700,
@@ -161,18 +151,8 @@
    "commitments": 10000000,
    "generation": 1000000,
    "spends": 9000000,
-   "check": {
-    "shape": "8192 × 20480",
-    "pieces": 1,
-    "up": 77860,
-    "down": 56388,
-    "callUp": 2491560,
-    "callDown": 1804456,
-    "masks": 148516,
-    "memory": 671544320
-   },
    "groups": {
-    "shape": "8192 × 20480",
+    "shape": "8192 \u00d7 20480",
     "pieces": 1,
     "up": 77860,
     "down": 56388,
@@ -182,7 +162,7 @@
     "memory": 671544320
    },
    "generationGroups": {
-    "shape": "2048 × 8192",
+    "shape": "2048 \u00d7 8192",
     "pieces": 1,
     "up": 40228,
     "down": 22596,
@@ -192,7 +172,7 @@
     "memory": 167954432
    },
    "firstCoins": {
-    "shape": "4096 × 8192",
+    "shape": "4096 \u00d7 8192",
     "pieces": 1,
     "up": 52772,
     "down": 22596,

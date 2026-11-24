@@ -215,9 +215,9 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
       <div class="box">
         <div class="box-head"><span class="tag">Once</span><span class="sub">on the first sync, from the phone's date; later only what was added</span></div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Date marks</span><span class="xfer-size">one at least every 5 days</span></div>
+          <div class="xfer-top"><span class="xfer-name">Date map</span><span class="xfer-size">a start time and a delta a day</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">Where each date starts in the files below: a position and the day. A phone that knows when it was created starts at the last mark before that date; it cannot have coins from earlier. Without a date it starts from the beginning.</p><span class="val" id="v-marks"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">Where each day starts in the files below. The phone downloads it whole, so the read tells nothing, and starts a random amount before its creation date: it cannot have coins from earlier, and its start looks like any phone's. Without a date it starts from the beginning.</p><span class="val" id="v-marks"></span></div>
         </div>
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Commitments file</span><span class="xfer-size">36 B per output</span></div>
@@ -298,7 +298,7 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
 <!-- ======================= 2. Dust Sync ======================= -->
 <section class="page" id="dust" role="tabpanel" hidden>
   <h1>A phone follows its Dust without showing which coins are its own</h1>
-  <p class="lead">Each Night output a phone holds starts a chain of Dust coins: every fee it pays spends the chain's current coin and creates the next. The phone follows its chains through a public file of spends, reads its first coins and checks each chain's last coin with private fetches, and reads two paths the same way to pay a fee.</p>
+  <p class="lead">Each Night output a phone holds starts a chain of Dust coins: every fee it pays spends the chain's current coin and creates the next. The phone follows its chains through a public file of spends, reads its first coins with private fetches, and checks each chain's last coin by reading its group, which also gives that coin's path. To pay a fee it reads one more group, in the tree of Night records.</p>
 
   <div class="controls">
     <label for="size-dust">Dust commitments</label>
@@ -325,14 +325,19 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
           <div class="xfer-foot"><p class="xfer-note">The first 4 bytes of the owner key of every chain's first coin. The phone finds the entries that match its keys.</p><span class="val" id="d-map"></span></div>
         </div>
         <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Date map</span><span class="xfer-size">a start time and a delta a day</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">Where each day starts in the spend file and the map. The phone downloads it whole, under 2 KB a year, so the read tells the server nothing. Its date is also the earliest its Dust can start, so it begins a random amount before that date, as any phone might.</p></div>
+        </div>
+        <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Spend file</span><span class="xfer-size">about 9 B per Dust spend</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">Each entry holds 4 bytes of a spent coin's nullifier, the spend's time and fee, and the new coin's position. The phone searches it for its current coin, derives the next from the match, and searches on. Like the shielded files it carries date marks: the phone's date is also the earliest its Dust can start, so it begins there.</p><span class="val" id="d-file"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">Each entry holds 4 bytes of a spent coin's nullifier, the spend's time and fee, and the position of the coin it created. Entries come compressed in chunks of 4,096, with a small index of where each chunk starts, so the phone reads from the chunk holding its starting entry. It searches for its current coin, derives the next from the match with its own key, and searches on.</p><span class="val" id="d-file"></span></div>
         </div>
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Setup data</span><span class="xfer-size">about 14.9 KB per 2,048 columns</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answers of its first coins and of its check.</p><span class="val" id="d-setup"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answers of every Dust table: the first coins and both trees' groups.</p><span class="val" id="d-setup"></span></div>
         </div>
       </div>
 
@@ -344,28 +349,23 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
           <div class="xfer-foot"><p class="xfer-note">One per map match: the Night output's nonce, the coin's value and time, its position, and the Night record. The phone computes the coin's commitment with its own key; the check below drops a false match.</p><span class="val" id="d-first"></span></div>
         </div>
         <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Check the last coin</span><span class="xfer-size">32 B per coin</span></div>
+          <div class="xfer-top"><span class="xfer-name">Check the last coin</span><span class="xfer-size">its group: 256 commitments, 8 KB</span></div>
           <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">One per chain: is the coin the phone derived at that position? If not, the match was another phone's spend and the search resumes after it.</p><span class="val" id="d-check"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">One per chain: the group of the coin's position. The commitment in its slot must be the one the phone derived; if not, the match was another phone's spend and the search resumes after it. The other 255 give the coin's lower path, so paying a fee needs no second read.</p><span class="val" id="d-check"></span></div>
         </div>
       </div>
 
       <div class="box">
-        <div class="box-head"><span class="tag">To pay a fee</span><span class="sub">two paths, one in each Dust tree, at one height</span></div>
+        <div class="box-head"><span class="tag">To pay a fee</span><span class="sub">a path in each Dust tree, at one height</span></div>
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Group roots of both trees</span><span class="xfer-size">32 B per 256 leaves</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The upper levels of every path, as for shielded tokens. The Night records change in place when a Night is spent, so a chunk of their roots is downloaded again when one of its roots changes.</p><span class="val" id="d-roots"></span></div>
-        </div>
-        <div class="xfer">
-          <div class="xfer-top"><span class="xfer-name">Read its coin's group</span><span class="xfer-size">256 commitments, 8 KB</span></div>
-          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The lower levels of the coin's path in the Dust commitment tree.</p><span class="val" id="d-group"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">The upper levels of every path, as for shielded tokens. A Night record changes in place when its Night is spent; the server says which blocks of its tree changed, and the phone downloads those groups' roots again.</p><span class="val" id="d-roots"></span></div>
         </div>
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">Read its Night record's group</span><span class="xfer-size">256 record hashes, 8 KB</span></div>
           <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
-          <div class="xfer-foot"><p class="xfer-note">The lower levels of the path of the Night output that generates the coin's Dust. Both requests travel in one call.</p><span class="val" id="d-ggroup"></span></div>
+          <div class="xfer-foot"><p class="xfer-note">The lower levels of the path of the Night output that generates the coin's Dust. The coin's own path came with the check.</p><span class="val" id="d-ggroup"></span></div>
         </div>
       </div>
 
@@ -379,7 +379,12 @@ table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-var
         <div class="xfer">
           <div class="xfer-top"><span class="xfer-name">New map entries</span><span class="xfer-size">4 B each</span></div>
           <div class="wire"><span class="sr">server to phone</span></div>
-          <div class="xfer-foot"><p class="xfer-note">With the index of each first-coin record that changed because its Night was spent (4 B each), so a phone re-reads only its own.</p></div>
+          <div class="xfer-foot"><p class="xfer-note">One per new first coin.</p></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Changed first coins</span><span class="xfer-size">8 B each</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">When a Night is spent its first-coin record changes: the change log gives the record's index and new spent time, so the phone updates its own without a fetch. A phone that was offline reads the log from where it stopped.</p></div>
         </div>
       </div>
     </div>
@@ -592,7 +597,7 @@ addEventListener("keydown", (e) => {
 // for nullifiers) and size formulas: a request is 27,684 B of key plus 49 bits per row, an answer 22 bits per column
 // plus 68 B, the setup data (masks) 14,848 B per block of 2,048 columns. S: shielded at Mainnet's outputs, 1M and 10M.
 // D: Dust at Mainnet's commitments (its ledger-9 era) and 10M. Bytes as sent.
-const DATA = {"S":[{"n":38053,"scan":1369908,"prefixes":152212,"roots":4768,"read":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"nullifier":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"groups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216}},{"n":1000000,"scan":36000000,"prefixes":4000000,"roots":125024,"read":{"shape":"4096 \u00d7 12288","up":52772,"down":33860,"callUp":1688744,"callDown":1083560,"masks":89124,"memory":302263296},"nullifier":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432}},{"n":10000000,"scan":360000000,"prefixes":40000000,"roots":1250016,"read":{"shape":"14336 \u00d7 34816","up":115492,"down":95812,"callUp":3695784,"callDown":3066024,"masks":252452,"memory":1569444352},"nullifier":{"shape":"16384 \u00d7 18432","up":128036,"down":50756,"callUp":4097192,"callDown":1624232,"masks":133668,"memory":906379776},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320}}],"D":[{"n":933567,"gen":10410,"spends":923157,"check":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"ggroups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216},"roots":116704,"groots":1312,"first":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608}},{"n":10000000,"gen":1000000,"spends":9000000,"check":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"ggroups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"roots":1250016,"groots":125024,"first":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864}}]};
+const DATA = {"S":[{"n":38053,"scan":1369908,"prefixes":152212,"roots":4768,"read":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"nullifier":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608},"groups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216}},{"n":1000000,"scan":36000000,"prefixes":4000000,"roots":125024,"read":{"shape":"4096 \u00d7 12288","up":52772,"down":33860,"callUp":1688744,"callDown":1083560,"masks":89124,"memory":302263296},"nullifier":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864},"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432}},{"n":10000000,"scan":360000000,"prefixes":40000000,"roots":1250016,"read":{"shape":"14336 \u00d7 34816","up":115492,"down":95812,"callUp":3695784,"callDown":3066024,"masks":252452,"memory":1569444352},"nullifier":{"shape":"16384 \u00d7 18432","up":128036,"down":50756,"callUp":4097192,"callDown":1624232,"masks":133668,"memory":906379776},"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320}}],"D":[{"n":933567,"gen":10410,"spends":923157,"groups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"ggroups":{"shape":"2048 \u00d7 4096","up":40228,"down":11332,"callUp":1287336,"callDown":362664,"masks":29732,"memory":83977216},"roots":116704,"groots":1312,"first":{"shape":"2048 \u00d7 2048","up":40228,"down":5700,"callUp":1287336,"callDown":182440,"masks":14884,"memory":41988608}},{"n":10000000,"gen":1000000,"spends":9000000,"groups":{"shape":"8192 \u00d7 20480","up":77860,"down":56388,"callUp":2491560,"callDown":1804456,"masks":148516,"memory":671544320},"ggroups":{"shape":"2048 \u00d7 8192","up":40228,"down":22596,"callUp":1287336,"callDown":723112,"masks":59428,"memory":167954432},"roots":1250016,"groots":125024,"first":{"shape":"4096 \u00d7 8192","up":52772,"down":22596,"callUp":1688744,"callDown":723112,"masks":59428,"memory":201508864}}]};
 // bzip2 -9 output ÷ input, measured on real bytes (overview-bzip.ts and the Dust proof of concept): the commitments file
 // 0.9207; the Dust spend file 7.48 B per spend with bzip2 against 9.16 B sent. Random bytes (nullifier prefixes, group
 // roots) and private fetches do not shrink.
@@ -642,8 +647,8 @@ const dust = DATA.D.map((d) => ({
   firstCoins: d.first,
   file: d.spends * SPEND_BZ,
   fileSent: d.spends * SPEND_SENT,
-  setup: d.check.masks + d.first.masks,
-  check: d.check, group: d.groups, ggroup: d.ggroups,
+  setup: d.groups.masks + d.ggroups.masks + d.first.masks,
+  check: d.groups, ggroup: d.ggroups,
   roots: d.roots + d.groots,
 }));
 
@@ -687,7 +692,7 @@ function render() {
   const s = shielded[size];
   sizeSelect.value = String(size);
   document.getElementById("size-note").textContent = NOTES[size];
-  val("v-marks", nb("about 730 B a year"), null, "10 B per mark, at any size");
+  val("v-marks", nb("under 2 KB a year"), null, "a few bytes a day, at any size");
   val("v-file", nb(one(s.scan)), null, `the phone scans it in ${seconds(s.scanSeconds)}`);
   val("v-prefixes", nb(one(s.prefixes)));
   val("v-setup", nb(one(s.setup)));
@@ -705,7 +710,6 @@ function render() {
   val("d-setup", nb(one(d.setup)));
   val("d-check", upDown(d.check), callOf(d.check));
   val("d-roots", nb(one(d.roots)));
-  val("d-group", upDown(d.group), null, `setup once ${one(d.group.masks)}`);
   val("d-ggroup", upDown(d.ggroup), null, `setup once ${one(d.ggroup.masks)}`);
 
   // 3. Sizes
@@ -715,8 +719,8 @@ function render() {
   document.getElementById("rows").innerHTML = [
     group("First sync", "everything a phone moves to sync once: the files, the setup data and one call to read its coins", 4),
     row("Total", first.map(nb), "cmp"),
-    group("Once", "from the start; a phone that knows its date downloads only from its date mark", 4),
-    same("Date marks<small>10 B per mark, one at least every 5 days</small>", "about 730 B a year, at any size", 3),
+    group("Once", "from the start; a phone that knows its date downloads only from a little before it", 4),
+    same("Date map<small>a start time and a delta a day</small>", "under 2 KB a year, at any size", 3),
     row("Commitments file<small>36 B per output</small>", shielded.map((x) => nb(one(x.scan)))),
     row("the phone scans it<small>iPhone 13, on its GPU: 11.1 µs per entry</small>", shielded.map((x) => nb(seconds(x.scanSeconds))), "sub"),
     row("Nullifier prefixes<small>4 B per spent coin</small>", shielded.map((x) => nb(one(x.prefixes)))),
@@ -736,20 +740,19 @@ function render() {
   document.getElementById("dust-rows").innerHTML = [
     group("Once", "", 3),
     row("First-coins map<small>4 B per first coin</small>", dust.map((x) => nb(one(x.mapBytes)))),
-    same("Date marks<small>10 B per mark: the spend file's and the map's positions</small>", "about 730 B a year, at any size", 2),
-    row("Spend file<small>about 9 B per spend, 7.5 B with bzip2; from the phone's date mark</small>", dust.map((x) => nb(one(x.file)))),
-    row("Setup data<small>to read first coins and check a chain's last coin</small>", dust.map((x) => nb(one(x.setup)))),
+    same("Date map<small>a start time and a delta a day for the spend file and the map</small>", "under 2 KB a year, at any size", 2),
+    row("Spend file<small>about 9 B per spend, 7.5 B with bzip2, in chunks of 4,096; from a little before the phone's date</small>", dust.map((x) => nb(one(x.file)))),
+    row("Setup data<small>to read every Dust table</small>", dust.map((x) => nb(one(x.setup)))),
     group("Every sync", "one fetch, and under it the call of 32 that carries it", 3),
     row('Read its first coins<span class="pill info">only on a match</span><small>64 B per coin</small>', fetchCells(dust.map((x) => x.firstCoins))),
-    row("Check the last coin<small>one per chain of Dust coins</small>", fetchCells(dust.map((x) => x.check))),
-    group("To pay a fee", "two requests, one per tree, in one call", 3),
+    row("Check the last coin<small>one group per chain; it also gives the coin's path</small>", fetchCells(dust.map((x) => x.check))),
+    group("To pay a fee", "the coin's path came with the check", 3),
     row("Group roots of both trees<small>32 B per 256 leaves</small>", dust.map((x) => nb(one(x.roots)))),
-    row("Read its coin's group", dust.map((x) => upDown(x.group))),
     row("Read its Night record's group", dust.map((x) => upDown(x.ggroup))),
-    row("their setup data, once", dust.map((x) => nb(one(x.group.masks + x.ggroup.masks))), "sub"),
     group("Every block", "", 3),
     same("New Dust spend", "about 9 B each, at any size", 2),
     same("New first coin", "4 B in the map, at any size", 2),
+    same("Changed first coin", "8 B in the change log, at any size", 2),
   ].join("");
 
   // 4. Server
@@ -779,17 +782,15 @@ function render() {
   document.getElementById("time-dust-rows").innerHTML = [
     group("Dust", "", 3),
     timeRow("Read its first coins", dust.map((x) => x.firstCoins)),
-    timeRow("Check the last coin", dust.map((x) => x.check)),
-    timeRow("Read its coin's group<small>only to pay a fee</small>", dust.map((x) => x.group)),
+    timeRow("Check the last coin<small>its group, which also gives its path</small>", dust.map((x) => x.check)),
     timeRow("Read its Night record's group<small>only to pay a fee</small>", dust.map((x) => x.ggroup)),
   ].join("");
   document.getElementById("mem-dust-rows").innerHTML = [
     group("Dust", "", 3),
-    memRow("Check<small>32 B per commitment</small>", dust.map((x) => x.check)),
-    memRow("Commitment groups<small>8 KB per 256 commitments</small>", dust.map((x) => x.group)),
+    memRow("Commitment groups<small>8 KB per 256 commitments; the check and the path</small>", dust.map((x) => x.check)),
     memRow("Night record groups<small>8 KB per 256 records</small>", dust.map((x) => x.ggroup)),
     memRow("First coins<small>64 B per first coin</small>", dust.map((x) => x.firstCoins)),
-    row("Total", total(dust.map((x) => x.check.memory + x.group.memory + x.ggroup.memory + x.firstCoins.memory)), "cmp"),
+    row("Total", total(dust.map((x) => x.check.memory + x.ggroup.memory + x.firstCoins.memory)), "cmp"),
   ].join("");
 }
 sizeSelect.addEventListener("change", () => {

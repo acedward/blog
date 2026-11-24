@@ -42,7 +42,7 @@ const shielded = [38_053, 1_000_000, 10_000_000].map((n) => ({
   groups: table(Math.ceil(n / 256), 8192),
 }));
 
-// Dust: a spend creates one commitment, and so does each first coin, so spends = commitments − generation records.
+// Dust: the commitment groups serve both the check of a chain's last coin and its path. A spend creates one commitment, and so does each first coin, so spends = commitments − generation records.
 // Generation records: Mainnet's 10,410 today; 1M at the 10M column (the spec's sizing point for that tree).
 const dust = [
   { commitments: 933_567, generation: 10_410 },
@@ -50,7 +50,6 @@ const dust = [
 ].map(({ commitments, generation }) => ({
   commitments, generation,
   spends: commitments - generation,
-  check: table(commitments, 32),
   groups: table(Math.ceil(commitments / 256), 8192),
   generationGroups: table(Math.ceil(generation / 256), 8192),
   // First coins by PIR (decided 2026-11-24): one 64-byte record per first coin, one first coin per Night record.
