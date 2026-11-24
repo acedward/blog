@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Private shielded sync</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFFFF; --ink: #16171A; --ink-2: #45474D; --muted: #5E6168; --hairline: #E6E7EA; --surface: #F5F6F7;
+  --accent: #2B4ACB; --accent-soft: #E8ECFB;
+  /* where a part of the data goes: A file, B data, C tree, D nullifier update */
+  --a: #2B4ACB; --a-bg: #DDE4FA;
+  --b: #24603F; --b-bg: #D9EDE2;
+  --c: #5A3FA0; --c-bg: #E6DFF6;
+  --d: #9A4512; --d-bg: #F8E3D3;
+  --ok-bg: #E6F2EC; --ok-fg: #24603F; --warn-bg: #FBEDE3; --warn-fg: #9A4512; --neutral-bg: #F0F1F3; --neutral-fg: #3F4248;
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111316; --ink: #ECEDEF; --ink-2: #C6C8CD; --muted: #9A9DA5; --hairline: #2B2E34; --surface: #1A1D21;
+    --accent: #8FA6FF; --accent-soft: #1E2747;
+    --a: #A9BAFF; --a-bg: #25315E;
+    --b: #7FD0A6; --b-bg: #17382A;
+    --c: #C0ACF5; --c-bg: #32285A;
+    --d: #F0A878; --d-bg: #45290F;
+    --ok-bg: #17382A; --ok-fg: #7FD0A6; --warn-bg: #45290F; --warn-fg: #F0A878; --neutral-bg: #23262B; --neutral-fg: #C6C8CD;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--font-sans); }
+.mono { font-family: var(--font-mono); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* header and page tabs */
+.top { position: sticky; top: 0; z-index: 5; background: var(--bg); border-bottom: 1px solid var(--hairline); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 56px; flex-wrap: wrap; }
+.brand { display: flex; flex-direction: column; line-height: 1.25; padding: 8px 0; }
+.eyebrow { font: 500 11px/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.brand b { font-weight: 600; }
+.tabs { display: flex; gap: 4px; }
+.tabs button { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; padding: 16px 12px 14px; font: 500 15px var(--font-sans); color: var(--muted); cursor: pointer; }
+.tabs button .n { font: 500 12px var(--font-mono); margin-right: 7px; }
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs button:focus-visible, .pager button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.page { padding: 30px 0 24px; scroll-margin-top: 72px; }
+.page[hidden] { display: none; }
+h1 { font-size: 30px; line-height: 1.2; font-weight: 600; margin: 0 0 8px; letter-spacing: -.01em; text-wrap: balance; }
+.lead { margin: 0 0 22px; color: var(--ink-2); font-size: 17px; max-width: 760px; }
+h2 { font-size: 18px; font-weight: 600; margin: 0; }
+.pill { display: inline-block; font: 500 11px/1.5 var(--font-mono); letter-spacing: .03em; padding: 1px 8px; border-radius: 999px; white-space: nowrap; background: var(--neutral-bg); color: var(--neutral-fg); }
+.pill.ok { background: var(--ok-bg); color: var(--ok-fg); }
+.pill.warn { background: var(--warn-bg); color: var(--warn-fg); }
+.pill.info { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- page 1: server, phone and the transfers between them ---------- */
+.scene { display: grid; grid-template-columns: 172px minmax(0, 1fr) 172px; grid-template-areas: "server lanes phone"; gap: 14px; align-items: stretch; }
+.end { border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface); padding: 18px 14px; text-align: center; }
+.end-in { position: sticky; top: 84px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; }
+.end.server { grid-area: server; } .end.phone { grid-area: phone; }
+.end svg { color: var(--ink); }
+.end h2 { font-size: 19px; }
+.end p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+.lanes { grid-area: lanes; display: grid; gap: 12px; min-width: 0; }
+.box { border: 1px solid var(--hairline); border-radius: 10px; padding: 12px 18px 2px; }
+.box-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
+.box-head .tag { font: 500 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
+.box-head .sub { font-size: 14px; color: var(--muted); }
+.xfer { padding: 8px 0 10px; }
+.xfer + .xfer { border-top: 1px solid var(--hairline); }
+.xfer-top { display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
+.xfer-name { font-weight: 600; }
+.xfer-name .pill { margin-left: 8px; vertical-align: 1px; }
+.xfer-size { font: 13px var(--font-mono); color: var(--muted); }
+.xfer-foot { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px 20px; flex-wrap: wrap; }
+.xfer-note { margin: 0; color: var(--muted); font-size: 14px; flex: 1 1 200px; }
+.val { font: 500 13.5px/1.55 var(--font-mono); color: var(--ink); text-align: right; flex: none; max-width: 100%; margin-left: auto; }
+.val > span { white-space: nowrap; }
+.wire { position: relative; height: 12px; margin: 6px 0 4px; --w: var(--ink-2); }
+.wire.prv { --w: var(--accent); }
+.wire::before { content: ""; position: absolute; left: 0; right: 9px; top: 5px; height: 2px; background: var(--w); }
+.wire::after { content: ""; position: absolute; right: 0; top: 0; border-style: solid; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent var(--w); }
+.wire.both::before { left: 9px; }
+.wire.both i { position: absolute; left: 0; top: 0; border-style: solid; border-width: 6px 10px 6px 0; border-color: transparent var(--w) transparent transparent; }
+.wire .chip { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--bg); padding: 0 9px; font: 500 11px/1 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--w); white-space: nowrap; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.legend { display: flex; gap: 10px 28px; flex-wrap: wrap; margin: 18px 0 0; padding: 0; list-style: none; font-size: 14px; color: var(--ink-2); }
+.legend li { display: flex; align-items: center; gap: 10px; }
+.legend .wire { width: 46px; flex: none; margin: 0; }
+.foot-note { margin: 14px 0 0; font-size: 13.5px; color: var(--muted); max-width: 820px; }
+
+/* ---------- page 2: how one coin's data is split ---------- */
+.panel { border: 1px solid var(--hairline); border-radius: 10px; padding: 18px; }
+.panel > .eyebrow { display: block; margin-bottom: 12px; }
+.groups { display: flex; gap: 14px; flex-wrap: wrap; }
+.group { border-top: 2px solid var(--ink); padding-top: 6px; min-width: 0; }
+.group.one { flex: 1 1 110px; } .group.seven { flex: 7 1 520px; }
+.group > .eyebrow { display: block; margin-bottom: 8px; }
+.blocks { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 12px 8px; }
+.blk-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; }
+.bar { display: flex; height: 26px; border-radius: 4px; overflow: hidden; border: 1px solid var(--hairline); }
+.seg { flex: var(--n) 0 0; min-width: 4px; display: flex; align-items: center; justify-content: center; font: 500 11px var(--font-mono); overflow: hidden; white-space: nowrap; }
+.seg + .seg { border-left: 1px solid var(--bg); }
+.seg.a { background: var(--a-bg); color: var(--a); } .seg.b { background: var(--b-bg); color: var(--b); }
+.seg.c { background: var(--c-bg); color: var(--c); } .seg.d { background: var(--d-bg); color: var(--d); }
+.seg.thin.a { background: var(--a); } .seg.thin.b { background: var(--b); }
+.seg.none, .h.none { background: repeating-linear-gradient(135deg, var(--surface) 0 4px, var(--hairline) 4px 5px); }
+.blk-to { font: 12px/1.35 var(--font-mono); margin-top: 5px; color: var(--ink-2); }
+.blk-what { font-size: 12px; line-height: 1.35; color: var(--muted); }
+.path { margin-top: 18px; border-top: 2px solid var(--ink); padding-top: 6px; }
+.path > .eyebrow { display: block; margin-bottom: 8px; }
+.hashes { display: grid; grid-template-columns: repeat(32, minmax(0, 1fr)); gap: 3px; }
+.h { height: 22px; border-radius: 3px; border: 1px solid var(--hairline); }
+.h.c { background: var(--c-bg); border-color: transparent; }
+.halves { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin-top: 5px; font: 12px/1.35 var(--font-mono); color: var(--ink-2); }
+.halves span:last-child { color: var(--muted); }
+.key { display: flex; gap: 6px 18px; flex-wrap: wrap; margin: 14px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--ink-2); }
+.key li { display: flex; align-items: center; gap: 7px; }
+.sw { width: 16px; height: 12px; border-radius: 3px; border: 1px solid var(--hairline); flex: none; }
+.sw.a { background: var(--a-bg); } .sw.b { background: var(--b-bg); } .sw.c { background: var(--c-bg); } .sw.d { background: var(--d-bg); }
+.sw.none { background: repeating-linear-gradient(135deg, var(--surface) 0 4px, var(--hairline) 4px 5px); }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.card { border: 1px solid var(--hairline); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+.letter { width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center; font: 600 13px var(--font-mono); flex: none; }
+.letter.a { background: var(--a-bg); color: var(--a); } .letter.b { background: var(--b-bg); color: var(--b); }
+.letter.c { background: var(--c-bg); color: var(--c); } .letter.d { background: var(--d-bg); color: var(--d); }
+.card .size { font: 500 22px/1.3 var(--font-mono); margin: 8px 0 2px; }
+.card .size small { font: 13px var(--font-sans); color: var(--muted); margin-left: 6px; }
+.card .bar { margin: 10px 0 4px; }
+.card .parts { font: 12px/1.4 var(--font-mono); color: var(--muted); margin: 0 0 10px; }
+.card ul { margin: 10px 0 0; padding-left: 18px; font-size: 14px; color: var(--ink-2); }
+.card li { margin: 4px 0; }
+.card .hashes { grid-template-columns: repeat(16, minmax(0, 1fr)); margin: 10px 0 4px; }
+.nul { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 22px; margin-top: 14px; align-items: start; }
+.nul .rows { display: grid; gap: 12px; }
+.nul .row { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 12px; font-size: 14px; color: var(--ink-2); }
+.nul .row b { font: 500 15px var(--font-mono); color: var(--ink); }
+.nul .row .pill { margin-left: 6px; }
+.never { margin: 14px 0 0; font-size: 14px; color: var(--ink-2); max-width: 900px; }
+
+/* ---------- page 3: sizes by scheme ---------- */
+.controls { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.controls label { font: 500 12px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+select { appearance: none; font: 500 16px var(--font-sans); color: var(--ink); background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none' stroke='%235E6168' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 12px center; border: 1px solid var(--ink); border-radius: 8px; padding: 8px 36px 8px 12px; cursor: pointer; }
+.scheme-note { margin: 0 0 18px; color: var(--ink-2); font-size: 15px; max-width: 820px; min-height: 3em; }
+.controls-note { font-size: 14px; color: var(--muted); }
+.controls-note a { color: var(--accent); }
+.table-wrap { overflow-x: auto; }
+table.sizes { width: 100%; min-width: 640px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.sizes th, .sizes td { padding: 10px 12px; border-bottom: 1px solid var(--hairline); text-align: right; vertical-align: top; }
+.sizes th:first-child, .sizes td:first-child { text-align: left; padding-left: 0; }
+.sizes thead th { font-weight: 600; vertical-align: bottom; border-bottom: 2px solid var(--ink); }
+.sizes thead small { display: block; font: 400 12px var(--font-mono); color: var(--muted); }
+.sizes tr.grp th { font: 500 11px var(--font-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); padding-top: 22px; padding-bottom: 6px; text-align: left; }
+.sizes tbody tr.grp:first-child th { padding-top: 14px; }
+.sizes tr.grp th span { text-transform: none; letter-spacing: 0; margin-left: 8px; }
+.sizes td.num { font: 14.5px var(--font-mono); }
+.nb { white-space: nowrap; }
+.sizes td small { display: block; font: 13px var(--font-sans); color: var(--muted); }
+.sizes tr.sub td:first-child { padding-left: 20px; color: var(--ink-2); }
+.sizes td.same { text-align: center; color: var(--ink-2); font: 14.5px var(--font-mono); }
+.sizes tr.cmp td { background: var(--surface); }
+.sizes tr.cmp td:first-child { padding-left: 12px; font-weight: 600; }
+.sizes tr.cmp td.num { font-size: 17px; font-weight: 500; }
+.sizes tr.cmp td.num .pill { display: table; margin: 5px 0 0 auto; }
+.star { color: var(--accent); }
+.notes { margin: 18px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--muted); max-width: 900px; }
+.notes li { margin: 4px 0; }
+
+.pager { border-top: 1px solid var(--hairline); margin-top: 8px; }
+.pager .wrap { display: flex; align-items: center; justify-content: space-between; padding-top: 14px; padding-bottom: 28px; }
+.pager button { appearance: none; background: none; border: 1px solid var(--hairline); border-radius: 8px; padding: 7px 14px; font: 500 14px var(--font-sans); color: var(--ink); cursor: pointer; }
+.pager button:disabled { color: var(--muted); opacity: .5; cursor: default; }
+.pager span { font: 12px var(--font-mono); color: var(--muted); }
+
+@media (max-width: 860px) {
+  .cards { grid-template-columns: 1fr; }
+  .nul { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .wrap { padding: 0 16px; }
+  h1 { font-size: 24px; }
+  .page { padding-top: 24px; }
+  .tabs button { padding: 10px 8px; font-size: 14px; }
+  .scene { grid-template-columns: 1fr 1fr; grid-template-areas: "server phone" "lanes lanes"; }
+  .end { padding: 8px 10px; }
+  .end-in { position: static; padding: 4px 0; }
+  .val { width: 100%; text-align: left; }
+  .end svg { width: 32px; height: 32px; }
+  .box { padding: 12px 14px 4px; }
+  .hashes { gap: 2px; }
+}
+@media print {
+  .top, .pager { display: none; }
+  .page[hidden] { display: block; }
+  .page { break-after: page; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="eyebrow">UmbraDB · proof of concept</span><b>Private shielded sync</b></div>
+    <nav class="tabs" role="tablist" aria-label="Pages">
+      <button role="tab" data-page="concept" aria-controls="concept"><span class="n">1</span>Concept</button>
+      <button role="tab" data-page="split" aria-controls="split"><span class="n">2</span>Split</button>
+      <button role="tab" data-page="sizes" aria-controls="sizes"><span class="n">3</span>Sizes</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ======================= 1. Concept ======================= -->
+<section class="page" id="concept" role="tabpanel">
+  <h1>A phone syncs its shielded coins without showing which are its own</h1>
+  <p class="lead">Every phone downloads the same small file and finds its coins in it. It then fetches their details with requests the server cannot read.</p>
+
+  <div class="controls">
+    <label for="scheme-concept">Scheme</label>
+    <select id="scheme-concept" class="scheme-select">
+      <option value="simple">Simple PIR</option>
+      <option value="ipir">IPIR+SP</option>
+    </select>
+    <label for="size-concept">Commitments</label>
+    <select id="size-concept">
+      <option value="0">Preprod today</option>
+      <option value="1">1M commitments</option>
+      <option value="2">10M commitments</option>
+    </select>
+    <span class="controls-note"><span id="size-note"></span> <a href="#sizes">Sizes</a> shows all three side by side.</span>
+  </div>
+  <p class="scheme-note"></p>
+
+  <div class="scene">
+    <div class="end server"><div class="end-in">
+      <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="7" width="32" height="10" rx="2.5"/><rect x="8" y="19" width="32" height="10" rx="2.5"/><rect x="8" y="31" width="32" height="10" rx="2.5"/><path d="M13.5 12h.01M13.5 24h.01M13.5 36h.01M20 12h8M20 24h8M20 36h8"/></svg>
+      <h2>Server</h2>
+      <p>Indexes every commitment and nullifier on the chain.</p>
+    </div></div>
+
+    <div class="lanes">
+      <div class="box">
+        <div class="box-head"><span class="tag">Once</span><span class="sub">on the first sync</span></div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Commitment file</span><span class="xfer-size">36 B per commitment</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The phone reads the whole file and tests each entry with its key: mine or not.</p><span class="val" id="v-file"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Setup data</span><span class="xfer-size" id="c-setup-kind"></span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+          <div class="xfer-foot"><p class="xfer-note">What the phone needs to read the answers of its private fetches.</p><span class="val" id="v-setup"></span></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-head"><span class="tag">Multiple times</span><span class="sub">on every sync; sizes are per call</span></div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Fetch commitments</span><span class="xfer-size">98 B per coin</span></div>
+          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The data of the coins the phone found: token type and value.</p><span class="val" id="v-commitments"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Fetch nullifiers</span><span class="xfer-size">40 B per record</span></div>
+          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
+          <div class="xfer-foot"><p class="xfer-note">Whether each of its coins has been spent.</p><span class="val" id="v-nullifiers"></span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">Fetch Merkle tree<span class="pill info">only to spend</span></span><span class="xfer-size">512 B per coin</span></div>
+          <div class="wire prv both"><i></i><span class="chip">private fetch</span><span class="sr">phone to server and back</span></div>
+          <div class="xfer-foot"><p class="xfer-note">The path that proves a coin is in the tree.</p><span class="val" id="v-merkle"></span></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-head"><span class="tag">Incremental</span><span class="sub">as new blocks arrive, in a file or over a WebSocket</span></div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">New commitments</span><span class="xfer-size">36 B each</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+        </div>
+        <div class="xfer">
+          <div class="xfer-top"><span class="xfer-name">New nullifiers</span><span class="xfer-size">8 B each</span></div>
+          <div class="wire"><span class="sr">server to phone</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="end phone"><div class="end-in">
+      <svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="5" width="20" height="38" rx="4"/><path d="M21 9.5h6M22.5 38.5h3"/></svg>
+      <h2>Phone</h2>
+      <p>Holds the wallet's keys. They never leave it.</p>
+    </div></div>
+  </div>
+
+  <ul class="legend">
+    <li><span class="wire"></span>Download: the same bytes for every phone.</li>
+    <li><span class="wire prv both"><i></i></span>Private fetch: an encrypted request, always the same size. The server answers without learning which entry was read.</li>
+  </ul>
+  <p class="foot-note">The 36-byte and 8-byte incremental updates are the design. The proof of concept sends 257 B per new commitment and 40 B per new nullifier.</p>
+</section>
+
+<!-- ======================= 2. Split ======================= -->
+<section class="page" id="split" role="tabpanel" hidden>
+  <h1>One coin's data, split by who needs it</h1>
+  <p class="lead">The chain holds 256 bytes for each shielded coin, and the server computes its place in the Merkle tree. Every phone gets 36 of those bytes; the rest is fetched only by the coin's owner.</p>
+
+  <div class="panel">
+    <span class="eyebrow">On the chain, for one coin</span>
+    <div class="groups">
+      <div class="group one">
+        <span class="eyebrow">Commitment · 32 B</span>
+        <div class="blocks">
+          <div class="blk"><div class="blk-name">Commitment</div><div class="bar"><span class="seg b" style="--n:16">B</span><span class="seg none" style="--n:16"></span></div><div class="blk-to">16 B → B</div><div class="blk-what">the coin's hash</div></div>
+        </div>
+      </div>
+      <div class="group seven">
+        <span class="eyebrow">Ciphertext · 224 B</span>
+        <div class="blocks">
+          <div class="blk"><div class="blk-name">Point</div><div class="bar"><span class="seg a" style="--n:32">A</span></div><div class="blk-to">32 B → A</div><div class="blk-what">one-time point</div></div>
+          <div class="blk"><div class="blk-name">Element 0</div><div class="bar"><span class="seg thin a" style="--n:4"></span><span class="seg none" style="--n:28"></span></div><div class="blk-to">4 B → A</div><div class="blk-what">ownership check</div></div>
+          <div class="blk"><div class="blk-name">Element 1</div><div class="bar"><span class="seg thin b" style="--n:1"></span><span class="seg none" style="--n:31"></span></div><div class="blk-to">1 B → B</div><div class="blk-what">nonce, last byte</div></div>
+          <div class="blk"><div class="blk-name">Element 2</div><div class="bar"><span class="seg b" style="--n:32">B</span></div><div class="blk-to">32 B → B</div><div class="blk-what">nonce, 31 bytes</div></div>
+          <div class="blk"><div class="blk-name">Element 3</div><div class="bar"><span class="seg thin b" style="--n:1"></span><span class="seg none" style="--n:31"></span></div><div class="blk-to">1 B → B</div><div class="blk-what">token type, last byte</div></div>
+          <div class="blk"><div class="blk-name">Element 4</div><div class="bar"><span class="seg b" style="--n:32">B</span></div><div class="blk-to">32 B → B</div><div class="blk-what">token type, 31 bytes</div></div>
+          <div class="blk"><div class="blk-name">Element 5</div><div class="bar"><span class="seg b" style="--n:16">B</span><span class="seg none" style="--n:16"></span></div><div class="blk-to">16 B → B</div><div class="blk-what">value</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="path">
+      <span class="eyebrow">Merkle path · 32 hashes of 32 B, leaf to root</span>
+      <div class="hashes" id="path32" aria-hidden="true"></div>
+      <div class="halves"><span>lower 16 hashes → C</span><span>upper 16 levels: from a public list of block roots</span></div>
+    </div>
+    <ul class="key">
+      <li><span class="sw a"></span>A · commitment file</li>
+      <li><span class="sw b"></span>B · commitment data</li>
+      <li><span class="sw c"></span>C · commitment Merkle tree</li>
+      <li><span class="sw none"></span>never sent: the phone recomputes it</li>
+    </ul>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-head"><span class="letter a">A</span><h2>Commitment file</h2></div>
+      <div class="size">36 B<small>per entry</small></div>
+      <span class="pill">download · every phone, every entry</span>
+      <div class="bar"><span class="seg a" style="--n:32">point · 32</span><span class="seg a" style="--n:4">4</span></div>
+      <p class="parts">point 32 B + first 4 B of element 0</p>
+      <ul>
+        <li>The phone multiplies the point by its key and compares the 4 bytes.</li>
+        <li>A match is its own coin, except for about one entry in 4 billion.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="letter b">B</span><h2>Commitment data</h2></div>
+      <div class="size">98 B<small>per coin</small></div>
+      <span class="pill info">private fetch · for each match</span>
+      <div class="bar"><span class="seg b" style="--n:16">16</span><span class="seg thin b" style="--n:1"></span><span class="seg b" style="--n:32">32</span><span class="seg thin b" style="--n:1"></span><span class="seg b" style="--n:32">32</span><span class="seg b" style="--n:16">16</span></div>
+      <p class="parts">commitment 16 B + elements 1–5 in 1, 32, 1, 32, 16 B</p>
+      <ul>
+        <li>Elements 1–5 decrypt to the coin: nonce, token type, value.</li>
+        <li>The phone recomputes the commitment; the 16 bytes confirm the coin.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="letter c">C</span><h2>Commitment Merkle tree</h2></div>
+      <div class="size">512 B<small>per coin</small></div>
+      <span class="pill info">private fetch · only to spend</span>
+      <div class="hashes" id="path16" aria-hidden="true"></div>
+      <p class="parts">16 lower hashes × 32 B</p>
+      <ul>
+        <li>The coin's path up to the root of its block of 65,536 commitments.</li>
+        <li>The upper 16 levels come from the block roots: 32 B per block, public.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="never"><b>Never sent, 122 of the 256 bytes:</b> 28 bytes of element 0, 62 of elements 1 and 3, 16 of element 5 and 16 of the commitment. The phone recomputes them from its key and the coin.</p>
+
+  <div class="panel" style="margin-top:14px">
+    <div class="card-head"><span class="letter d">D</span><h2>A nullifier, split for the update</h2></div>
+    <div class="nul">
+      <div>
+        <div class="bar" style="margin-top:10px"><span class="seg d" style="--n:8">8 B</span><span class="seg none" style="--n:24"></span></div>
+        <p class="parts" style="font:12px/1.4 var(--font-mono);color:var(--muted);margin:5px 0 0">nullifier, 32 B: one per spent coin</p>
+      </div>
+      <div class="rows">
+        <div class="row"><b>8 B</b><div><strong>Incremental update</strong><span class="pill">download · every phone</span><span class="pill warn">design, not built yet</span><br>The first 8 bytes of each newly spent coin's nullifier. The phone compares them with the first 8 bytes of its own coins' nullifiers, which it computes itself.</div></div>
+        <div class="row"><b>40 B</b><div><strong>Fetch nullifiers</strong><span class="pill info">private fetch</span><br>The whole nullifier with the block height and transaction index of the spend. The nullifier's first bits pick the bucket the phone fetches.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= 3. Sizes ======================= -->
+<section class="page" id="sizes" role="tabpanel" hidden>
+  <h1>What a phone transfers</h1>
+  <p class="lead">Bytes moved between phone and server, at three chain sizes, for each private-fetch scheme.</p>
+
+  <div class="controls">
+    <label for="scheme">Scheme</label>
+    <select id="scheme" class="scheme-select">
+      <option value="simple">Simple PIR</option>
+      <option value="ipir">IPIR+SP</option>
+    </select>
+  </div>
+  <p class="scheme-note"></p>
+
+  <div class="table-wrap">
+    <table class="sizes">
+      <thead>
+        <tr>
+          <th scope="col"><span class="sr">Transfer</span></th>
+          <th scope="col">Preprod today<small>69,329 commitments</small></th>
+          <th scope="col">1M commitments<small>measured, padded copy</small></th>
+          <th scope="col">10M commitments<small>calculated</small></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <ul class="notes">
+    <li><span class="star">*</span> Calculated from the scheme's size rules. Every other figure is measured: Preprod at height 3,439,524 (57,812 nullifiers), and the same data padded with random entries to 1,000,000 commitments and nullifiers. 1 MB is 1,000,000 bytes.</li>
+    <li>A fetch call always carries 32 requests, whatever the phone needs, so every phone's calls look alike.</li>
+    <li>With the split, first sync: the commitment file, the setup data, one call to fetch commitments and one to fetch nullifiers, up and down.</li>
+    <li id="note-more" hidden></li>
+    <li id="note-dagger" hidden>† One IPIR+SP table holds at most 2<sup>30</sup> cells, so 512-byte Merkle records fit up to 4.19M commitments. At 10M the records must be shorter (192 B fits: 4.90 MB up and 4.15 MB down per call) or the table split.</li>
+    <li>gzip or brotli on top changes little: fetches and setup data do not shrink, and today's commitment file shrinks by 8%.</li>
+    <li>IPIR+SP's parameter set is marked experimental by its authors.</li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="pager">
+  <div class="wrap">
+    <button id="prev" type="button">← Previous</button>
+    <span id="where">1 / 3</span>
+    <button id="next" type="button">Next →</button>
+  </div>
+</footer>
+
+<script>
+// ---------- pages ----------
+const PAGES = ["concept", "split", "sizes"];
+const tabs = [...document.querySelectorAll(".tabs button")];
+function show(id, push) {
+  if (!PAGES.includes(id)) id = PAGES[0];
+  for (const p of PAGES) document.getElementById(p).hidden = p !== id;
+  for (const t of tabs) t.setAttribute("aria-selected", String(t.dataset.page === id));
+  const i = PAGES.indexOf(id);
+  document.getElementById("where").textContent = `${i + 1} / ${PAGES.length}`;
+  document.getElementById("prev").disabled = i === 0;
+  document.getElementById("next").disabled = i === PAGES.length - 1;
+  if (push && location.hash !== "#" + id) history.replaceState(null, "", "#" + id);
+  window.scrollTo(0, 0);
+}
+const current = () => PAGES.find((p) => !document.getElementById(p).hidden);
+const step = (d) => show(PAGES[Math.min(PAGES.length - 1, Math.max(0, PAGES.indexOf(current()) + d))], true);
+for (const t of tabs) t.addEventListener("click", () => show(t.dataset.page, true));
+document.getElementById("prev").addEventListener("click", () => step(-1));
+document.getElementById("next").addEventListener("click", () => step(1));
+addEventListener("hashchange", () => show(location.hash.slice(1), false));
+addEventListener("keydown", (e) => {
+  if (e.target instanceof HTMLSelectElement || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === "ArrowRight") step(1);
+  if (e.key === "ArrowLeft") step(-1);
+});
+
+// ---------- page 2: the path's hashes ----------
+document.getElementById("path32").innerHTML = Array.from({ length: 32 }, (_, i) => `<span class="h ${i < 16 ? "c" : "none"}"></span>`).join("");
+document.getElementById("path16").innerHTML = '<span class="h c"></span>'.repeat(16);
+
+// ---------- page 3: the table ----------
+// Bytes. A cell is [value] or [up, down]; a trailing true marks a calculated figure; null: does not fit (†).
+const C = true;
+const FILE = [[2495844], [36000000], [360000000, C]];
+const FULL = [[19598208, C], [288000000, C], [2880000000, C]];
+const SCHEMES = {
+  simple: {
+    note: "<b>Simple PIR.</b> One pass over the table answers a call. The phone first downloads setup data for each table, and that download grows with the table.",
+    setupKind: "grows with the table",
+    setup: [[16875520], [63045632], [225869824, C]],
+    commitments: [[317096, 315432], [1196328, 1205288], [3798312, 3796008, C]],
+    nullifiers: [[262184, 212008], [1048616, 764968], [2097192, 3262504, C]],
+    merkle: [[8874152, 58408], [12800040, 583720], [13061288, 5720104, C]],
+    merkleSetup: [[1867776], [18677760], [183042048, C]],
+  },
+  ipir: {
+    note: "<b>IPIR+SP.</b> Simple PIR's pass over the table, then a packing step. The setup data becomes two small masks per table; in exchange every request carries its own 27.6 KB key.",
+    setupKind: "two small masks per table",
+    setup: [[29768], [178248], [460360, C]],
+    commitments: [[1287336, 182440], [1688744, 1083560], [3695784, 3066024, C]],
+    nullifiers: [[1287336, 182440], [1287336, 1083560], [2491560, 2525352, C]],
+    merkle: [[1287336, 903336], [2892968, 2345128], null],
+    merkleSetup: [[74276], [193060], null],
+  },
+};
+const UNITS = [["B", 1], ["KB", 1e3], ["MB", 1e6], ["GB", 1e9]];
+function unitOf(bytes) {
+  let u = UNITS[0];
+  for (const c of UNITS) if (bytes / c[1] >= 0.9995) u = c;
+  return u;
+}
+const digits = (v) => (v >= 99.95 ? v.toFixed(0) : v >= 9.995 ? v.toFixed(1) : v.toFixed(2));
+function one(bytes) {
+  const [name, size] = unitOf(bytes);
+  return size === 1 ? `${bytes} B` : `${digits(bytes / size)} ${name}`;
+}
+const pair = (up, down) => `<span class="nb">${digits(up / 1e6)} MB up</span> · <span class="nb">${digits(down / 1e6)} MB down</span>`;
+const star = (calc) => (calc ? '<span class="star">*</span>' : "");
+function cell(c) {
+  if (c === null) return '<td class="num">—†</td>';
+  const calc = c[c.length - 1] === true;
+  const v = calc ? c.slice(0, -1) : c;
+  return `<td class="num">${v.length === 2 ? pair(v[0], v[1]) : `<span class="nb">${one(v[0])}</span>`}${star(calc)}</td>`;
+}
+const row = (label, cells, cls = "") => `<tr class="${cls}"><td>${label}</td>${cells.map(cell).join("")}</tr>`;
+const group = (name, hint = "") => `<tr class="grp"><th scope="rowgroup" colspan="4">${name}${hint ? `<span>${hint}</span>` : ""}</th></tr>`;
+const same = (label, text) => `<tr><td>${label}</td><td class="same" colspan="3">${text}</td></tr>`;
+
+let scheme = "simple";
+try { if (SCHEMES[localStorage.getItem("scheme")]) scheme = localStorage.getItem("scheme"); } catch {}
+const selects = [...document.querySelectorAll(".scheme-select")];
+const upDown = (c) => [`${digits(c[0] / 1e6)} MB up`, `${digits(c[1] / 1e6)} MB down`];
+// Concept shows each transfer's size at the number of commitments chosen there (an index into the cells above).
+const SIZE_NOTES = [
+  "Measured on Preprod: 69,329 commitments and 57,812 nullifiers.",
+  "Measured on Preprod's data, padded with random entries to 1,000,000 commitments and nullifiers.",
+  '<span class="star">*</span> Calculated from the scheme\'s size rules.',
+];
+let size = 0;
+try { if (SIZE_NOTES[Number(localStorage.getItem("size"))]) size = Number(localStorage.getItem("size")); } catch {}
+const sizeSelect = document.getElementById("size-concept");
+const isCalc = (c) => c[c.length - 1] === true;
+// `cells` are the cells the value is made of; null among them: the table does not fit at this size.
+function val(id, cells, parts) {
+  document.getElementById(id).innerHTML = cells.includes(null)
+    ? "<span>no table at this size:</span> <span>512 B records fit up to 4.19M</span>"
+    : parts().map((t) => `<span>${t}</span>`).join(" · ") + star(cells.some(isCalc));
+}
+
+function render() {
+  const s = SCHEMES[scheme];
+  for (const el of selects) el.value = scheme;
+  for (const el of document.querySelectorAll(".scheme-note")) el.innerHTML = s.note;
+  // Concept: each transfer's size at the chosen number of commitments
+  document.getElementById("c-setup-kind").textContent = s.setupKind;
+  sizeSelect.value = String(size);
+  document.getElementById("size-note").innerHTML = SIZE_NOTES[size];
+  val("v-file", [FILE[size]], () => [one(FILE[size][0])]);
+  val("v-setup", [s.setup[size]], () => [one(s.setup[size][0])]);
+  val("v-commitments", [s.commitments[size]], () => upDown(s.commitments[size]));
+  val("v-nullifiers", [s.nullifiers[size]], () => upDown(s.nullifiers[size]));
+  val("v-merkle", [s.merkle[size], s.merkleSetup[size]], () => [...upDown(s.merkle[size]), `setup once ${one(s.merkleSetup[size][0])}`]);
+  const sum = (c) => (c[c.length - 1] === true ? c.slice(0, -1) : c).reduce((a, b) => a + b, 0);
+  const split = FILE.map((f, i) => {
+    const parts = [f, s.setup[i], s.commitments[i], s.nullifiers[i]];
+    return { bytes: parts.reduce((a, c) => a + sum(c), 0), calc: parts.some((c) => c[c.length - 1] === true) };
+  });
+  const splitCells = split.map((t, i) => {
+    const ratio = sum(FULL[i]) / t.bytes;
+    const pill = ratio >= 1
+      ? `<span class="pill ok">${ratio.toFixed(1)}× less than in full</span>`
+      : `<span class="pill warn">${Math.round((1 / ratio - 1) * 100)}% more than in full</span>`;
+    return `<td class="num"><span class="nb">${one(t.bytes)}${star(t.calc)}</span>${pill}</td>`;
+  });
+  document.getElementById("rows").innerHTML = [
+    group("Compression", "downloading everything, against the split"),
+    row("Everything in full<small>256 B per commitment, 32 B per nullifier</small>", FULL, "cmp"),
+    `<tr class="cmp"><td>With the split, first sync<small>36 B per commitment, the rest fetched</small></td>${splitCells.join("")}</tr>`,
+    group("Once"),
+    row("Commitment file<small>36 B per commitment</small>", FILE),
+    row("Setup data<small>to fetch commitments and nullifiers</small>", s.setup),
+    group("Multiple times", "per call of 32 requests: bytes the phone sends up, bytes it gets back down"),
+    row("Fetch commitments", s.commitments),
+    row("Fetch nullifiers", s.nullifiers),
+    row("Fetch Merkle tree<small>only to spend</small>", s.merkle),
+    row("its setup data, once", s.merkleSetup, "sub"),
+    group("Incremental", "the design; the proof of concept sends 257 B and 40 B"),
+    same("New commitment", "36 B each, at any size"),
+    same("New nullifier", "8 B each, at any size"),
+  ].join("");
+  const more = split.findIndex((t, i) => t.bytes > sum(FULL[i]));
+  const noteMore = document.getElementById("note-more");
+  noteMore.hidden = more < 0;
+  if (more >= 0)
+    noteMore.textContent = `More than in full: at ${["Preprod's size today", "1M", "10M"][more]} this scheme's setup data (${one(sum(s.setup[more]))}) outweighs what the split saves, so a first sync moves slightly more than downloading everything.`;
+  document.getElementById("note-dagger").hidden = !(s.merkle.includes(null) || s.merkleSetup.includes(null));
+}
+for (const el of selects)
+  el.addEventListener("change", () => {
+    scheme = el.value;
+    try { localStorage.setItem("scheme", scheme); } catch {}
+    render();
+  });
+sizeSelect.addEventListener("change", () => {
+  size = Number(sizeSelect.value);
+  try { localStorage.setItem("size", String(size)); } catch {}
+  render();
+});
+render();
+show(location.hash.slice(1), false);
+</script>
+</body>
+</html>

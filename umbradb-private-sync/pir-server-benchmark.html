@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PIR server benchmark</title>
+<style>
+  :root { --bg:#fbfbfa; --fg:#1c1c1a; --muted:#6b6b66; --line:#dcdcd6; --card:#ffffff; --accent:#1f5fd0; --ok:#1a7f4b; --bad:#b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#151514; --fg:#ececea; --muted:#9a9a94; --line:#33332f; --card:#1d1d1b; --accent:#7aa7ff; --ok:#5fd08f; --bad:#ff8a80; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.5 -apple-system, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: none; margin: 0; padding: 28px 24px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; } h2 { font-size: 15px; margin: 28px 0 8px; }
+  p { margin: 6px 0; } .muted { color: var(--muted); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-top:14px; }
+  .row { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; }
+  select, button { font:inherit; padding:7px 12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--fg); }
+  button { cursor:pointer; background:var(--accent); border-color:var(--accent); color:#fff; } button:disabled { opacity:.5; cursor:default; }
+  label { display:inline-flex; gap:6px; align-items:center; }
+  .scroll { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-variant-numeric: tabular-nums; }
+  th, td { text-align:right; padding:7px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th:first-child, td:first-child { text-align:left; } th { color:var(--muted); font-weight:500; font-size:13px; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); }
+  #status { min-height:1.5em; } ul { margin:6px 0; padding-left:20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PIR server benchmark</h1>
+  <p class="muted">How long the server step of a SimplePIR query takes on this machine's GPU: the table multiplied by a batch of query vectors.</p>
+
+  <div class="card">
+    <p id="env" class="muted">Detecting…</p>
+    <div class="row" style="margin-top:10px">
+      <label>Records <select id="count">
+        <option value="250000">250,000</option><option value="1000000" selected>1,000,000</option><option value="2000000">2,000,000</option>
+      </select></label>
+      <label>Record size <select id="rec">
+        <option value="192">192 bytes (coin only)</option><option value="448">448 bytes (coin + 8 path hashes)</option><option value="704" selected>704 bytes (coin + 16 path hashes)</option>
+      </select></label>
+      <label>Queries per call <select id="k">
+        <option value="1">1</option><option value="8">8</option><option value="32" selected>32</option>
+      </select></label>
+      <button id="run">Run on GPU</button>
+    </div>
+    <p id="status" style="margin-top:12px"></p>
+  </div>
+
+  <h2>Results</h2>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Table</th><th>Grid (rows × columns)</th><th>Queries per call</th><th>Time per call</th><th>Per query</th><th>Queries / second</th><th>Table read / second</th><th>JavaScript, one thread, per query</th><th>Check</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="9" class="muted" style="text-align:left">No runs yet.</td></tr></tbody>
+    </table>
+  </div>
+  <div class="card" id="derived" hidden></div>
+
+  <h2>What is measured</h2>
+  <div class="card">
+    <ul>
+      <li>The table is laid out as a grid of 10-bit numbers. One query is one 32-bit number per column; the answer is one 32-bit number per row. The server multiplies every cell of the grid by the matching query number and sums along each row, with 32-bit wraparound.</li>
+      <li>A call carries several query vectors, and the grid is read once for all of them.</li>
+      <li>The table content here is random; the cost does not depend on the content. On the GPU three 10-bit numbers are packed into each 32-bit word.</li>
+      <li>The time covers sending the query vectors to the GPU, the multiplication, and reading the answers back. Building the table is not included.</li>
+      <li>The check recomputes a few rows in plain JavaScript and compares them with the GPU's answers. The same rows give the JavaScript time, projected to the whole table.</li>
+      <li>The wallet's side of the query (building the vectors, removing the mask) is not measured here.</li>
+    </ul>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = (n, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits: d, minimumFractionDigits: d });
+const dur = (s) => s < 1 ? fmt(s * 1000, s < 0.01 ? 2 : 0) + " ms" : s < 120 ? fmt(s, 1) + " s" : fmt(s / 60, 1) + " min";
+const mb = (b) => b >= 1e9 ? fmt(b / 1e9, 2) + " GB" : fmt(b / 1e6) + " MB";
+const status = (t, cls = "") => { $("status").textContent = t; $("status").className = cls; };
+const tick = () => new Promise((r) => setTimeout(r));
+const params = new URLSearchParams(location.search);
+
+const SHADER = `
+struct P { rowOffset: u32, rows: u32, W: u32, K: u32, G: u32, groups: u32, pad0: u32, pad1: u32 }
+@group(0) @binding(0) var<storage, read> D: array<u32>;
+@group(0) @binding(1) var<storage, read> Q: array<u32>;
+@group(0) @binding(2) var<storage, read_write> O: array<u32>;
+@group(0) @binding(3) var<uniform> p: P;
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let r = gid.x / p.groups; let g = gid.x % p.groups;
+  if (r >= p.rows) { return; }
+  var acc: array<u32, 32>;
+  let base = r * p.W; let k0 = g * p.G;
+  for (var w = 0u; w < p.W; w++) {
+    let x = D[base + w];
+    let e0 = x & 1023u; let e1 = (x >> 10u) & 1023u; let e2 = (x >> 20u) & 1023u;
+    let q = w * 3u * p.K + k0;
+    for (var j = 0u; j < p.G; j++) {
+      acc[j] += e0 * Q[q + j] + e1 * Q[q + p.K + j] + e2 * Q[q + 2u * p.K + j];
+    }
+  }
+  let o = (p.rowOffset + r) * p.K + k0;
+  for (var j = 0u; j < p.G; j++) { O[o + j] = acc[j]; }
+}`;
+
+// Row r of the table: W words, each holding three 10-bit numbers. Deterministic, so rows can be rebuilt for the check.
+function fillRow(dst, off, r, W) {
+  let x = (Math.imul(r + 1, 2654435761) >>> 0) | 1;
+  for (let i = 0; i < W; i++) { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; dst[off + i] = x & 0x3fffffff; }
+}
+
+let device = null, pipeline = null, layout = null, lost = null, built = null;
+async function init() {
+  if (device) return;
+  const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+  if (!adapter) throw new Error("No WebGPU adapter is available.");
+  device = await adapter.requestDevice();
+  device.lost.then((l) => { lost = l.message || "device lost"; });
+  const module = device.createShaderModule({ code: SHADER });
+  const info = await module.getCompilationInfo();
+  const err = info.messages.find((m) => m.type === "error");
+  if (err) throw new Error("Shader error at line " + err.lineNum + ": " + err.message);
+  const C = GPUShaderStage.COMPUTE;
+  layout = device.createBindGroupLayout({ entries: [
+    { binding: 0, visibility: C, buffer: { type: "read-only-storage" } },
+    { binding: 1, visibility: C, buffer: { type: "read-only-storage" } },
+    { binding: 2, visibility: C, buffer: { type: "storage" } },
+    { binding: 3, visibility: C, buffer: { type: "uniform" } } ] });
+  pipeline = await device.createComputePipelineAsync({ layout: device.createPipelineLayout({ bindGroupLayouts: [layout] }), compute: { module, entryPoint: "main" } });
+}
+
+function geometry(N, recBytes) {
+  const recEntries = Math.ceil(recBytes * 8 / 10);
+  const side = Math.sqrt(N * recEntries);
+  const perColumn = Math.max(1, Math.round(side / recEntries));
+  const rows = perColumn * recEntries;
+  const cols = Math.ceil(Math.ceil(N / perColumn) / 3) * 3;
+  return { rows, cols, W: cols / 3, perColumn, tableBytes: N * recBytes };
+}
+
+async function buildTable(geo) {
+  const key = geo.rows + "x" + geo.cols;
+  if (built && built.key === key) return built;
+  if (built) built.chunks.forEach((c) => c.buf.destroy());
+  built = null;
+  const { rows, W } = geo, U = GPUBufferUsage;
+  const maxBytes = Math.min(device.limits.maxStorageBufferBindingSize, device.limits.maxBufferSize, 128 * 1024 * 1024);
+  const rowsPerChunk = Math.max(1, Math.floor(maxBytes / (W * 4)));
+  const chunks = [];
+  for (let r0 = 0; r0 < rows; r0 += rowsPerChunk) {
+    const n = Math.min(rowsPerChunk, rows - r0);
+    const buf = device.createBuffer({ size: n * W * 4, usage: U.STORAGE, mappedAtCreation: true });
+    const view = new Uint32Array(buf.getMappedRange());
+    for (let i = 0; i < n; i++) fillRow(view, i * W, r0 + i, W);
+    buf.unmap();
+    chunks.push({ buf, r0, n });
+    status("Building the table on the GPU: " + fmt(Math.min(rows, r0 + n)) + " of " + fmt(rows) + " rows…");
+    await tick();
+  }
+  built = { key, chunks };
+  return built;
+}
+
+async function run() {
+  const N = Number($("count").value), recBytes = Number($("rec").value), K = Number($("k").value);
+  const G = Math.min(K, Number(params.get("g") || 8)), groups = K / G;
+  status("Preparing the GPU…");
+  await init();
+  const geo = geometry(N, recBytes), { rows, cols, W } = geo;
+  const table = await buildTable(geo);
+  const U = GPUBufferUsage;
+  const qBuf = device.createBuffer({ size: cols * K * 4, usage: U.STORAGE | U.COPY_DST });
+  const oBuf = device.createBuffer({ size: rows * K * 4, usage: U.STORAGE | U.COPY_SRC });
+  const rBuf = device.createBuffer({ size: rows * K * 4, usage: U.MAP_READ | U.COPY_DST });
+  const groupsList = table.chunks.map((c) => {
+    const u = device.createBuffer({ size: 32, usage: U.UNIFORM | U.COPY_DST });
+    device.queue.writeBuffer(u, 0, new Uint32Array([c.r0, c.n, W, K, G, groups, 0, 0]));
+    return { u, n: c.n, bind: device.createBindGroup({ layout, entries: [c.buf, qBuf, oBuf, u].map((buffer, binding) => ({ binding, resource: { buffer } })) }) };
+  });
+  const Q = new Uint32Array(cols * K);
+  for (let off = 0; off < Q.length; off += 16384) crypto.getRandomValues(Q.subarray(off, Math.min(Q.length, off + 16384)));
+
+  async function call() {
+    const t = performance.now();
+    device.queue.writeBuffer(qBuf, 0, Q);
+    for (const g of groupsList) {
+      const enc = device.createCommandEncoder(); const p = enc.beginComputePass();
+      p.setPipeline(pipeline); p.setBindGroup(0, g.bind); p.dispatchWorkgroups(Math.ceil(g.n * groups / 64)); p.end();
+      device.queue.submit([enc.finish()]);
+    }
+    const enc = device.createCommandEncoder();
+    enc.copyBufferToBuffer(oBuf, 0, rBuf, 0, rows * K * 4);
+    device.queue.submit([enc.finish()]);
+    await rBuf.mapAsync(GPUMapMode.READ);
+    const out = new Uint32Array(rBuf.getMappedRange().slice(0));
+    rBuf.unmap();
+    if (lost) throw new Error("The GPU device was lost: " + lost);
+    return { ms: performance.now() - t, out };
+  }
+  status("Warming up…"); await call();
+  let best = Infinity, out = null;
+  for (let i = 0; i < 3; i++) { status("Running call " + (i + 1) + " of 3…"); await tick(); const r = await call(); best = Math.min(best, r.ms); out = r.out; }
+
+  // Check a few rows in plain JavaScript, and time them.
+  status("Checking against JavaScript…"); await tick();
+  const sample = [0, 1, Math.floor(rows / 2), rows - 1], row = new Uint32Array(W);
+  let bad = 0; const t0 = performance.now();
+  for (const r of sample) {
+    fillRow(row, 0, r, W);
+    for (let k = 0; k < K; k++) {
+      let acc = 0;
+      for (let w = 0; w < W; w++) {
+        const x = row[w], q = w * 3 * K + k;
+        acc = (acc + Math.imul(x & 1023, Q[q]) + Math.imul((x >>> 10) & 1023, Q[q + K]) + Math.imul((x >>> 20) & 1023, Q[q + 2 * K])) | 0;
+      }
+      if ((acc >>> 0) !== out[r * K + k]) bad++;
+    }
+  }
+  const jsPerQuery = (performance.now() - t0) / 1000 / (sample.length * K) * rows;
+  [qBuf, oBuf, rBuf, ...groupsList.map((g) => g.u)].forEach((b) => b.destroy());
+
+  const sec = best / 1000, perQuery = sec / K;
+  if ($("rows").dataset.empty !== "no") { $("rows").innerHTML = ""; $("rows").dataset.empty = "no"; }
+  const tr = document.createElement("tr");
+  const cells = [fmt(N) + " × " + recBytes + " B = " + mb(geo.tableBytes), fmt(rows) + " × " + fmt(cols), String(K), dur(sec), dur(perQuery), fmt(1 / perQuery, 1), mb(geo.tableBytes / perQuery), dur(jsPerQuery), bad === 0 ? "sample rows match" : bad + " values differ"];
+  cells.forEach((c, i) => { const td = document.createElement("td"); td.textContent = c; if (i === 8) td.className = bad === 0 ? "ok" : "bad"; tr.appendChild(td); });
+  $("rows").appendChild(tr);
+  $("derived").hidden = false;
+  $("derived").innerHTML = "";
+  const lines = [
+    "Last run: a wallet with 25 coins, padded to 32 queries, costs about " + dur(perQuery * 32) + " of this GPU.",
+    "One GPU answers about " + fmt(3600 / (perQuery * 32)) + " such wallets per hour.",
+    "Building the setup data for a new snapshot is the same multiplication with 1,024 vectors: about " + dur(perQuery * 1024) + ".",
+    "Each query sends " + fmt(cols * 4 / 1000) + " KB up and receives " + fmt(rows * 4 / 1000) + " KB back; the setup data is " + mb(rows * 1024 * 4) + ".",
+  ];
+  for (const l of lines) { const p = document.createElement("p"); p.textContent = l; $("derived").appendChild(p); }
+  status("Done.", bad === 0 ? "" : "bad");
+}
+
+$("run").onclick = async () => {
+  $("run").disabled = true;
+  try { await run(); } catch (e) { status("Failed: " + (e && e.message ? e.message : e), "bad"); }
+  $("run").disabled = false;
+};
+(async () => {
+  let text = "WebGPU is not available in this browser.";
+  if (navigator.gpu) {
+    try {
+      const a = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+      const i = a && a.info ? a.info : {};
+      text = a ? "GPU: " + ([i.vendor, i.architecture, i.description || i.device].filter(Boolean).join(" ") || "available") + "." : "WebGPU is present but no adapter was returned.";
+    } catch (e) { text = "WebGPU error: " + e.message; }
+  } else { $("run").disabled = true; }
+  $("env").textContent = text;
+})();
+</script>
+</body>
+</html>

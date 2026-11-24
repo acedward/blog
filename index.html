@@ -188,7 +188,7 @@ footer { border-top: 1px solid var(--line); padding-block: 20px 40px; color: var
 
 <main class="wrap" id="main"></main>
 
-<footer class="wrap">Last updated 3 November 2026 · <a href="updates.html">Weekly updates and slide decks</a></footer>
+<footer class="wrap">Last updated 23 November 2026 · <a href="updates.html">Weekly updates and slide decks</a></footer>
 
 <div class="lb" id="lb" hidden></div>
 
@@ -212,24 +212,38 @@ const PASSPORT = 'midnightntwrk/passport';
 const UMBRADB = 'midnightntwrk/umbradb';
 
 const FEATURED = [
-  { id: 'mip-0018-presentation', title: 'MIP-0018: on-chain token metadata', sub: 'Presentation',
-    line: 'How Midnight contracts publish token names, symbols and decimals as events, and how wallets and explorers read them. The presentation walks through the metadata format, publication and discovery.',
-    primary: ['Open presentation ↗', 'presentations/mip-0018.html'],
-    media: { kind: 'deck', src: 'media/mip-0018-presentation.png', href: 'presentations/mip-0018.html', cap: 'Open the presentation' },
-    flow: ['Token contract', 'publishes events', 'MIP-0018 metadata', 'read by', 'Wallets + explorers'], hl: 1,
-    links: [['Presentation', 'presentations/mip-0018.html'], ['MIP-0018 specification', GH + MIPS + '/blob/main/mips/mip-0018-on-chain-token-metadata.md'], repo('midnight-experiments/mip-0018', 'Reference implementation')] },
-  { id: 'passport-wallet-arms-presentation', title: 'Passport wallet arms: EVM and Solana', sub: 'Presentation',
-    line: 'How EVM and Solana wallets become devices of a Midnight Passport account: one crypto core per curve, one signing format per chain, readable approvals rebuilt in the circuit, every circuit at k 18 or less, and the path to NEAR and Cardano.',
-    primary: ['Open presentation ↗', 'presentations/passport-wallet-arms.html'],
-    media: { kind: 'deck', src: 'media/passport-wallet-arms-presentation.png', href: 'presentations/passport-wallet-arms.html', cap: 'Open the presentation' },
-    flow: ['EVM or Solana wallet', 'signs a readable approval', 'Crypto core + signing format', 'authorises', 'Passport account'], hl: 1,
-    links: [['Presentation', 'presentations/passport-wallet-arms.html'], pr(PASSPORT, 188, 'EVM arm'), pr(PASSPORT, 189, 'Solana arm'), repo('midnight-experiments/passport-wallet-matrix', 'Wallet integration')] },
+  { id: 'umbradb-private-sync', title: 'UmbraDB Private & Fast Sync', sub: 'Shielded tokens and Dust · PIR',
+    line: 'A phone finds and spends its shielded coins and its Dust without the server learning which are its own: every phone downloads the same file and scans it with its key, then reads its coins with encrypted requests the server answers without knowing what was asked (PIR).',
+    primary: ['Open overview ↗', 'https://umbradb-private-sync.pages.dev/'],
+    media: { kind: 'img', src: 'media/umbradb-private-sync.jpg', cap: 'Screenshot · overview' },
+    flow: ['UmbraDB', 'same file for every phone', 'Phone scans with its key', 'encrypted reads', 'Own coins, server blind'], hl: 1,
+    links: [live('https://umbradb-private-sync.pages.dev/', 'Live · overview'),
+      grp('Proof of concept'), pr(UMBRADB, 35, 'local scan + SimplePIR'), pr(UMBRADB, 36, 'IPIR+SP'), pr(UMBRADB, 37, 'Dust sync'), repo('midnight-experiments/ios-shielded-umbra-sync', 'iOS app')] },
+  { id: 'midnight-tokens', title: 'Midnight Tokens Indexer', sub: 'MIP-0018 · served by UmbraDB',
+    line: 'A live list of the tokens Midnight contracts describe with MIP-0018 metadata on Mainnet, Preview and Preprod, as an UmbraDB indexer reports them: name, symbol, kind, color, contract and the block of the last update.',
+    primary: ['Open app ↗', 'https://midnight-tokens.zkdojo.com/?network=preprod'],
+    media: { kind: 'img', src: 'media/midnight-tokens.jpg', cap: 'Screenshot · preprod' },
+    flow: ['Token contracts', 'MIP-0018 events', 'UmbraDB indexer', 'serves', 'Midnight Tokens'], hl: 2,
+    links: [live('https://midnight-tokens.zkdojo.com/?network=mainnet', 'Live · mainnet'), live('https://midnight-tokens.zkdojo.com/?network=preview', 'Live · preview'), live('https://midnight-tokens.zkdojo.com/?network=preprod', 'Live · preprod'),
+      repo('midnight-experiments/umbra-token-explorer-frontend', 'Frontend'), repo(UMBRADB, 'UmbraDB'), ['MIP-0018 specification', GH + MIPS + '/blob/main/mips/mip-0018-on-chain-token-metadata.md'], repo('midnight-experiments/mip-0018', 'Examples and tools')] },
   { id: 'umbradb', title: 'UmbraDB', sub: 'Midnight · modular indexer and persistent storage',
     line: 'A modular Midnight indexer and persistent data layer for wallets and applications. It brings chain history, replay and application-specific indexing together, with PostgreSQL and an in-browser PGlite backend.',
     primary: ['View repository ↗', GH + UMBRADB],
     media: { kind: 'deck', src: 'media/umbradb-presentation.jpg', href: 'presentations/umbradb.html', cap: 'Open the presentation' },
     flow: ['Midnight node', 'chain data', 'UmbraDB', 'indexes and serves', 'Wallets + applications'], hl: 1,
-    links: [repo(UMBRADB), ['Slides', 'presentations/umbradb.html'], ['Architecture and design', GH + UMBRADB + '/tree/main/design'], ['Browser experiment', 'https://stagenet.umbradb.pages.dev/?tab=jsonrpc']] }
+    links: [repo(UMBRADB), ['Slides', 'presentations/umbradb.html'], ['Architecture and design', GH + UMBRADB + '/tree/main/design'], ['Browser experiment', 'https://stagenet.umbradb.pages.dev/?tab=jsonrpc']] },
+  { id: 'passport-wallet-arms-presentation', title: 'Passport backed by EVM and Solana', sub: 'Presentation',
+    line: 'How EVM and Solana wallets become devices of a Midnight Passport account: one crypto core per curve, one signing format per chain, readable approvals rebuilt in the circuit, every circuit at k 18 or less, and the path to NEAR and Cardano.',
+    primary: ['Open presentation ↗', 'presentations/passport-wallet-arms.html'],
+    media: { kind: 'deck', src: 'media/passport-wallet-arms-presentation.png', href: 'presentations/passport-wallet-arms.html', cap: 'Open the presentation' },
+    flow: ['EVM or Solana wallet', 'signs a readable approval', 'Crypto core + signing format', 'authorises', 'Passport account'], hl: 1,
+    links: [['Presentation', 'presentations/passport-wallet-arms.html'], pr(PASSPORT, 188, 'EVM arm'), pr(PASSPORT, 189, 'Solana arm'), repo('midnight-experiments/passport-wallet-matrix', 'Wallet integration')] },
+  { id: 'mip-0018-presentation', title: 'MIP-0018 Token Metadata', sub: 'Presentation',
+    line: 'How Midnight contracts publish token names, symbols and decimals as events, and how wallets and explorers read them. The presentation walks through the metadata format, publication and discovery.',
+    primary: ['Open presentation ↗', 'presentations/mip-0018.html'],
+    media: { kind: 'deck', src: 'media/mip-0018-presentation.png', href: 'presentations/mip-0018.html', cap: 'Open the presentation' },
+    flow: ['Token contract', 'publishes events', 'MIP-0018 metadata', 'read by', 'Wallets + explorers'], hl: 1,
+    links: [['Presentation', 'presentations/mip-0018.html'], ['MIP-0018 specification', GH + MIPS + '/blob/main/mips/mip-0018-on-chain-token-metadata.md'], repo('midnight-experiments/mip-0018', 'Reference implementation')] }
 ];
 
 const PUBLISHED = [

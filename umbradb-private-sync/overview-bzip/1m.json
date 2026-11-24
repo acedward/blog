@@ -1,0 +1,172 @@
+{
+ "1m simplepir": {
+  "height": 3444622,
+  "entries": 1000000,
+  "read": {
+   "public": {
+    "bytes": 38567936,
+    "bzip2": 38740672,
+    "ratio": 1.0045
+   },
+   "up": {
+    "bytes": 1196328,
+    "bzip2": 1202366,
+    "ratio": 1.005
+   },
+   "down": {
+    "bytes": 1205288,
+    "bzip2": 1211509,
+    "ratio": 1.0052
+   },
+   "oneUp": {
+    "bytes": 37384,
+    "bzip2": 37898,
+    "ratio": 1.0137
+   },
+   "oneDown": {
+    "bytes": 37664,
+    "bzip2": 38180,
+    "ratio": 1.0137
+   }
+  },
+  "nullifier": {
+   "public": {
+    "bytes": 24330240,
+    "bzip2": 22156734,
+    "ratio": 0.9107
+   },
+   "up": {
+    "bytes": 1048616,
+    "bzip2": 1053315,
+    "ratio": 1.0045
+   },
+   "down": {
+    "bytes": 760360,
+    "bzip2": 701434,
+    "ratio": 0.9225
+   },
+   "oneUp": {
+    "bytes": 32768,
+    "bzip2": 33266,
+    "ratio": 1.0152
+   },
+   "oneDown": {
+    "bytes": 23760,
+    "bzip2": 22052,
+    "ratio": 0.9281
+   }
+  },
+  "path": {
+   "public": {
+    "bytes": 18677760,
+    "bzip2": 18761313,
+    "ratio": 1.0045
+   },
+   "up": {
+    "bytes": 12800040,
+    "bzip2": 12858925,
+    "ratio": 1.0046
+   },
+   "down": {
+    "bytes": 583720,
+    "bzip2": 586816,
+    "ratio": 1.0053
+   },
+   "oneUp": {
+    "bytes": 400000,
+    "bzip2": 402259,
+    "ratio": 1.0056
+   },
+   "oneDown": {
+    "bytes": 18240,
+    "bzip2": 18708,
+    "ratio": 1.0257
+   }
+  }
+ },
+ "1m ipir-sp": {
+  "height": 3444622,
+  "entries": 1000000,
+  "read": {
+   "public": {
+    "bytes": 89124,
+    "bzip2": 89876,
+    "ratio": 1.0084
+   },
+   "up": {
+    "bytes": 1688744,
+    "bzip2": 1695888,
+    "ratio": 1.0042
+   },
+   "down": {
+    "bytes": 1083560,
+    "bzip2": 1087845,
+    "ratio": 1.004
+   },
+   "oneUp": {
+    "bytes": 52772,
+    "bzip2": 53353,
+    "ratio": 1.011
+   },
+   "oneDown": {
+    "bytes": 33860,
+    "bzip2": 34359,
+    "ratio": 1.0147
+   }
+  },
+  "nullifier": {
+   "public": {
+    "bytes": 44580,
+    "bzip2": 45118,
+    "ratio": 1.0121
+   },
+   "up": {
+    "bytes": 1688744,
+    "bzip2": 1696146,
+    "ratio": 1.0044
+   },
+   "down": {
+    "bytes": 542888,
+    "bzip2": 545002,
+    "ratio": 1.0039
+   },
+   "oneUp": {
+    "bytes": 52772,
+    "bzip2": 53351,
+    "ratio": 1.011
+   },
+   "oneDown": {
+    "bytes": 16964,
+    "bzip2": 17430,
+    "ratio": 1.0275
+   }
+  },
+  "path": {
+   "public": {
+    "bytes": 193060,
+    "bzip2": 194315,
+    "ratio": 1.0065
+   },
+   "up": {
+    "bytes": 2892968,
+    "bzip2": 2905448,
+    "ratio": 1.0043
+   },
+   "down": {
+    "bytes": 2345128,
+    "bzip2": 2355542,
+    "ratio": 1.0044
+   },
+   "oneUp": {
+    "bytes": 90404,
+    "bzip2": 91173,
+    "ratio": 1.0085
+   },
+   "oneDown": {
+    "bytes": 73284,
+    "bzip2": 73968,
+    "ratio": 1.0093
+   }
+  }
+ }
+}
